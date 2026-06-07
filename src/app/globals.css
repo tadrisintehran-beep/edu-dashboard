@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme {
+  --font-vazirmatn: 'Vazirmatn', sans-serif;
+  --color-gold: #c9a84c;
+  --color-gold-light: #e8c96a;
+  --color-dark-900: #0c0e14;
+  --color-dark-800: #131620;
+  --color-dark-700: #1a1e2c;
+  --color-dark-600: #1f2438;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-vazirmatn);
+  direction: rtl;
+  background-color: #0c0e14;
+  color: #e8eaf0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ===== LIGHT MODE ===== */
+body.light {
+  background-color: #f0f2f8;
+  color: #1a1e2c;
+}
+body.light .card-bg { background: #ffffff !important; border-color: #e2e6f0 !important; }
+body.light .sidebar-bg { background: #ffffff !important; border-color: #e2e6f0 !important; }
+body.light .topbar-bg { background: #ffffff !important; border-color: #e2e6f0 !important; }
+body.light .inner-bg { background: #f5f7ff !important; }
+body.light .text-main { color: #1a1e2c !important; }
+body.light .text-sub { color: #555c78 !important; }
+body.light .text-muted { color: #8b90a8 !important; }
+body.light .input-bg { background: #eef0f8 !important; border-color: #d0d4e8 !important; color: #1a1e2c !important; }
+
+/* ===== اسکرول‌بار ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1f2438; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #c9a84c55; }
+
+/* ===== انیمیشن‌ها ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.animate-fade-in-up { animation: fadeInUp 0.4s ease forwards; }
+.animate-fade-in    { animation: fadeIn 0.3s ease forwards; }
+.animate-slide-in   { animation: slideInRight 0.3s ease forwards; }
+
+/* ===== Stagger برای لیست‌ها ===== */
+.stagger > *:nth-child(1) { animation: fadeInUp 0.3s ease 0.05s both; }
+.stagger > *:nth-child(2) { animation: fadeInUp 0.3s ease 0.10s both; }
+.stagger > *:nth-child(3) { animation: fadeInUp 0.3s ease 0.15s both; }
+.stagger > *:nth-child(4) { animation: fadeInUp 0.3s ease 0.20s both; }
+.stagger > *:nth-child(5) { animation: fadeInUp 0.3s ease 0.25s both; }
+.stagger > *:nth-child(6) { animation: fadeInUp 0.3s ease 0.30s both; }
+.stagger > *:nth-child(7) { animation: fadeInUp 0.3s ease 0.35s both; }
+.stagger > *:nth-child(8) { animation: fadeInUp 0.3s ease 0.40s both; }
+
+/* ===== کارت hover ===== */
+.hover-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.hover-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px #00000033;
+  border-color: #ffffff1a !important;
+}
+
+/* ===== دکمه ===== */
+.btn-gold {
+  background: linear-gradient(135deg, #c9a84c, #e8c96a);
+  border: none; border-radius: 8px;
+  padding: 10px 20px; color: #1a1200;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-gold:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px #c9a84c44;
+}
+.btn-gold:active { transform: scale(0.97); }
+
+/* ===== pulse dot ===== */
+.pulse-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%; background: #3dbb82;
+  animation: pulse 2s ease infinite;
+}
+
+/* ===== موبایل ===== */
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .mobile-full { width: 100% !important; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .mid-grid  { grid-template-columns: 1fr !important; }
+  .bot-grid  { grid-template-columns: 1fr !important; }
+}
