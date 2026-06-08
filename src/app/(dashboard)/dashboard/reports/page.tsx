@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
+import { useToast } from '@/components/ui/Toast'
+import { toJalali } from '@/lib/date'
 
 const statusLabel: Record<string, string> = {
   submitted: 'ارسال شده', reviewing: 'در حال بررسی', approved: 'تأیید شده', rejected: 'رد شده',
@@ -13,6 +15,7 @@ const statusColor: Record<string, string> = {
 
 export default function ReportsPage() {
   const { t } = useTheme()
+  const { showToast, ToastComponent } = useToast()
   const [reports, setReports] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -33,7 +36,10 @@ export default function ReportsPage() {
   }
 
   const handleAdd = async () => {
-    if (!newReport.title || !newReport.summary) return
+    if (!newReport.title || !newReport.summary) {
+      showToast('لطفاً عنوان و خلاصه گزارش را وارد کنید', 'error')
+      return
+    }
     const { error } = await supabase.from('reports').insert([{
       title_fa: newReport.title,
       author: 'محمد رضایی',
@@ -44,20 +50,25 @@ export default function ReportsPage() {
       seen: false,
     }])
     if (!error) {
+      showToast('گزارش با موفقیت ارسال شد', 'success')
       fetchReports()
       setNewReport({ title: '', province: '', department: '', summary: '' })
       setShowForm(false)
+    } else {
+      showToast('خطا در ارسال گزارش', 'error')
     }
   }
 
   const handleApprove = async (id: string) => {
     await supabase.from('reports').update({ status: 'approved' }).eq('id', id)
+    showToast('گزارش تأیید شد', 'success')
     fetchReports()
     setSelected(null)
   }
 
   const handleReject = async (id: string) => {
     await supabase.from('reports').update({ status: 'rejected' }).eq('id', id)
+    showToast('گزارش رد شد', 'info')
     fetchReports()
     setSelected(null)
   }
@@ -148,7 +159,7 @@ export default function ReportsPage() {
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <span style={{ color: t.sub, fontSize: '11px' }}>👤 {report.author}</span>
                   <span style={{ color: t.sub, fontSize: '11px' }}>📍 {report.province}</span>
-                  <span style={{ color: t.sub, fontSize: '11px' }}>🗓 {new Date(report.created_at).toLocaleDateString('fa-IR')}</span>
+                  <span style={{ color: t.sub, fontSize: '11px' }}>🗓 {toJalali(report.created_at)}</span>
                 </div>
               </div>
               <div style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', background: statusColor[report.status] + '22', color: statusColor[report.status], flexShrink: 0 }}>
@@ -172,7 +183,7 @@ export default function ReportsPage() {
                 { label: 'نویسنده', value: selected.author },
                 { label: 'استان', value: selected.province },
                 { label: 'واحد', value: selected.department },
-                { label: 'تاریخ', value: new Date(selected.created_at).toLocaleDateString('fa-IR') },
+                { label: 'تاریخ', value: toJalali(selected.created_at) },
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${t.border}` }}>
                   <span style={{ color: t.muted, fontSize: '12px' }}>{item.label}</span>
@@ -196,6 +207,7 @@ export default function ReportsPage() {
           </div>
         )}
       </div>
+      {ToastComponent}
     </div>
   )
 }

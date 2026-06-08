@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
+import { useToast } from '@/components/ui/Toast'
 
 const provinces = ['همه', 'تهران', 'اصفهان', 'مازندران', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی']
 
@@ -13,6 +14,7 @@ const avatarColors = ['#c9a84c', '#4a9eff', '#3dbb82', '#e05555', '#8b6fdb', '#e
 
 export default function PhonebookPage() {
   const { t } = useTheme()
+  const { showToast, ToastComponent } = useToast()
   const [contacts, setContacts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -37,22 +39,35 @@ export default function PhonebookPage() {
   }
 
   const handleAdd = async () => {
-    if (!newContact.name || !newContact.phone) return
+    if (!newContact.name || !newContact.phone) {
+      showToast('لطفاً نام و شماره تلفن را وارد کنید', 'error')
+      return
+    }
     const initials = newContact.name.split(' ').map((w: string) => w[0]).join('.')
     const { error } = await supabase.from('contacts').insert([{
-      ...newContact,
-      avatar: initials,
-      favorite: false,
+      ...newContact, avatar: initials, favorite: false,
     }])
     if (!error) {
+      showToast('مخاطب با موفقیت اضافه شد', 'success')
       fetchContacts()
       setNewContact({ name: '', position: '', organization: '', province: 'تهران', phone: '', email: '', tag: 'کارشناس' })
       setShowForm(false)
+    } else {
+      showToast('خطا در افزودن مخاطب', 'error')
     }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('آیا از حذف این مخاطب مطمئن هستید؟')) return
+    await supabase.from('contacts').delete().eq('id', id)
+    showToast('مخاطب حذف شد', 'info')
+    if (selected?.id === id) setSelected(null)
+    fetchContacts()
   }
 
   const toggleFavorite = async (id: string, current: boolean) => {
     await supabase.from('contacts').update({ favorite: !current }).eq('id', id)
+    showToast(current ? 'از موردعلاقه‌ها حذف شد' : 'به موردعلاقه‌ها اضافه شد', 'success')
     fetchContacts()
     if (selected?.id === id) setSelected((prev: any) => prev ? { ...prev, favorite: !current } : null)
   }
@@ -193,9 +208,14 @@ export default function PhonebookPage() {
               style={{ background: selected.favorite ? '#c9a84c22' : t.inner, border: `1px solid ${selected.favorite ? '#c9a84c44' : t.border}`, borderRadius: '8px', padding: '10px', color: selected.favorite ? '#e8c96a' : t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
               {selected.favorite ? '⭐ حذف از موردعلاقه‌ها' : '☆ افزودن به موردعلاقه‌ها'}
             </button>
+            <button onClick={() => handleDelete(selected.id)}
+              style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              🗑 حذف مخاطب
+            </button>
           </div>
         )}
       </div>
+      {ToastComponent}
     </div>
   )
 }

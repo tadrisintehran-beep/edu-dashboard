@@ -2,6 +2,7 @@
 
 import { useAuthStore } from '@/stores/authStore'
 import { useTheme } from '@/lib/ThemeContext'
+import { todayJalaliFull } from '@/lib/date'
 
 const kpiData = [
   { label: 'درخواست های تایید', value: '۲۳', delta: '↑ ۸ نسبت به دیروز', deltaType: 'down', icon: '⭐', color: '#c9a84c' },
@@ -41,7 +42,7 @@ export default function DashboardPage() {
           سلام، {user?.name} 👋
         </h1>
         <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>
-          چهارشنبه، ۱۵ خرداد ۱۴۰۳ — دفتر تهران
+         {todayJalaliFull()} — دفتر تهران
         </p>
       </div>
 

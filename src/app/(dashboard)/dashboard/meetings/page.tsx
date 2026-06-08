@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
+import { useToast } from '@/components/ui/Toast'
 
 const priorityLabel: Record<string, string> = {
   low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری',
@@ -19,6 +20,7 @@ const statusColor: Record<string, string> = {
 
 export default function MeetingsPage() {
   const { t } = useTheme()
+  const { showToast, ToastComponent } = useToast()
   const [meetings, setMeetings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -40,7 +42,10 @@ export default function MeetingsPage() {
   }
 
   const handleAdd = async () => {
-    if (!newMeeting.title || !newMeeting.date || !newMeeting.time) return
+    if (!newMeeting.title || !newMeeting.date || !newMeeting.time) {
+      showToast('لطفاً عنوان، تاریخ و ساعت را وارد کنید', 'error')
+      return
+    }
     const { error } = await supabase.from('meetings').insert([{
       title_fa: newMeeting.title,
       date: newMeeting.date,
@@ -52,19 +57,25 @@ export default function MeetingsPage() {
       status: 'pending',
     }])
     if (!error) {
+      showToast('جلسه با موفقیت ثبت شد', 'success')
       fetchMeetings()
       setNewMeeting({ title: '', date: '', time: '', duration: '', location: '', participants: '', priority: 'med' })
       setShowForm(false)
+    } else {
+      showToast('خطا در ثبت جلسه', 'error')
     }
   }
 
   const handleApprove = async (id: string) => {
     await supabase.from('meetings').update({ status: 'approved' }).eq('id', id)
+    showToast('جلسه تأیید شد', 'success')
     fetchMeetings()
   }
 
   const handleDelete = async (id: string) => {
+    if (!confirm('آیا از حذف این جلسه مطمئن هستید؟')) return
     await supabase.from('meetings').delete().eq('id', id)
+    showToast('جلسه حذف شد', 'info')
     fetchMeetings()
   }
 
@@ -178,6 +189,7 @@ export default function MeetingsPage() {
           <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>جلسه‌ای یافت نشد</div>
         )}
       </div>
+      {ToastComponent}
     </div>
   )
 }

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
+import { useToast } from '@/components/ui/Toast'
+import { toJalali } from '@/lib/date'
 
 type AlertLevel = 'critical' | 'important' | 'warning' | 'info'
 
@@ -15,6 +17,7 @@ const levelConfig: Record<AlertLevel, { label: string; color: string; bg: string
 
 export default function AlertsPage() {
   const { t } = useTheme()
+  const { showToast, ToastComponent } = useToast()
   const [alerts, setAlerts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -34,18 +37,21 @@ export default function AlertsPage() {
   }
 
   const handleAdd = async () => {
-    if (!newAlert.title || !newAlert.body) return
+    if (!newAlert.title || !newAlert.body) {
+      showToast('لطفاً عنوان و متن هشدار را وارد کنید', 'error')
+      return
+    }
     const { error } = await supabase.from('alerts').insert([{
-      title: newAlert.title,
-      body: newAlert.body,
-      level: newAlert.level,
-      is_read: false,
-      is_snoozed: false,
+      title: newAlert.title, body: newAlert.body,
+      level: newAlert.level, is_read: false, is_snoozed: false,
     }])
     if (!error) {
+      showToast('هشدار با موفقیت ثبت شد', 'success')
       fetchAlerts()
       setNewAlert({ title: '', body: '', level: 'warning' })
       setShowForm(false)
+    } else {
+      showToast('خطا در ثبت هشدار', 'error')
     }
   }
 
@@ -55,17 +61,21 @@ export default function AlertsPage() {
   }
 
   const dismiss = async (id: string) => {
+    if (!confirm('آیا از بستن این هشدار مطمئن هستید؟')) return
     await supabase.from('alerts').delete().eq('id', id)
+    showToast('هشدار بسته شد', 'info')
     fetchAlerts()
   }
 
   const snooze = async (id: string, current: boolean) => {
     await supabase.from('alerts').update({ is_snoozed: !current }).eq('id', id)
+    showToast(current ? 'هشدار بازگردانی شد' : 'هشدار به تعویق افتاد', 'info')
     fetchAlerts()
   }
 
   const markAllRead = async () => {
     await supabase.from('alerts').update({ is_read: true }).eq('is_read', false)
+    showToast('همه هشدارها خوانده شد', 'success')
     fetchAlerts()
   }
 
@@ -171,7 +181,7 @@ export default function AlertsPage() {
                     {alert.is_snoozed && <div style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '10px', background: t.inner, color: t.muted }}>به تعویق افتاده</div>}
                   </div>
                   <div style={{ color: t.sub, fontSize: '12px', lineHeight: '1.6', marginBottom: '6px' }}>{alert.body}</div>
-                  <div style={{ color: t.muted, fontSize: '11px' }}>{new Date(alert.created_at).toLocaleDateString('fa-IR')}</div>
+                  <div style={{ color: t.muted, fontSize: '11px' }}>{toJalali(alert.created_at)}</div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flexShrink: 0 }}>
                   {!alert.is_read && (
@@ -190,6 +200,7 @@ export default function AlertsPage() {
           <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>هشداری یافت نشد ✓</div>
         )}
       </div>
+      {ToastComponent}
     </div>
   )
 }
