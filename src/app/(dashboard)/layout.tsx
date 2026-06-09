@@ -82,6 +82,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const SidebarContent = () => (
     <>
+      {/* لوگو */}
       <div style={{ padding: '16px 14px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
         <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #c9a84c, #e8c96a)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🏛️</div>
         {(sidebarOpen || isMobile) && (
@@ -92,10 +93,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         )}
       </div>
 
+      {/* منوی اصلی */}
       <div style={{ flex: 1, padding: '0 8px', display: 'flex', flexDirection: 'column', gap: '2px', overflowY: 'auto' }}>
         {menuItems.map(item => <NavItem key={item.path} item={item} />)}
       </div>
 
+      {/* منوی پایین */}
       <div style={{ padding: '0 8px 8px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {bottomItems.map(item => (
           <div key={item.path} onClick={() => router.push(item.path)}
@@ -108,6 +111,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         ))}
 
+        {/* پروفایل */}
+        <div
+          onClick={() => router.push('/dashboard/profile')}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap', background: pathname === '/dashboard/profile' ? '#c9a84c22' : 'transparent', border: pathname === '/dashboard/profile' ? '1px solid #c9a84c33' : '1px solid transparent' }}
+          onMouseEnter={e => { if (pathname !== '/dashboard/profile') (e.currentTarget as HTMLDivElement).style.background = isDark ? '#ffffff08' : '#00000008' }}
+          onMouseLeave={e => { if (pathname !== '/dashboard/profile') (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
+        >
+          <span style={{ fontSize: '16px', flexShrink: 0 }}>🪪</span>
+          {(sidebarOpen || isMobile) && <span style={{ fontSize: '12px', color: pathname === '/dashboard/profile' ? '#e8c96a' : t.sub }}>پروفایل</span>}
+        </div>
+
+        {/* dark/light */}
         <div
           onClick={toggleTheme}
           style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', borderTop: `1px solid ${t.border}`, marginTop: '4px' }}
@@ -118,6 +133,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {(sidebarOpen || isMobile) && <span style={{ fontSize: '12px', color: t.sub }}>{isDark ? 'حالت روز' : 'حالت شب'}</span>}
         </div>
 
+        {/* آواتار و خروج */}
         <div
           onClick={() => { logout(); router.push('/') }}
           style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', borderTop: `1px solid ${t.border}`, marginTop: '4px', cursor: 'pointer', transition: 'all 0.2s' }}
@@ -141,12 +157,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div style={{ display: 'flex', height: '100vh', background: t.bg, overflow: 'hidden', direction: 'rtl', transition: 'background 0.3s' }}>
 
+      {/* سایدبار دسکتاپ */}
       {!isMobile && (
         <div style={{ width: sidebarOpen ? '220px' : '72px', background: t.card, borderLeft: `1px solid ${t.border}`, display: 'flex', flexDirection: 'column', transition: 'width 0.3s ease', overflow: 'hidden', flexShrink: 0 }}>
           <SidebarContent />
         </div>
       )}
 
+      {/* منوی موبایل */}
       {isMobile && mobileMenuOpen && (
         <>
           <div onClick={() => setMobileMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: '#00000066', zIndex: 40 }} />
@@ -156,7 +174,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </>
       )}
 
+      {/* محتوا */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+
+        {/* تاپ‌بار */}
         <div style={{ height: '56px', background: t.card, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: '10px', flexShrink: 0, transition: 'background 0.3s' }}>
           <button
             onClick={() => isMobile ? setMobileMenuOpen(!mobileMenuOpen) : setSidebarOpen(!sidebarOpen)}
@@ -165,12 +186,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ color: t.text, fontSize: '14px', fontWeight: '600', transition: 'color 0.3s' }}>داشبورد اجرایی</div>
-            <div style={{ color: t.muted, fontSize: '11px' }}>معاونت آموزش متوسطه — وزارت آموزش و پرورش</div>
+            {!isMobile && <div style={{ color: t.muted, fontSize: '11px' }}>معاونت آموزش متوسطه — وزارت آموزش و پرورش</div>}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#3dbb8222', border: '1px solid #3dbb8244', padding: '4px 10px', borderRadius: '20px', fontSize: '11px', color: '#3dbb82', flexShrink: 0 }}>
             <div className="pulse-dot"></div>
-            <span>اتصال زنده</span>
+            {!isMobile && <span>اتصال زنده</span>}
           </div>
 
           <button onClick={toggleTheme} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', width: '34px', height: '34px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
@@ -183,6 +204,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </div>
 
+        {/* صفحه */}
         <div style={{ flex: 1, overflow: 'auto', padding: isMobile ? '12px' : '20px', background: t.bg, transition: 'background 0.3s' }} className="animate-fade-in">
           {children}
         </div>
