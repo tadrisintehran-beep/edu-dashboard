@@ -5,9 +5,9 @@ import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const provinces = ['همه', 'تهران', 'اصفهان', 'مازندران', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی']
-
 const tagColors: Record<string, string> = {
   'مدیر': '#c9a84c', 'معاون': '#4a9eff', 'کارشناس': '#3dbb82', 'رئیس': '#8b6fdb',
 }
@@ -16,6 +16,7 @@ const avatarColors = ['#c9a84c', '#4a9eff', '#3dbb82', '#e05555', '#8b6fdb', '#e
 export default function PhonebookPage() {
   const { t } = useTheme()
   const { showToast, ToastComponent } = useToast()
+  const isMobile = useIsMobile()
   const [contacts, setContacts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -33,9 +34,7 @@ export default function PhonebookPage() {
   const fetchContacts = async () => {
     setLoading(true)
     const { data, error } = await supabase
-      .from('contacts')
-      .select('*')
-      .order('created_at', { ascending: false })
+      .from('contacts').select('*').order('created_at', { ascending: false })
     if (!error && data) setContacts(data)
     setLoading(false)
   }
@@ -59,9 +58,7 @@ export default function PhonebookPage() {
     }
   }
 
-  const handleDelete = (id: string) => {
-    setConfirmDelete(id)
-  }
+  const handleDelete = (id: string) => { setConfirmDelete(id) }
 
   const confirmDeleteAction = async () => {
     if (!confirmDelete) return
@@ -103,7 +100,7 @@ export default function PhonebookPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ color: t.text, fontSize: '18px', fontWeight: '700' }}>دفترچه تلفن</h1>
+          <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>دفترچه تلفن</h1>
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{contacts.length} مخاطب ثبت شده</p>
         </div>
         <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ مخاطب جدید</button>
@@ -112,7 +109,7 @@ export default function PhonebookPage() {
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
           <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>افزودن مخاطب جدید</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             {[
               { label: 'نام و نام خانوادگی', key: 'name', placeholder: 'نام کامل' },
               { label: 'سمت', key: 'position', placeholder: 'سمت سازمانی' },
@@ -141,40 +138,53 @@ export default function PhonebookPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        <input style={{ ...inputStyle, flex: 1 }} placeholder="🔍 جستجو بر اساس نام، سازمان یا سمت..."
+      {/* جستجو */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: isMobile ? 'wrap' : 'nowrap', alignItems: 'center' }}>
+        <input style={{ ...inputStyle, flex: 1 }} placeholder="🔍 جستجو..."
           value={search} onChange={e => setSearch(e.target.value)} />
-        <select style={{ ...inputStyle, width: 'auto' }} value={province} onChange={e => setProvince(e.target.value)}>
-          {provinces.map(p => <option key={p} value={p}>{p}</option>)}
-        </select>
-        <div onClick={() => setShowFavorites(!showFavorites)} style={{ padding: '8px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', background: showFavorites ? '#c9a84c22' : t.card, border: showFavorites ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: showFavorites ? '#e8c96a' : t.sub }}>
-          ⭐ موردعلاقه‌ها
+        {!isMobile && (
+          <select style={{ ...inputStyle, width: 'auto' }} value={province} onChange={e => setProvince(e.target.value)}>
+            {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        )}
+        <div onClick={() => setShowFavorites(!showFavorites)} style={{ padding: '8px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', background: showFavorites ? '#c9a84c22' : t.card, border: showFavorites ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: showFavorites ? '#e8c96a' : t.sub }}>
+          ⭐ {!isMobile && 'موردعلاقه‌ها'}
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 320px' : '1fr', gap: '12px' }}>
+      {/* فیلتر استان موبایل */}
+      {isMobile && (
+        <select style={inputStyle} value={province} onChange={e => setProvince(e.target.value)}>
+          {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+      )}
 
-        <div className="stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '10px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: selected && !isMobile ? '1fr 320px' : '1fr', gap: '12px' }}>
+
+        <div className="stagger" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))', gap: '10px' }}>
           {filtered.map((contact, i) => (
             <div key={contact.id} className="hover-card" onClick={() => setSelected(contact)}
               style={{ background: selected?.id === contact.id ? t.inner : t.card, border: `1px solid ${selected?.id === contact.id ? '#c9a84c33' : t.border}`, borderRadius: '12px', padding: '14px', cursor: 'pointer' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0, background: avatarColors[i % avatarColors.length] + '33', border: '2px solid ' + avatarColors[i % avatarColors.length] + '55', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', color: avatarColors[i % avatarColors.length] }}>
                   {contact.avatar}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '2px' }}>{contact.name}</div>
                   <div style={{ color: t.sub, fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{contact.position}</div>
+                  {isMobile && <div style={{ color: t.muted, fontSize: '10px', marginTop: '2px' }}>📞 {contact.phone}</div>}
                 </div>
-                <div onClick={e => { e.stopPropagation(); toggleFavorite(contact.id, contact.favorite) }}
-                  style={{ fontSize: '16px', cursor: 'pointer', opacity: contact.favorite ? 1 : 0.3 }}>⭐</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ color: t.muted, fontSize: '11px' }}>📍 {contact.province}</div>
-                <div style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '600', background: (tagColors[contact.tag] || '#555') + '22', color: tagColors[contact.tag] || t.sub }}>
-                  {contact.tag}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                  <div onClick={e => { e.stopPropagation(); toggleFavorite(contact.id, contact.favorite) }}
+                    style={{ fontSize: '16px', cursor: 'pointer', opacity: contact.favorite ? 1 : 0.3 }}>⭐</div>
+                  <div style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '600', background: (tagColors[contact.tag] || '#555') + '22', color: tagColors[contact.tag] || t.sub }}>
+                    {contact.tag}
+                  </div>
                 </div>
               </div>
+              {!isMobile && (
+                <div style={{ marginTop: '8px', color: t.muted, fontSize: '11px' }}>📍 {contact.province}</div>
+              )}
             </div>
           ))}
           {filtered.length === 0 && (
@@ -182,7 +192,7 @@ export default function PhonebookPage() {
           )}
         </div>
 
-        {selected && (
+        {selected && !isMobile && (
           <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <div style={{ color: t.text, fontSize: '13px', fontWeight: '600' }}>اطلاعات مخاطب</div>

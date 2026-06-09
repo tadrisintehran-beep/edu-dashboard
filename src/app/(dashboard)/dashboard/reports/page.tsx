@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/ui/Toast'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { useIsMobile } from '@/lib/useIsMobile'
 import { toJalali } from '@/lib/date'
 
 const statusLabel: Record<string, string> = {
@@ -16,6 +18,7 @@ const statusColor: Record<string, string> = {
 export default function ReportsPage() {
   const { t } = useTheme()
   const { showToast, ToastComponent } = useToast()
+  const isMobile = useIsMobile()
   const [reports, setReports] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -28,9 +31,7 @@ export default function ReportsPage() {
   const fetchReports = async () => {
     setLoading(true)
     const { data, error } = await supabase
-      .from('reports')
-      .select('*')
-      .order('created_at', { ascending: false })
+      .from('reports').select('*').order('created_at', { ascending: false })
     if (!error && data) setReports(data)
     setLoading(false)
   }
@@ -41,13 +42,9 @@ export default function ReportsPage() {
       return
     }
     const { error } = await supabase.from('reports').insert([{
-      title_fa: newReport.title,
-      author: 'محمد رضایی',
-      province: newReport.province,
-      department: newReport.department,
-      summary: newReport.summary,
-      status: 'submitted',
-      seen: false,
+      title_fa: newReport.title, author: 'محمد رضایی',
+      province: newReport.province, department: newReport.department,
+      summary: newReport.summary, status: 'submitted', seen: false,
     }])
     if (!error) {
       showToast('گزارش با موفقیت ارسال شد', 'success')
@@ -105,7 +102,7 @@ export default function ReportsPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ color: t.text, fontSize: '18px', fontWeight: '700' }}>سیستم گزارش ها</h1>
+          <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>سیستم گزارش ها</h1>
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{reports.filter(r => !r.seen).length} گزارش خوانده نشده</p>
         </div>
         <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ گزارش جدید</button>
@@ -114,7 +111,7 @@ export default function ReportsPage() {
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
           <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ارسال گزارش جدید</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             {[
               { label: 'عنوان گزارش', key: 'title', placeholder: 'عنوان گزارش' },
               { label: 'استان', key: 'province', placeholder: 'نام استان' },
@@ -140,7 +137,7 @@ export default function ReportsPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {filters.map(f => (
           <div key={f.key} onClick={() => setFilter(f.key)} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: filter === f.key ? '#c9a84c22' : t.card, border: filter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: filter === f.key ? '#e8c96a' : t.sub, transition: 'all 0.2s' }}>
             {f.label}
@@ -148,17 +145,17 @@ export default function ReportsPage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: selected && !isMobile ? '1fr 380px' : '1fr', gap: '12px' }}>
         <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {filtered.map(report => (
             <div key={report.id} className="hover-card" onClick={() => { setSelected(report); handleSeen(report.id) }}
               style={{ background: selected?.id === report.id ? t.inner : t.card, border: `1px solid ${selected?.id === report.id ? '#c9a84c33' : t.border}`, borderRadius: '12px', padding: '14px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: report.seen ? 'transparent' : '#4a9eff', flexShrink: 0, border: report.seen ? `1px solid ${t.border}` : 'none' }}></div>
-              <div style={{ flex: 1 }}>
-                <div style={{ color: t.text, fontSize: '13px', fontWeight: report.seen ? '400' : '600', marginBottom: '4px' }}>{report.title_fa}</div>
-                <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ color: t.text, fontSize: '13px', fontWeight: report.seen ? '400' : '600', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{report.title_fa}</div>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <span style={{ color: t.sub, fontSize: '11px' }}>👤 {report.author}</span>
-                  <span style={{ color: t.sub, fontSize: '11px' }}>📍 {report.province}</span>
+                  {!isMobile && <span style={{ color: t.sub, fontSize: '11px' }}>📍 {report.province}</span>}
                   <span style={{ color: t.sub, fontSize: '11px' }}>🗓 {toJalali(report.created_at)}</span>
                 </div>
               </div>
@@ -173,10 +170,17 @@ export default function ReportsPage() {
         </div>
 
         {selected && (
-          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{
+            background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px',
+            display: 'flex', flexDirection: 'column', gap: '14px',
+            position: isMobile ? 'fixed' : 'relative',
+            inset: isMobile ? '0' : 'auto',
+            zIndex: isMobile ? 100 : 'auto',
+            overflowY: isMobile ? 'auto' : 'visible',
+          }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div style={{ color: t.text, fontSize: '14px', fontWeight: '700', flex: 1 }}>{selected.title_fa}</div>
-              <button onClick={() => setSelected(null)} style={{ background: 'transparent', border: 'none', color: t.muted, fontSize: '18px', cursor: 'pointer' }}>✕</button>
+              <button onClick={() => setSelected(null)} style={{ background: 'transparent', border: 'none', color: t.muted, fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[

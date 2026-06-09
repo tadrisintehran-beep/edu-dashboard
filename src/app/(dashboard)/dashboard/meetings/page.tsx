@@ -5,6 +5,7 @@ import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const priorityLabel: Record<string, string> = {
   low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری',
@@ -22,6 +23,7 @@ const statusColor: Record<string, string> = {
 export default function MeetingsPage() {
   const { t } = useTheme()
   const { showToast, ToastComponent } = useToast()
+  const isMobile = useIsMobile()
   const [meetings, setMeetings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -36,9 +38,7 @@ export default function MeetingsPage() {
   const fetchMeetings = async () => {
     setLoading(true)
     const { data, error } = await supabase
-      .from('meetings')
-      .select('*')
-      .order('created_at', { ascending: false })
+      .from('meetings').select('*').order('created_at', { ascending: false })
     if (!error && data) setMeetings(data)
     setLoading(false)
   }
@@ -49,14 +49,10 @@ export default function MeetingsPage() {
       return
     }
     const { error } = await supabase.from('meetings').insert([{
-      title_fa: newMeeting.title,
-      date: newMeeting.date,
-      time: newMeeting.time,
-      duration: newMeeting.duration,
-      location: newMeeting.location,
+      title_fa: newMeeting.title, date: newMeeting.date, time: newMeeting.time,
+      duration: newMeeting.duration, location: newMeeting.location,
       participants: Number(newMeeting.participants) || 1,
-      priority: newMeeting.priority,
-      status: 'pending',
+      priority: newMeeting.priority, status: 'pending',
     }])
     if (!error) {
       showToast('جلسه با موفقیت ثبت شد', 'success')
@@ -74,9 +70,7 @@ export default function MeetingsPage() {
     fetchMeetings()
   }
 
-  const handleDelete = (id: string) => {
-    setConfirmDelete(id)
-  }
+  const handleDelete = (id: string) => { setConfirmDelete(id) }
 
   const confirmDeleteAction = async () => {
     if (!confirmDelete) return
@@ -113,7 +107,7 @@ export default function MeetingsPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ color: t.text, fontSize: '18px', fontWeight: '700' }}>مدیریت جلسات</h1>
+          <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>مدیریت جلسات</h1>
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{meetings.length} جلسه ثبت شده</p>
         </div>
         <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ جلسه جدید</button>
@@ -122,7 +116,7 @@ export default function MeetingsPage() {
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
           <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ثبت جلسه جدید</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             {[
               { label: 'عنوان جلسه', key: 'title', placeholder: 'عنوان جلسه' },
               { label: 'تاریخ', key: 'date', placeholder: '۱۴۰۳/۰۳/۲۰' },
@@ -154,7 +148,7 @@ export default function MeetingsPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {filters.map(f => (
           <div key={f.key} onClick={() => setFilter(f.key)} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: filter === f.key ? '#c9a84c22' : t.card, border: filter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: filter === f.key ? '#e8c96a' : t.sub, transition: 'all 0.2s' }}>
             {f.label}
@@ -164,32 +158,57 @@ export default function MeetingsPage() {
 
       <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {filtered.map(meeting => (
-          <div key={meeting.id} className="hover-card" style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ width: '4px', height: '50px', borderRadius: '2px', background: priorityColor[meeting.priority] || '#555', flexShrink: 0 }}></div>
-            <div style={{ textAlign: 'center', flexShrink: 0, minWidth: '60px' }}>
-              <div style={{ color: '#e8c96a', fontSize: '16px', fontWeight: '700' }}>{meeting.time}</div>
-              <div style={{ color: t.muted, fontSize: '10px', marginTop: '2px' }}>{meeting.date}</div>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ color: t.text, fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>{meeting.title_fa}</div>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <span style={{ color: t.sub, fontSize: '11px' }}>📍 {meeting.location}</span>
-                <span style={{ color: t.sub, fontSize: '11px' }}>👥 {meeting.participants} نفر</span>
-                <span style={{ color: t.sub, fontSize: '11px' }}>⏱ {meeting.duration}</span>
+          <div key={meeting.id} className="hover-card" style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: '10px' }}>
+
+            {/* هدر موبایل */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%' }}>
+              <div style={{ width: '4px', height: '40px', borderRadius: '2px', background: priorityColor[meeting.priority] || '#555', flexShrink: 0 }}></div>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '3px' }}>{meeting.title_fa}</div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ color: '#e8c96a', fontSize: '12px', fontWeight: '600' }}>{meeting.time}</span>
+                  <span style={{ color: t.muted, fontSize: '11px' }}>{meeting.date}</span>
+                </div>
               </div>
-            </div>
-            <div style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', background: (priorityColor[meeting.priority] || '#555') + '22', color: priorityColor[meeting.priority] || '#555', flexShrink: 0 }}>
-              {priorityLabel[meeting.priority] || meeting.priority}
-            </div>
-            <div style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', background: (statusColor[meeting.status] || '#555') + '22', color: statusColor[meeting.status] || '#555', flexShrink: 0 }}>
-              {statusLabel[meeting.status] || meeting.status}
-            </div>
-            <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-              {meeting.status === 'pending' && (
-                <button onClick={() => handleApprove(meeting.id)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '5px 10px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>تأیید</button>
+              {!isMobile && (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', background: (priorityColor[meeting.priority] || '#555') + '22', color: priorityColor[meeting.priority] || '#555' }}>
+                    {priorityLabel[meeting.priority] || meeting.priority}
+                  </div>
+                  <div style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', background: (statusColor[meeting.status] || '#555') + '22', color: statusColor[meeting.status] || '#555' }}>
+                    {statusLabel[meeting.status] || meeting.status}
+                  </div>
+                </div>
               )}
-              <button onClick={() => handleDelete(meeting.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>حذف</button>
             </div>
+
+            {/* جزئیات */}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', paddingRight: isMobile ? '14px' : '0' }}>
+              <span style={{ color: t.sub, fontSize: '11px' }}>📍 {meeting.location}</span>
+              <span style={{ color: t.sub, fontSize: '11px' }}>👥 {meeting.participants} نفر</span>
+              {meeting.duration && <span style={{ color: t.sub, fontSize: '11px' }}>⏱ {meeting.duration}</span>}
+            </div>
+
+            {/* موبایل — badge ها و دکمه‌ها */}
+            {isMobile && (
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', paddingRight: '14px', width: '100%' }}>
+                <div style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '600', background: (priorityColor[meeting.priority] || '#555') + '22', color: priorityColor[meeting.priority] || '#555' }}>
+                  {priorityLabel[meeting.priority] || meeting.priority}
+                </div>
+                <div style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '600', background: (statusColor[meeting.status] || '#555') + '22', color: statusColor[meeting.status] || '#555' }}>
+                  {statusLabel[meeting.status] || meeting.status}
+                </div>
+              </div>
+            )}
+
+            {/* دکمه‌ها */}
+            <div style={{ display: 'flex', gap: '6px', flexShrink: 0, paddingRight: isMobile ? '14px' : '0', marginTop: isMobile ? '4px' : '0' }}>
+              {meeting.status === 'pending' && (
+                <button onClick={() => handleApprove(meeting.id)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '6px 12px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>تأیید</button>
+              )}
+              <button onClick={() => handleDelete(meeting.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '6px 12px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>حذف</button>
+            </div>
+
           </div>
         ))}
         {filtered.length === 0 && (
