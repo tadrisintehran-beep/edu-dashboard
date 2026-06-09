@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/ui/Toast'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 const priorityLabel: Record<string, string> = {
   low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری',
@@ -25,6 +26,7 @@ export default function MeetingsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [showForm, setShowForm] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [newMeeting, setNewMeeting] = useState({
     title: '', date: '', time: '', duration: '', location: '', participants: '', priority: 'med',
   })
@@ -72,10 +74,15 @@ export default function MeetingsPage() {
     fetchMeetings()
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('آیا از حذف این جلسه مطمئن هستید؟')) return
-    await supabase.from('meetings').delete().eq('id', id)
+  const handleDelete = (id: string) => {
+    setConfirmDelete(id)
+  }
+
+  const confirmDeleteAction = async () => {
+    if (!confirmDelete) return
+    await supabase.from('meetings').delete().eq('id', confirmDelete)
     showToast('جلسه حذف شد', 'info')
+    setConfirmDelete(null)
     fetchMeetings()
   }
 
@@ -189,6 +196,17 @@ export default function MeetingsPage() {
           <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>جلسه‌ای یافت نشد</div>
         )}
       </div>
+
+      {confirmDelete && (
+        <ConfirmModal
+          title="حذف جلسه"
+          message="آیا از حذف این جلسه مطمئن هستید؟ این عمل قابل بازگشت نیست."
+          confirmLabel="بله، حذف کن"
+          type="danger"
+          onConfirm={confirmDeleteAction}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
       {ToastComponent}
     </div>
   )

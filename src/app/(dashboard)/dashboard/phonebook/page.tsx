@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/ui/Toast'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 const provinces = ['همه', 'تهران', 'اصفهان', 'مازندران', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی']
 
@@ -22,6 +23,7 @@ export default function PhonebookPage() {
   const [showFavorites, setShowFavorites] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [selected, setSelected] = useState<any | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [newContact, setNewContact] = useState({
     name: '', position: '', organization: '', province: 'تهران', phone: '', email: '', tag: 'کارشناس',
   })
@@ -57,11 +59,16 @@ export default function PhonebookPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('آیا از حذف این مخاطب مطمئن هستید؟')) return
-    await supabase.from('contacts').delete().eq('id', id)
+  const handleDelete = (id: string) => {
+    setConfirmDelete(id)
+  }
+
+  const confirmDeleteAction = async () => {
+    if (!confirmDelete) return
+    await supabase.from('contacts').delete().eq('id', confirmDelete)
     showToast('مخاطب حذف شد', 'info')
-    if (selected?.id === id) setSelected(null)
+    if (selected?.id === confirmDelete) setSelected(null)
+    setConfirmDelete(null)
     fetchContacts()
   }
 
@@ -215,6 +222,17 @@ export default function PhonebookPage() {
           </div>
         )}
       </div>
+
+      {confirmDelete && (
+        <ConfirmModal
+          title="حذف مخاطب"
+          message="آیا از حذف این مخاطب مطمئن هستید؟ این عمل قابل بازگشت نیست."
+          confirmLabel="بله، حذف کن"
+          type="danger"
+          onConfirm={confirmDeleteAction}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
       {ToastComponent}
     </div>
   )

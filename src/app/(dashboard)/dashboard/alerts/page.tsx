@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/ui/Toast'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { toJalali } from '@/lib/date'
 
 type AlertLevel = 'critical' | 'important' | 'warning' | 'info'
@@ -22,6 +23,7 @@ export default function AlertsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [showForm, setShowForm] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [newAlert, setNewAlert] = useState({ title: '', body: '', level: 'warning' as AlertLevel })
 
   useEffect(() => { fetchAlerts() }, [])
@@ -60,10 +62,15 @@ export default function AlertsPage() {
     fetchAlerts()
   }
 
-  const dismiss = async (id: string) => {
-    if (!confirm('آیا از بستن این هشدار مطمئن هستید؟')) return
-    await supabase.from('alerts').delete().eq('id', id)
+  const dismiss = (id: string) => {
+    setConfirmDelete(id)
+  }
+
+  const confirmDeleteAction = async () => {
+    if (!confirmDelete) return
+    await supabase.from('alerts').delete().eq('id', confirmDelete)
     showToast('هشدار بسته شد', 'info')
+    setConfirmDelete(null)
     fetchAlerts()
   }
 
@@ -200,6 +207,17 @@ export default function AlertsPage() {
           <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>هشداری یافت نشد ✓</div>
         )}
       </div>
+
+      {confirmDelete && (
+        <ConfirmModal
+          title="بستن هشدار"
+          message="آیا از بستن این هشدار مطمئن هستید؟"
+          confirmLabel="بله، ببند"
+          type="warning"
+          onConfirm={confirmDeleteAction}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
       {ToastComponent}
     </div>
   )
