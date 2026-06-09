@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
+import { GlobalSearch } from '@/components/ui/GlobalSearch'
 
 const menuItems = [
   { icon: '⊞', label: 'داشبورد', path: '/dashboard' },
@@ -114,12 +115,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* پروفایل */}
         <div
           onClick={() => router.push('/dashboard/profile')}
-          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap', background: pathname === '/dashboard/profile' ? '#c9a84c22' : 'transparent', border: pathname === '/dashboard/profile' ? '1px solid #c9a84c33' : '1px solid transparent' }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
+            borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
+            background: pathname === '/dashboard/profile' ? '#c9a84c22' : 'transparent',
+            border: pathname === '/dashboard/profile' ? '1px solid #c9a84c33' : '1px solid transparent',
+          }}
           onMouseEnter={e => { if (pathname !== '/dashboard/profile') (e.currentTarget as HTMLDivElement).style.background = isDark ? '#ffffff08' : '#00000008' }}
           onMouseLeave={e => { if (pathname !== '/dashboard/profile') (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
         >
           <span style={{ fontSize: '16px', flexShrink: 0 }}>🪪</span>
-          {(sidebarOpen || isMobile) && <span style={{ fontSize: '12px', color: pathname === '/dashboard/profile' ? '#e8c96a' : t.sub }}>پروفایل</span>}
+          {(sidebarOpen || isMobile) && (
+            <span style={{ fontSize: '12px', color: pathname === '/dashboard/profile' ? '#e8c96a' : t.sub }}>پروفایل</span>
+          )}
         </div>
 
         {/* dark/light */}
@@ -133,7 +141,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {(sidebarOpen || isMobile) && <span style={{ fontSize: '12px', color: t.sub }}>{isDark ? 'حالت روز' : 'حالت شب'}</span>}
         </div>
 
-        {/* آواتار و خروج */}
+        {/* خروج */}
         <div
           onClick={() => { logout(); router.push('/') }}
           style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px', borderTop: `1px solid ${t.border}`, marginTop: '4px', cursor: 'pointer', transition: 'all 0.2s' }}
@@ -179,6 +187,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* تاپ‌بار */}
         <div style={{ height: '56px', background: t.card, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: '10px', flexShrink: 0, transition: 'background 0.3s' }}>
+
           <button
             onClick={() => isMobile ? setMobileMenuOpen(!mobileMenuOpen) : setSidebarOpen(!sidebarOpen)}
             style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', width: '34px', height: '34px', cursor: 'pointer', color: t.sub, fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}
@@ -188,6 +197,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div style={{ color: t.text, fontSize: '14px', fontWeight: '600', transition: 'color 0.3s' }}>داشبورد اجرایی</div>
             {!isMobile && <div style={{ color: t.muted, fontSize: '11px' }}>معاونت آموزش متوسطه — وزارت آموزش و پرورش</div>}
           </div>
+
+          {/* جستجوی کلی */}
+          {!isMobile && <GlobalSearch />}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#3dbb8222', border: '1px solid #3dbb8244', padding: '4px 10px', borderRadius: '20px', fontSize: '11px', color: '#3dbb82', flexShrink: 0 }}>
             <div className="pulse-dot"></div>
