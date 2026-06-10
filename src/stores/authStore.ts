@@ -17,6 +17,21 @@ interface AuthStore {
   checkSession: () => Promise<void>
 }
 
+async function fetchProfile(userId: string, email: string): Promise<User> {
+  const { data } = await supabase
+    .from('profiles')
+    .select('name_fa, role')
+    .eq('id', userId)
+    .single()
+
+  return {
+    id: userId,
+    email: email,
+    name: data?.name_fa || email.split('@')[0],
+    role: data?.role || 'VIEWER',
+  }
+}
+
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isAuthenticated: false,
@@ -25,15 +40,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
   checkSession: async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user) {
-      set({
-        isAuthenticated: true,
-        user: {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: 'رضا کیاهی',
-          role: 'DEPUTY_MINISTER',
-        }
-      })
+      const user = await fetchProfile(session.user.id, session.user.email || '')
+      set({ isAuthenticated: true, user })
     }
   },
 
@@ -44,21 +52,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
       set({ isLoading: false })
       return false
     }
-    set({
-      isAuthenticated: true,
-      isLoading: false,
-      user: {
-        id: data.user.id,
-        email: data.user.email || '',
-        name: 'رضا کیاهی ',
-        role: 'DEPUTY_MINISTER',
-      }
-    })
+    const user = await fetchProfile(data.user.id, data.user.email || '')
+    set({ isAuthenticated: true, isLoading: false, user })
     return true
   },
 
   logout: async () => {
     await supabase.auth.signOut()
     set({ user: null, isAuthenticated: false })
-  }
+  },
 }))

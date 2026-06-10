@@ -27,6 +27,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { checkSession } = useAuthStore()
+
+useEffect(() => {
+  checkSession()
+}, [])
 
   useEffect(() => {
     if (!isAuthenticated) router.push('/')
