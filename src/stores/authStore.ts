@@ -12,6 +12,7 @@ interface AuthStore {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  isChecking: boolean
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
   checkSession: () => Promise<void>
@@ -36,12 +37,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  isChecking: true,
 
   checkSession: async () => {
+    set({ isChecking: true })
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user) {
       const user = await fetchProfile(session.user.id, session.user.email || '')
-      set({ isAuthenticated: true, user })
+      set({ isAuthenticated: true, user, isChecking: false })
+    } else {
+      set({ isAuthenticated: false, user: null, isChecking: false })
     }
   },
 

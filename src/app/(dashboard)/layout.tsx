@@ -20,7 +20,7 @@ const bottomItems = [
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated, logout, checkSession } = useAuthStore()
+  const { user, isAuthenticated, logout, checkSession, isChecking } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
   const { isDark, toggleTheme, t } = useTheme()
@@ -51,7 +51,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setMobileMenuOpen(false)
   }, [pathname])
 
-  if (!isAuthenticated) return null
+  if (isChecking) return (
+  <div style={{ minHeight: '100vh', background: '#0c0e14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ color: '#c9a84c', fontSize: '14px' }}>⏳ در حال بارگذاری...</div>
+  </div>
+)
+
+if (!isAuthenticated) return null
 
   const NavItem = ({ item }: { item: typeof menuItems[0] }) => {
     const isActive = pathname === item.path
