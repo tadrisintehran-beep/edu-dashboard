@@ -20,18 +20,17 @@ const bottomItems = [
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated, logout } = useAuthStore()
+  const { user, isAuthenticated, logout, checkSession } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
   const { isDark, toggleTheme, t } = useTheme()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { checkSession } = useAuthStore()
 
-useEffect(() => {
-  checkSession()
-}, [])
+  useEffect(() => {
+    checkSession()
+  }, [])
 
   useEffect(() => {
     if (!isAuthenticated) router.push('/')
@@ -88,7 +87,6 @@ useEffect(() => {
 
   const SidebarContent = () => (
     <>
-      {/* لوگو */}
       <div style={{ padding: '16px 14px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
         <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #c9a84c, #e8c96a)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🏛️</div>
         {(sidebarOpen || isMobile) && (
@@ -99,12 +97,10 @@ useEffect(() => {
         )}
       </div>
 
-      {/* منوی اصلی */}
       <div style={{ flex: 1, padding: '0 8px', display: 'flex', flexDirection: 'column', gap: '2px', overflowY: 'auto' }}>
         {menuItems.map(item => <NavItem key={item.path} item={item} />)}
       </div>
 
-      {/* منوی پایین */}
       <div style={{ padding: '0 8px 8px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {bottomItems.map(item => (
           <div key={item.path} onClick={() => router.push(item.path)}
@@ -170,14 +166,12 @@ useEffect(() => {
   return (
     <div style={{ display: 'flex', height: '100vh', background: t.bg, overflow: 'hidden', direction: 'rtl', transition: 'background 0.3s' }}>
 
-      {/* سایدبار دسکتاپ */}
       {!isMobile && (
         <div style={{ width: sidebarOpen ? '220px' : '72px', background: t.card, borderLeft: `1px solid ${t.border}`, display: 'flex', flexDirection: 'column', transition: 'width 0.3s ease', overflow: 'hidden', flexShrink: 0 }}>
           <SidebarContent />
         </div>
       )}
 
-      {/* منوی موبایل */}
       {isMobile && mobileMenuOpen && (
         <>
           <div onClick={() => setMobileMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: '#00000066', zIndex: 40 }} />
@@ -187,10 +181,8 @@ useEffect(() => {
         </>
       )}
 
-      {/* محتوا */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
-        {/* تاپ‌بار */}
         <div style={{ height: '56px', background: t.card, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: '10px', flexShrink: 0, transition: 'background 0.3s' }}>
 
           <button
@@ -203,7 +195,6 @@ useEffect(() => {
             {!isMobile && <div style={{ color: t.muted, fontSize: '11px' }}>معاونت آموزش متوسطه — وزارت آموزش و پرورش</div>}
           </div>
 
-          {/* جستجوی کلی */}
           {!isMobile && <GlobalSearch />}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#3dbb8222', border: '1px solid #3dbb8244', padding: '4px 10px', borderRadius: '20px', fontSize: '11px', color: '#3dbb82', flexShrink: 0 }}>
@@ -221,7 +212,6 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* صفحه */}
         <div style={{ flex: 1, overflow: 'auto', padding: isMobile ? '12px' : '20px', background: t.bg, transition: 'background 0.3s' }} className="animate-fade-in">
           {children}
         </div>
