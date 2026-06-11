@@ -116,3 +116,7 @@ body.light .input-bg { background: #eef0f8 !important; border-color: #d0d4e8 !im
   .mid-grid  { grid-template-columns: 1fr !important; }
   .bot-grid  { grid-template-columns: 1fr !important; }
 }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

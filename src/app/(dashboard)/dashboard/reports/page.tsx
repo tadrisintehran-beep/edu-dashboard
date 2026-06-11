@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { toJalali } from '@/lib/date'
+import { SkeletonList } from '@/components/ui/Skeleton'
 
 const statusLabel: Record<string, string> = {
   submitted: 'ارسال شده', reviewing: 'در حال بررسی', approved: 'تأیید شده', rejected: 'رد شده',
@@ -92,10 +93,16 @@ export default function ReportsPage() {
   }
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: t.sub, fontSize: '13px' }}>
-      ⏳ در حال بارگذاری...
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ width: '140px', height: '20px', background: '#1a1e2c', borderRadius: '6px', animation: 'shimmer 1.5s ease infinite' }} />
+        <div style={{ width: '100px', height: '12px', background: '#1a1e2c', borderRadius: '4px', animation: 'shimmer 1.5s ease infinite' }} />
+      </div>
     </div>
-  )
+    <SkeletonList rows={5} />
+  </div>
+)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
