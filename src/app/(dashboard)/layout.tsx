@@ -16,7 +16,7 @@ const menuItems = [
 
 const bottomItems = [
   { icon: '👤', label: 'کاربران', path: '/dashboard/users' },
-  { icon: '⚙️', label: 'تنظیمات', path: '/dashboard/settings' },
+  { icon: '⚙️', label: 'تنظیمات', path: '/dashboard/dashboard/settings' },
 ]
 
 const pageTitle: Record<string, string> = {
