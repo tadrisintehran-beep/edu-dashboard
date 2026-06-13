@@ -5,8 +5,8 @@ import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { useIsMobile } from '@/lib/useIsMobile'
 import { toJalali } from '@/lib/date'
-import { SkeletonList } from '@/components/ui/Skeleton'
 
 type AlertLevel = 'critical' | 'important' | 'warning' | 'info'
 
@@ -20,6 +20,7 @@ const levelConfig: Record<AlertLevel, { label: string; color: string; bg: string
 export default function AlertsPage() {
   const { t } = useTheme()
   const { showToast, ToastComponent } = useToast()
+  const isMobile = useIsMobile()
   const [alerts, setAlerts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -44,9 +45,12 @@ export default function AlertsPage() {
       showToast('لطفاً عنوان و متن هشدار را وارد کنید', 'error')
       return
     }
-    const { error } = await supabase.from('alerts').insert([{
-      title: newAlert.title, body: newAlert.body,
-      level: newAlert.level, is_read: false, is_snoozed: false,
+    const { error } = await (supabase.from('alerts') as any).insert([{
+      title: newAlert.title,
+      body: newAlert.body,
+      level: newAlert.level,
+      is_read: false,
+      is_snoozed: false,
     }])
     if (!error) {
       showToast('هشدار با موفقیت ثبت شد', 'success')
@@ -63,9 +67,7 @@ export default function AlertsPage() {
     fetchAlerts()
   }
 
-  const dismiss = (id: string) => {
-    setConfirmDelete(id)
-  }
+  const dismiss = (id: string) => { setConfirmDelete(id) }
 
   const confirmDeleteAction = async () => {
     if (!confirmDelete) return
@@ -111,23 +113,17 @@ export default function AlertsPage() {
   }
 
   if (loading) return (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ width: '140px', height: '20px', background: '#1a1e2c', borderRadius: '6px', animation: 'shimmer 1.5s ease infinite' }} />
-        <div style={{ width: '100px', height: '12px', background: '#1a1e2c', borderRadius: '4px', animation: 'shimmer 1.5s ease infinite' }} />
-      </div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: t.sub, fontSize: '13px' }}>
+      ⏳ در حال بارگذاری...
     </div>
-    <SkeletonList rows={5} />
-  </div>
-)
+  )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ color: t.text, fontSize: '18px', fontWeight: '700' }}>سیستم هشدارها</h1>
+          <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>سیستم هشدارها</h1>
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{unreadCount} هشدار خوانده نشده</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -154,7 +150,7 @@ export default function AlertsPage() {
             </div>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '8px' }}>سطح هشدار</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {(Object.keys(levelConfig) as AlertLevel[]).map(level => (
                   <div key={level} onClick={() => setNewAlert(p => ({ ...p, level }))} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: newAlert.level === level ? levelConfig[level].bg : t.inner, border: `1px solid ${newAlert.level === level ? levelConfig[level].color + '55' : t.border}`, color: newAlert.level === level ? levelConfig[level].color : t.sub }}>
                     {levelConfig[level].icon} {levelConfig[level].label}
