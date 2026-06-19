@@ -145,7 +145,8 @@ export default function DocumentsPage() {
       setSelectedFile(null)
       fetchDocuments()
     } else {
-      showToast('خطا در ذخیره سند', 'error')
+      console.error('DB Error:', dbError)
+  showToast('خطا: ' + dbError?.message, 'error')
     }
     setUploading(false)
   }
