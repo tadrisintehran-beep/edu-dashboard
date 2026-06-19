@@ -12,6 +12,7 @@ const menuItems = [
   { icon: '📋', label: 'گزارش‌ها', path: '/dashboard/reports', badge: '۱۲' },
   { icon: '📒', label: 'دفترچه تلفن', path: '/dashboard/phonebook' },
   { icon: '🔔', label: 'هشدارها', path: '/dashboard/alerts', badge: '۳' },
+  { icon: '📁', label: 'اسناد', path: '/dashboard/documents' },
 ]
 
 const bottomItems = [
