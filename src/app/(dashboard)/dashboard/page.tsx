@@ -53,7 +53,18 @@ export default function DashboardPage() {
   const [recentReports, setRecentReports] = useState<any[]>([])
   const [todayMeetings, setTodayMeetings] = useState<any[]>([])
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+  fetchData()
+
+  const channel = supabase
+    .channel('dashboard-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, () => fetchData())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => fetchData())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, () => fetchData())
+    .subscribe()
+
+  return () => { supabase.removeChannel(channel) }
+}, [])
 
   const fetchData = async () => {
     setLoading(true)

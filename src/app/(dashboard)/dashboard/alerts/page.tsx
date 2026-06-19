@@ -28,7 +28,20 @@ export default function AlertsPage() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [newAlert, setNewAlert] = useState({ title: '', body: '', level: 'warning' as AlertLevel })
 
-  useEffect(() => { fetchAlerts() }, [])
+  useEffect(() => {
+  fetchAlerts()
+
+  const channel = supabase
+    .channel('alerts-changes')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'alerts' },
+      () => { fetchAlerts() }
+    )
+    .subscribe()
+
+  return () => { supabase.removeChannel(channel) }
+}, [])
 
   const fetchAlerts = async () => {
     setLoading(true)

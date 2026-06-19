@@ -27,7 +27,21 @@ export default function ReportsPage() {
   const [selected, setSelected] = useState<any | null>(null)
   const [newReport, setNewReport] = useState({ title: '', province: '', department: '', summary: '' })
 
-  useEffect(() => { fetchReports() }, [])
+  useEffect(() => {
+  fetchReports()
+
+  // real-time subscription
+  const channel = supabase
+    .channel('reports-changes')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'reports' },
+      () => { fetchReports() }
+    )
+    .subscribe()
+
+  return () => { supabase.removeChannel(channel) }
+}, [])
 
   const fetchReports = async () => {
     setLoading(true)

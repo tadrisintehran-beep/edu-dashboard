@@ -34,7 +34,20 @@ export default function MeetingsPage() {
     title: '', date: '', time: '', duration: '', location: '', participants: '', priority: 'med',
   })
 
-  useEffect(() => { fetchMeetings() }, [])
+  useEffect(() => {
+  fetchMeetings()
+
+  const channel = supabase
+    .channel('meetings-changes')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'meetings' },
+      () => { fetchMeetings() }
+    )
+    .subscribe()
+
+  return () => { supabase.removeChannel(channel) }
+}, [])
 
   const fetchMeetings = async () => {
     setLoading(true)
