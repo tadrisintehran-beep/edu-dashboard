@@ -119,7 +119,7 @@ export default function DocumentsPage() {
       return
     }
 
-    const { data: doc, error: dbError } = await (supabase.from('documents') as any).insert([{
+    const { data: doc, error: dbError } = await supabase.from('documents').insert([{
       title: uploadForm.title,
       description: uploadForm.description,
       file_path: filePath,
