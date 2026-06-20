@@ -52,6 +52,10 @@ export default function DocumentsPage() {
   const [showVersionUpload, setShowVersionUpload] = useState(false)
   const [versionNote, setVersionNote] = useState('')
 
+  // تابع کمکی برای بررسی دسترسی حذف
+  const canDelete = (doc: any) =>
+    user?.role === 'ADMIN' || doc.uploaded_by === user?.name
+
   useEffect(() => {
     fetchDocuments()
 
@@ -146,7 +150,7 @@ export default function DocumentsPage() {
       fetchDocuments()
     } else {
       console.error('DB Error:', dbError)
-  showToast('خطا: ' + dbError?.message, 'error')
+      showToast('خطا: ' + dbError?.message, 'error')
     }
     setUploading(false)
   }
@@ -339,10 +343,13 @@ export default function DocumentsPage() {
                 style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '5px 10px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
               >⬇️ دانلود</button>
 
-              <button
-                onClick={e => { e.stopPropagation(); handleDelete(doc.id) }}
-                style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
-              >حذف</button>
+              {/* دکمه حذف — فقط برای آپلودکننده یا ادمین */}
+              {canDelete(doc) && (
+                <button
+                  onClick={e => { e.stopPropagation(); handleDelete(doc.id) }}
+                  style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
+                >حذف</button>
+              )}
             </div>
           ))}
         </div>
