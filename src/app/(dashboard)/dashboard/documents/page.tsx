@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { useToast } from '@/components/ui/Toast'
 import { useIsMobile } from '@/lib/useIsMobile'
@@ -20,6 +20,14 @@ const fileTypeIcon: Record<string, string> = {
   'image/jpeg': '🖼️',
   'image/png': '🖼️',
   'default': '📁',
+}
+
+const fileTypeGroups: Record<string, string[]> = {
+  'PDF': ['application/pdf'],
+  'Word': ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+  'Excel': ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+  'PowerPoint': ['application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+  'تصویر': ['image/jpeg', 'image/png'],
 }
 
 function formatSize(bytes: number): string {
@@ -52,9 +60,53 @@ export default function DocumentsPage() {
   const [showVersionUpload, setShowVersionUpload] = useState(false)
   const [versionNote, setVersionNote] = useState('')
 
+  // جستجو و فیلتر
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterType, setFilterType] = useState<string>('')
+  const [filterDateFrom, setFilterDateFrom] = useState('')
+  const [filterDateTo, setFilterDateTo] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
+
   // تابع کمکی برای بررسی دسترسی حذف
   const canDelete = (doc: any) =>
     user?.role === 'ADMIN' || doc.uploaded_by === user?.name
+
+  // فیلتر کردن اسناد
+  const filteredDocuments = useMemo(() => {
+    return documents.filter(doc => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase()
+        const matchTitle = doc.title?.toLowerCase().includes(q)
+        const matchFileName = doc.file_name?.toLowerCase().includes(q)
+        if (!matchTitle && !matchFileName) return false
+      }
+      if (filterType) {
+        const types = fileTypeGroups[filterType] || []
+        if (!types.includes(doc.file_type)) return false
+      }
+      if (filterDateFrom) {
+        const docDate = new Date(doc.updated_at)
+        const fromDate = new Date(filterDateFrom)
+        if (docDate < fromDate) return false
+      }
+      if (filterDateTo) {
+        const docDate = new Date(doc.updated_at)
+        const toDate = new Date(filterDateTo)
+        toDate.setHours(23, 59, 59)
+        if (docDate > toDate) return false
+      }
+      return true
+    })
+  }, [documents, searchQuery, filterType, filterDateFrom, filterDateTo])
+
+  const hasActiveFilters = filterType || filterDateFrom || filterDateTo
+
+  const clearFilters = () => {
+    setSearchQuery('')
+    setFilterType('')
+    setFilterDateFrom('')
+    setFilterDateTo('')
+  }
 
   useEffect(() => {
     fetchDocuments()
@@ -229,19 +281,19 @@ export default function DocumentsPage() {
   const handleDelete = (id: string) => { setConfirmDelete(id) }
 
   const confirmDeleteAction = async () => {
-  if (!confirmDelete) return
-  const { error } = await supabase.from('documents').delete().eq('id', confirmDelete)
-  if (error) {
-    console.error('Delete error:', error)
-    showToast('خطا در حذف: ' + error.message, 'error')
+    if (!confirmDelete) return
+    const { error } = await supabase.from('documents').delete().eq('id', confirmDelete)
+    if (error) {
+      console.error('Delete error:', error)
+      showToast('خطا در حذف: ' + error.message, 'error')
+      setConfirmDelete(null)
+      return
+    }
+    showToast('سند حذف شد', 'info')
+    if (selected?.id === confirmDelete) setSelected(null)
     setConfirmDelete(null)
-    return
+    fetchDocuments()
   }
-  showToast('سند حذف شد', 'info')
-  if (selected?.id === confirmDelete) setSelected(null)
-  setConfirmDelete(null)
-  fetchDocuments()
-}
 
   const inputStyle = {
     width: '100%', background: t.input, border: `1px solid ${t.border}`,
@@ -262,9 +314,81 @@ export default function DocumentsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>مدیریت اسناد</h1>
-          <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{documents.length} سند ثبت شده</p>
+          <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>
+            {filteredDocuments.length !== documents.length
+              ? `${filteredDocuments.length} از ${documents.length} سند`
+              : `${documents.length} سند ثبت شده`}
+          </p>
         </div>
         <button onClick={() => setShowUpload(!showUpload)} className="btn-gold">+ آپلود سند</button>
+      </div>
+
+      {/* جستجو و فیلتر */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px', pointerEvents: 'none' }}>🔍</span>
+            <input
+              style={{ ...inputStyle, paddingRight: '32px' }}
+              placeholder="جستجو در عنوان یا نام فایل..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            style={{
+              background: hasActiveFilters ? '#c9a84c22' : t.card,
+              border: `1px solid ${hasActiveFilters ? '#c9a84c44' : t.border}`,
+              borderRadius: '8px', padding: '8px 14px',
+              color: hasActiveFilters ? '#e8c96a' : t.sub,
+              fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
+            }}
+          >🎚️ فیلتر {hasActiveFilters ? '●' : ''}</button>
+          {(searchQuery || hasActiveFilters) && (
+            <button
+              onClick={clearFilters}
+              style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 12px', color: t.muted, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
+            >✕</button>
+          )}
+        </div>
+
+        {/* پنل فیلترها */}
+        {showFilters && (
+          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '16px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '6px' }}>نوع فایل</label>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {Object.keys(fileTypeGroups).map(type => (
+                  <button
+                    key={type}
+                    onClick={() => setFilterType(filterType === type ? '' : type)}
+                    style={{
+                      padding: '4px 10px', borderRadius: '20px', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit',
+                      background: filterType === type ? '#c9a84c22' : t.inner,
+                      border: `1px solid ${filterType === type ? '#c9a84c44' : t.border}`,
+                      color: filterType === type ? '#e8c96a' : t.sub,
+                    }}
+                  >{type}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '6px' }}>بازه تاریخ</label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input type="date" style={{ ...inputStyle, flex: 1 }} value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} />
+                <span style={{ color: t.muted, fontSize: '11px', flexShrink: 0 }}>تا</span>
+                <input type="date" style={{ ...inputStyle, flex: 1 }} value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {filteredDocuments.length === 0 && documents.length > 0 && (
+          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '24px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>
+            نتیجه‌ای یافت نشد
+          </div>
+        )}
       </div>
 
       {/* فرم آپلود */}
@@ -318,17 +442,15 @@ export default function DocumentsPage() {
               <div style={{ fontSize: '48px', marginBottom: '12px' }}>📁</div>
               هنوز سندی آپلود نشده
             </div>
-          ) : documents.map(doc => (
+          ) : filteredDocuments.map(doc => (
             <div key={doc.id} className="hover-card"
               onClick={() => setSelected(doc)}
               style={{ background: selected?.id === doc.id ? t.inner : t.card, border: `1px solid ${selected?.id === doc.id ? '#c9a84c33' : t.border}`, borderRadius: '12px', padding: '14px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
 
-              {/* آیکون */}
               <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: '#c9a84c22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
                 {fileTypeIcon[doc.file_type] || fileTypeIcon.default}
               </div>
 
-              {/* اطلاعات */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.title}</div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -338,18 +460,15 @@ export default function DocumentsPage() {
                 </div>
               </div>
 
-              {/* نسخه */}
               <div style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: '#4a9eff22', color: '#4a9eff', flexShrink: 0 }}>
                 v{doc.version}
               </div>
 
-              {/* دکمه دانلود */}
               <button
                 onClick={e => { e.stopPropagation(); handleDownload(doc.file_path, doc.file_name) }}
                 style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '5px 10px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
               >⬇️ دانلود</button>
 
-              {/* دکمه حذف — فقط برای آپلودکننده یا ادمین */}
               {canDelete(doc) && (
                 <button
                   onClick={e => { e.stopPropagation(); handleDelete(doc.id) }}
@@ -364,7 +483,6 @@ export default function DocumentsPage() {
         {selected && (
           <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '600px', overflow: 'hidden' }}>
 
-            {/* هدر */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ color: t.text, fontSize: '14px', fontWeight: '700', marginBottom: '4px' }}>{selected.title}</div>
@@ -373,7 +491,6 @@ export default function DocumentsPage() {
               <button onClick={() => setSelected(null)} style={{ background: 'transparent', border: 'none', color: t.muted, fontSize: '18px', cursor: 'pointer', flexShrink: 0 }}>✕</button>
             </div>
 
-            {/* اطلاعات */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               {[
                 { label: 'آپلودکننده', value: selected.uploaded_by },
@@ -388,7 +505,6 @@ export default function DocumentsPage() {
               ))}
             </div>
 
-            {/* آپلود نسخه جدید */}
             <button
               onClick={() => setShowVersionUpload(!showVersionUpload)}
               style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '8px', padding: '8px', color: '#4a9eff', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}
@@ -410,7 +526,6 @@ export default function DocumentsPage() {
               </div>
             )}
 
-            {/* تب‌ها */}
             <div style={{ display: 'flex', gap: '8px', borderBottom: `1px solid ${t.border}`, paddingBottom: '8px' }}>
               {[
                 { key: 'comments', label: `💬 کامنت‌ها (${comments.length})` },
@@ -423,7 +538,6 @@ export default function DocumentsPage() {
               ))}
             </div>
 
-            {/* کامنت‌ها */}
             {activeTab === 'comments' && (
               <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px' }}>
@@ -449,7 +563,6 @@ export default function DocumentsPage() {
               </div>
             )}
 
-            {/* نسخه‌ها */}
             {activeTab === 'versions' && (
               <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px' }}>
                 {versions.map(version => (
