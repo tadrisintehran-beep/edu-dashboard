@@ -36,6 +36,17 @@ function formatSize(bytes: number): string {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
 
+// تابع کمکی برای ثبت alert
+async function createAlert(title: string, body: string) {
+  await (supabase.from('alerts') as any).insert([{
+    title,
+    body,
+    level: 'info',
+    is_read: false,
+    is_snoozed: false,
+  }])
+}
+
 export default function DocumentsPage() {
   const { t } = useTheme()
   const { showToast, ToastComponent } = useToast()
@@ -195,6 +206,13 @@ export default function DocumentsPage() {
         uploaded_by: user?.name || 'کاربر',
         note: 'نسخه اول',
       }])
+
+      // ثبت alert برای آپلود سند جدید
+      await createAlert(
+        '📁 سند جدید آپلود شد',
+        `${user?.name || 'کاربر'} سند «${uploadForm.title}» را آپلود کرد.`
+      )
+
       showToast('سند با موفقیت آپلود شد', 'success')
       setShowUpload(false)
       setUploadForm({ title: '', description: '', note: '' })
@@ -245,6 +263,12 @@ export default function DocumentsPage() {
       note: versionNote,
     }])
 
+    // ثبت alert برای نسخه جدید
+    await createAlert(
+      '🔄 نسخه جدید آپلود شد',
+      `${user?.name || 'کاربر'} نسخه ${newVersion} از سند «${selected.title}» را آپلود کرد.`
+    )
+
     showToast(`نسخه ${newVersion} آپلود شد`, 'success')
     setShowVersionUpload(false)
     setVersionFile(null)
@@ -262,6 +286,13 @@ export default function DocumentsPage() {
       author: user?.name || 'کاربر',
       body: newComment,
     }])
+
+    // ثبت alert برای کامنت جدید
+    await createAlert(
+      '💬 کامنت جدید',
+      `${user?.name || 'کاربر'} روی سند «${selected.title}» کامنت گذاشت: ${newComment}`
+    )
+
     setNewComment('')
     fetchComments(selected.id)
   }
