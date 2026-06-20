@@ -127,7 +127,7 @@ export default function ReportsPage() {
           <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>سیستم گزارش ها</h1>
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{reports.filter(r => !r.seen).length} گزارش خوانده نشده</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ گزارش جدید</button>
+        
         <div style={{ display: 'flex', gap: '8px' }}>
   <button
     onClick={() => exportReportsToExcel(filtered)}
