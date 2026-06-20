@@ -229,13 +229,19 @@ export default function DocumentsPage() {
   const handleDelete = (id: string) => { setConfirmDelete(id) }
 
   const confirmDeleteAction = async () => {
-    if (!confirmDelete) return
-    await supabase.from('documents').delete().eq('id', confirmDelete)
-    showToast('سند حذف شد', 'info')
-    if (selected?.id === confirmDelete) setSelected(null)
+  if (!confirmDelete) return
+  const { error } = await supabase.from('documents').delete().eq('id', confirmDelete)
+  if (error) {
+    console.error('Delete error:', error)
+    showToast('خطا در حذف: ' + error.message, 'error')
     setConfirmDelete(null)
-    fetchDocuments()
+    return
   }
+  showToast('سند حذف شد', 'info')
+  if (selected?.id === confirmDelete) setSelected(null)
+  setConfirmDelete(null)
+  fetchDocuments()
+}
 
   const inputStyle = {
     width: '100%', background: t.input, border: `1px solid ${t.border}`,
