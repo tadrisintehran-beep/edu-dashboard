@@ -8,6 +8,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { toJalali } from '@/lib/date'
 import { SkeletonList } from '@/components/ui/Skeleton'
+import { exportReportsToExcel } from '@/lib/exportData'
 
 const statusLabel: Record<string, string> = {
   submitted: 'ارسال شده', reviewing: 'در حال بررسی', approved: 'تأیید شده', rejected: 'رد شده',
@@ -127,6 +128,15 @@ export default function ReportsPage() {
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{reports.filter(r => !r.seen).length} گزارش خوانده نشده</p>
         </div>
         <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ گزارش جدید</button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+  <button
+    onClick={() => exportReportsToExcel(filtered)}
+    style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px 16px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px' }}
+  >
+    📊 خروجی Excel
+  </button>
+  <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ گزارش جدید</button>
+</div>
       </div>
 
       {showForm && (

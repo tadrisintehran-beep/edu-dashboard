@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { SkeletonList } from '@/components/ui/Skeleton'
+import { exportContactsToExcel } from '@/lib/exportData'
 
 const provinces = ['همه', 'تهران', 'اصفهان', 'مازندران', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی']
 const tagColors: Record<string, string> = {
@@ -106,12 +107,20 @@ export default function PhonebookPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>دفترچه تلفن</h1>
-          <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{contacts.length} مخاطب ثبت شده</p>
-        </div>
-        <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ مخاطب جدید</button>
-      </div>
+  <div>
+    <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>دفترچه تلفن</h1>
+    <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{contacts.length} مخاطب ثبت شده</p>
+  </div>
+  <div style={{ display: 'flex', gap: '8px' }}>
+    <button
+      onClick={() => exportContactsToExcel(filtered)}
+      style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px 16px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px' }}
+    >
+      📊 خروجی Excel
+    </button>
+    <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ مخاطب جدید</button>
+  </div>
+</div>
 
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>

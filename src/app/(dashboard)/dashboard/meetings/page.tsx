@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { SkeletonList } from '@/components/ui/Skeleton'
+import { exportMeetingsToExcel } from '@/lib/exportData'
 
 const priorityLabel: Record<string, string> = {
   low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری',
@@ -161,10 +162,57 @@ export default function MeetingsPage() {
               </select>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-            <button onClick={() => setShowForm(false)} style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 16px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>انصراف</button>
-            <button onClick={handleAdd} className="btn-gold" style={{ padding: '8px 16px', fontSize: '12px' }}>ثبت جلسه</button>
-          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <div>
+    <h1
+      style={{
+        color: t.text,
+        fontSize: isMobile ? '16px' : '18px',
+        fontWeight: '700'
+      }}
+    >
+      مدیریت جلسات
+    </h1>
+
+    <p
+      style={{
+        color: t.muted,
+        fontSize: '12px',
+        marginTop: '4px'
+      }}
+    >
+      {meetings.length} جلسه ثبت شده
+    </p>
+  </div>
+
+  <div style={{ display: 'flex', gap: '8px' }}>
+    <button
+      onClick={() => exportMeetingsToExcel(filtered)}
+      style={{
+        background: '#3dbb8222',
+        border: '1px solid #3dbb8244',
+        borderRadius: '8px',
+        padding: '10px 16px',
+        color: '#3dbb82',
+        fontSize: '12px',
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px'
+      }}
+    >
+      📊 خروجی Excel
+    </button>
+
+    <button
+      onClick={() => setShowForm(!showForm)}
+      className="btn-gold"
+    >
+      + جلسه جدید
+    </button>
+  </div>
+</div>
         </div>
       )}
 
