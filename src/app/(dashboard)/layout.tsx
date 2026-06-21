@@ -107,7 +107,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <>
       {/* لوگو */}
       <div style={{ padding: '16px 14px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-        <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #c9a84c, #e8c96a)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0, boxShadow: '0 4px 12px #c9a84c44' }}>🏛️</div>
+        <div style={{ width: '36px', height: '36px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+  <img src="/logo.png" alt="لوگو" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+</div>
         {(sidebarOpen || isMobile) && (
           <div>
             <div style={{ color: '#e8c96a', fontSize: '11px', fontWeight: '700', lineHeight: '1.3' }}>وزارت آموزش</div>

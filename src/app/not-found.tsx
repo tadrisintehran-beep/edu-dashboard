@@ -11,7 +11,7 @@ export default function NotFound() {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexDirection: 'column', gap: '20px', direction: 'rtl',
     }}>
-      <div style={{ fontSize: '80px' }}>🏛️</div>
+      <img src="/logo.png" alt="لوگو" style={{ width: '80px', height: '80px', objectFit: 'contain', marginBottom: '8px' }} />
       <div style={{
         background: '#131620', border: '1px solid #ffffff0f',
         borderRadius: '16px', padding: '40px', textAlign: 'center', maxWidth: '400px',

@@ -66,7 +66,7 @@ export default function LoginPage() {
         className="hide-mobile"
       >
         <div style={{ maxWidth: '400px', textAlign: 'center' }}>
-          <div style={{ fontSize: '64px', marginBottom: '24px' }}>🏛️</div>
+          <img src="/logo.png" alt="وزارت آموزش و پرورش" style={{ width: '100px', height: '100px', objectFit: 'contain', marginBottom: '24px' }} />
           <h2 style={{ color: '#e8c96a', fontSize: '28px', fontWeight: '700', marginBottom: '16px', lineHeight: '1.4' }}>
             سامانه مدیریت<br />معاونت آموزش متوسطه
           </h2>
@@ -107,12 +107,12 @@ export default function LoginPage() {
           {/* لوگو موبایل */}
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <div style={{
-              width: '60px', height: '60px',
-              background: 'linear-gradient(135deg, #c9a84c, #e8c96a)',
-              borderRadius: '16px', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px',
-              boxShadow: '0 8px 32px #c9a84c33',
-            }}>🏛️</div>
+  width: '80px', height: '80px',
+  margin: '0 auto 16px',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+}}>
+  <img src="/logo.png" alt="وزارت آموزش و پرورش" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+</div>
             <h1 style={{ color: '#e8eaf0', fontSize: '20px', fontWeight: '700', marginBottom: '6px' }}>
               خوش آمدید
             </h1>
