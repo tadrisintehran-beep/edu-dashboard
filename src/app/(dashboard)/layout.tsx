@@ -112,8 +112,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 </div>
         {(sidebarOpen || isMobile) && (
           <div>
-            <div style={{ color: '#e8c96a', fontSize: '11px', fontWeight: '700', lineHeight: '1.3' }}>وزارت آموزش</div>
-            <div style={{ color: t.muted, fontSize: '10px' }}>معاونت متوسطه</div>
+            <div style={{ color: '#e8c96a', fontSize: '11px', fontWeight: '700', lineHeight: '1.3' }}>وزارت آموزش و پرورش</div>
+            <div style={{ color: t.muted, fontSize: '10px' }}>معاونت آموزش متوسطه</div>
           </div>
         )}
       </div>
