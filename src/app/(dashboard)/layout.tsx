@@ -107,7 +107,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <>
       {/* لوگو */}
       <div style={{ padding: '16px 14px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-        <div style={{ width: '36px', height: '36px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '40px', height: '40px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ffffff', borderRadius: '10px', padding: '4px', boxShadow: '0 2px 8px #00000022' }}>
   <img src="/logo.png" alt="لوگو" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
 </div>
         {(sidebarOpen || isMobile) && (
