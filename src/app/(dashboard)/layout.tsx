@@ -5,13 +5,14 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { GlobalSearch } from '@/components/ui/GlobalSearch'
+import { supabase } from '@/lib/supabase'
 
 const menuItems = [
   { icon: '⊞', label: 'داشبورد', path: '/dashboard' },
-  { icon: '📅', label: 'جلسات', path: '/dashboard/meetings', badge: '۵' },
-  { icon: '📋', label: 'گزارش‌ها', path: '/dashboard/reports', badge: '۱۲' },
+  { icon: '📅', label: 'جلسات', path: '/dashboard/meetings' },
+  { icon: '📋', label: 'گزارش‌ها', path: '/dashboard/reports' },
   { icon: '📒', label: 'دفترچه تلفن', path: '/dashboard/phonebook' },
-  { icon: '🔔', label: 'هشدارها', path: '/dashboard/alerts', badge: '۳' },
+  { icon: '🔔', label: 'هشدارها', path: '/dashboard/alerts' },
   { icon: '📁', label: 'اسناد', path: '/dashboard/documents' },
 ]
 
@@ -29,6 +30,7 @@ const pageTitle: Record<string, string> = {
   '/dashboard/users': 'مدیریت کاربران',
   '/dashboard/profile': 'پروفایل کاربری',
   '/dashboard/settings': 'تنظیمات',
+  '/dashboard/documents': 'مدیریت اسناد',
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -40,6 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isMobile, setIsMobile] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showNotif, setShowNotif] = useState(false)
+  const [badges, setBadges] = useState<Record<string, number>>({})
 
   useEffect(() => { checkSession() }, [])
 
@@ -60,9 +63,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => { setMobileMenuOpen(false) }, [pathname])
 
+  useEffect(() => {
+    const fetchBadges = async () => {
+      const [meetings, reports, alerts] = await Promise.all([
+        supabase.from('meetings').select('id').eq('status', 'pending'),
+        supabase.from('reports').select('id').eq('seen', false),
+        supabase.from('alerts').select('id').eq('is_read', false),
+      ])
+      setBadges({
+        '/dashboard/meetings': meetings.data?.length || 0,
+        '/dashboard/reports': reports.data?.length || 0,
+        '/dashboard/alerts': alerts.data?.length || 0,
+      })
+    }
+    fetchBadges()
+  }, [pathname])
+
   if (isChecking) return (
     <div style={{ minHeight: '100vh', background: '#0c0e14', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #c9a84c, #e8c96a)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>🏛️</div>
+      <div style={{ width: '48px', height: '48px', background: '#ffffff', borderRadius: '12px', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img src="/logo.png" alt="لوگو" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+      </div>
       <div style={{ color: '#c9a84c', fontSize: '13px' }}>در حال بارگذاری...</div>
     </div>
   )
@@ -92,9 +113,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <span style={{ fontSize: '12px', fontWeight: isActive ? '600' : '400', color: isActive ? '#e8c96a' : t.sub, flex: 1 }}>
               {item.label}
             </span>
-            {item.badge && (
+            {badges[item.path] > 0 && (
               <span style={{ background: '#e05555', color: '#fff', fontSize: '10px', fontWeight: '700', padding: '1px 6px', borderRadius: '10px' }}>
-                {item.badge}
+                {badges[item.path]}
               </span>
             )}
           </>
@@ -108,12 +129,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* لوگو */}
       <div style={{ padding: '16px 14px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
         <div style={{ width: '40px', height: '40px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ffffff', borderRadius: '10px', padding: '4px', boxShadow: '0 2px 8px #00000022' }}>
-  <img src="/logo.png" alt="لوگو" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-</div>
+          <img src="/logo.png" alt="لوگو" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        </div>
         {(sidebarOpen || isMobile) && (
           <div>
-            <div style={{ color: '#e8c96a', fontSize: '11px', fontWeight: '700', lineHeight: '1.3' }}>وزارت آموزش و پرورش</div>
-            <div style={{ color: t.muted, fontSize: '10px' }}>معاونت آموزش متوسطه</div>
+            <div style={{ color: '#e8c96a', fontSize: '11px', fontWeight: '700', lineHeight: '1.3' }}>وزارت آموزش</div>
+            <div style={{ color: t.muted, fontSize: '10px' }}>معاونت متوسطه</div>
           </div>
         )}
       </div>
@@ -184,7 +205,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {(sidebarOpen || isMobile) && <span style={{ fontSize: '12px', color: t.sub }}>{isDark ? 'حالت روز' : 'حالت شب'}</span>}
         </div>
 
-        {/* آواتار و خروج */}
+        {/* خروج */}
         <div
           onClick={() => { logout(); router.push('/') }}
           style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
@@ -264,9 +285,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               onClick={() => setShowNotif(!showNotif)}
               style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', width: '36px', height: '36px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
             >🔔</button>
-            <div style={{ position: 'absolute', top: '6px', left: '6px', width: '8px', height: '8px', borderRadius: '50%', background: '#e05555', border: `2px solid ${t.card}` }}></div>
+            {(badges['/dashboard/alerts'] || 0) > 0 && (
+              <div style={{ position: 'absolute', top: '6px', left: '6px', width: '8px', height: '8px', borderRadius: '50%', background: '#e05555', border: `2px solid ${t.card}` }}></div>
+            )}
 
-            {/* پنل اعلان */}
             {showNotif && (
               <>
                 <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
