@@ -66,8 +66,12 @@ export default function LoginPage() {
         className="hide-mobile"
       >
         <div style={{ maxWidth: '400px', textAlign: 'center' }}>
-          {/* ✅ لوگوی سمت چپ — بزرگ‌تر با پس‌زمینه سفید */}
-          <div style={{ width: '110px', height: '110px', background: '#ffffff', borderRadius: '20px', padding: '10px', boxShadow: '0 4px 20px #00000033', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', margin: '0 auto 24px' }}>
+          <div style={{
+            width: '110px', height: '110px', background: '#ffffff',
+            borderRadius: '20px', padding: '4px', boxShadow: '0 4px 20px #00000033',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 24px',
+          }}>
             <img src="/logo.png" alt="وزارت آموزش و پرورش" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <h2 style={{ color: '#e8c96a', fontSize: '28px', fontWeight: '700', marginBottom: '16px', lineHeight: '1.4' }}>
@@ -107,10 +111,14 @@ export default function LoginPage() {
       }}>
         <div style={{ width: '100%', maxWidth: '360px' }}>
 
-          {/* لوگو موبایل */}
+          {/* لوگو */}
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            {/* ✅ لوگوی فرم — با پس‌زمینه سفید و سایه */}
-            <div style={{ width: '80px', height: '80px', margin: '0 auto 16px', background: '#ffffff', borderRadius: '16px', padding: '8px', boxShadow: '0 4px 20px #00000033', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{
+              width: '80px', height: '80px', margin: '0 auto 16px',
+              background: '#ffffff', borderRadius: '16px', padding: '4px',
+              boxShadow: '0 4px 20px #00000033',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
               <img src="/logo.png" alt="وزارت آموزش و پرورش" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <h1 style={{ color: '#e8eaf0', fontSize: '20px', fontWeight: '700', marginBottom: '6px' }}>
