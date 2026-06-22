@@ -20,6 +20,19 @@ export const metadata: Metadata = {
   keywords: ['آموزش', 'وزارت', 'داشبورد', 'مدیریت'],
   authors: [{ name: 'وزارت آموزش و پرورش' }],
   robots: 'noindex, nofollow',
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/icon.svg',
+    shortcut: '/icon.svg',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'داشبورد آموزش',
+  },
 }
 
 export const viewport: Viewport = {
