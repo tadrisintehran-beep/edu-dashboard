@@ -381,6 +381,12 @@ export default function ReportsPage() {
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button onClick={() => handleApprove(selected.id)} style={{ flex: 1, background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px', color: '#3dbb82', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>✓ تأیید</button>
                 <button onClick={() => handleReject(selected.id)} style={{ flex: 1, background: '#e0555522', border: '1px solid #e0555544', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>✕ رد</button>
+                <button
+  onClick={() => handleDelete(selected.id)}
+  style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', width: '100%' }}
+>
+  🗑 حذف گزارش
+</button>
               </div>
             )}
 
