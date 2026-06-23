@@ -21,20 +21,7 @@ function Sparkline({ data, color }: { data: number[], color: string }) {
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'visible' }}>
-      <defs>
-        <linearGradient id={`grad-${color.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <polyline points={points} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -51,25 +38,23 @@ export default function DashboardPage() {
     totalContacts: 0,
   })
   const [recentReports, setRecentReports] = useState<any[]>([])
-  const [todayMeetings, setTodayMeetings] = useState<any[]>([])
+  const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([])
 
   useEffect(() => {
-  fetchData()
-
-  const channel = supabase
-    .channel('dashboard-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, () => fetchData())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => fetchData())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, () => fetchData())
-    .subscribe()
-
-  return () => { supabase.removeChannel(channel) }
-}, [])
+    fetchData()
+    const channel = supabase
+      .channel('dashboard-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, () => fetchData())
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   const fetchData = async () => {
     setLoading(true)
     const [meetings, reports, alerts, contacts] = await Promise.all([
-      supabase.from('meetings').select('*').order('created_at', { ascending: false }),
+      supabase.from('meetings').select('*').order('date', { ascending: true }).order('time', { ascending: true }),
       supabase.from('reports').select('*').order('created_at', { ascending: false }),
       supabase.from('alerts').select('*').order('created_at', { ascending: false }),
       supabase.from('contacts').select('id'),
@@ -77,6 +62,7 @@ export default function DashboardPage() {
     const m = meetings.data || []
     const r = reports.data || []
     const a = alerts.data || []
+
     setKpis({
       pendingMeetings: m.filter(x => x.status === 'pending').length,
       totalMeetings: m.length,
@@ -86,8 +72,19 @@ export default function DashboardPage() {
       totalAlerts: a.filter(x => !x.is_read).length,
       totalContacts: contacts.data?.length || 0,
     })
+
     setRecentReports(r.slice(0, 5))
-    setTodayMeetings(m.slice(0, 4))
+
+    // جلسات آینده — مرتب شده بر اساس تاریخ و ساعت
+    const today = new Date().toISOString().split('T')[0]
+    const upcoming = m
+      .filter(x => x.date >= today)
+      .sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date)
+        return (a.time || '').localeCompare(b.time || '')
+      })
+      .slice(0, 5)
+    setUpcomingMeetings(upcoming)
     setLoading(false)
   }
 
@@ -103,57 +100,24 @@ export default function DashboardPage() {
 
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      {/* Skeleton */}
-      <div style={{ height: '28px', width: '200px', background: t.inner, borderRadius: '8px', animation: 'pulse 1.5s ease infinite' }} />
+      <div style={{ height: '28px', width: '200px', background: t.inner, borderRadius: '8px' }} />
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '10px' }}>
-        {[1,2,3,4].map(i => (
-          <div key={i} style={{ height: '130px', background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ width: '36px', height: '36px', background: t.inner, borderRadius: '8px' }} />
-            <div style={{ width: '60%', height: '12px', background: t.inner, borderRadius: '4px' }} />
-            <div style={{ width: '40%', height: '24px', background: t.inner, borderRadius: '4px' }} />
-          </div>
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} style={{ height: '130px', background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '16px' }} />
         ))}
       </div>
     </div>
   )
 
   const kpiData = [
-    {
-      label: 'جلسات در انتظار',
-      value: kpis.pendingMeetings,
-      delta: `از ${kpis.totalMeetings} جلسه`,
-      deltaType: kpis.pendingMeetings > 0 ? 'down' : 'up',
-      icon: '📅', color: '#c9a84c',
-      spark: [2, 4, 3, 5, 4, 6, kpis.pendingMeetings || 1],
-    },
-    {
-      label: 'گزارش خوانده نشده',
-      value: kpis.unreadReports,
-      delta: `از ${kpis.totalReports} گزارش`,
-      deltaType: kpis.unreadReports > 0 ? 'down' : 'up',
-      icon: '📋', color: '#4a9eff',
-      spark: [5, 3, 7, 4, 6, 3, kpis.unreadReports || 1],
-    },
-    {
-      label: 'هشدارهای فعال',
-      value: kpis.totalAlerts,
-      delta: `${kpis.criticalAlerts} بحرانی`,
-      deltaType: kpis.criticalAlerts > 0 ? 'down' : 'up',
-      icon: '🔔', color: '#e05555',
-      spark: [1, 2, 1, 3, 2, 4, kpis.totalAlerts || 1],
-    },
-    {
-      label: 'مخاطبین',
-      value: kpis.totalContacts,
-      delta: 'دفترچه تلفن',
-      deltaType: 'up',
-      icon: '👥', color: '#3dbb82',
-      spark: [1, 2, 3, 2, 4, 3, kpis.totalContacts || 1],
-    },
+    { label: 'جلسات در انتظار', value: kpis.pendingMeetings, delta: `از ${kpis.totalMeetings} جلسه`, icon: '📅', color: '#c9a84c', deltaType: kpis.pendingMeetings > 0 ? 'down' : 'up', spark: [2, 4, 3, 5, 4, 6, kpis.pendingMeetings || 1] },
+    { label: 'گزارش خوانده نشده', value: kpis.unreadReports, delta: `از ${kpis.totalReports} گزارش`, icon: '📋', color: '#4a9eff', deltaType: kpis.unreadReports > 0 ? 'down' : 'up', spark: [5, 3, 7, 4, 6, 3, kpis.unreadReports || 1] },
+    { label: 'هشدارهای فعال', value: kpis.totalAlerts, delta: `${kpis.criticalAlerts} بحرانی`, icon: '🔔', color: '#e05555', deltaType: kpis.criticalAlerts > 0 ? 'down' : 'up', spark: [1, 2, 1, 3, 2, 4, kpis.totalAlerts || 1] },
+    { label: 'مخاطبین', value: kpis.totalContacts, delta: 'دفترچه تلفن', icon: '👥', color: '#3dbb82', deltaType: 'up', spark: [1, 2, 3, 2, 4, 3, kpis.totalContacts || 1] },
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', direction: 'rtl' }}>
 
       {/* سلام */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -162,13 +126,10 @@ export default function DashboardPage() {
             سلام، {user?.name} 👋
           </h1>
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>
-            {todayJalaliFull()} — دفتر تهران
+            {todayJalaliFull()} — دفتر معاونت آموزش متوسطه
           </p>
         </div>
-        <button
-          onClick={fetchData}
-          style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 14px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px' }}
-        >
+        <button onClick={fetchData} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 14px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px' }}>
           🔄 بروزرسانی
         </button>
       </div>
@@ -176,36 +137,17 @@ export default function DashboardPage() {
       {/* KPI Cards */}
       <div className="stagger" style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '10px' }}>
         {kpiData.map((kpi, i) => (
-          <div key={i} style={{
-            background: t.card, border: `1px solid ${t.border}`,
-            borderRadius: '14px', padding: '16px', cursor: 'pointer',
-            transition: 'all 0.2s', position: 'relative', overflow: 'hidden',
-          }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLDivElement).style.borderColor = kpi.color + '55'
-              ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'
-              ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 24px ${kpi.color}22`
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLDivElement).style.borderColor = t.border
-              ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'
-              ;(e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
-            }}
+          <div key={i} style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: isMobile ? '12px' : '16px', cursor: 'pointer', transition: 'all 0.2s', position: 'relative', overflow: 'hidden' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = kpi.color + '55'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 24px ${kpi.color}22` }}
+            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = t.border; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
           >
-            {/* گرادیان پس‌زمینه */}
             <div style={{ position: 'absolute', top: 0, right: 0, width: '80px', height: '80px', background: `radial-gradient(circle, ${kpi.color}18, transparent 70%)`, pointerEvents: 'none' }} />
-
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: kpi.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>
-                {kpi.icon}
-              </div>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: kpi.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>{kpi.icon}</div>
               <Sparkline data={kpi.spark} color={kpi.color} />
             </div>
-
             <div style={{ color: t.sub, fontSize: '11px', marginBottom: '6px' }}>{kpi.label}</div>
-            <div style={{ color: t.text, fontSize: isMobile ? '24px' : '30px', fontWeight: '800', marginBottom: '6px', lineHeight: 1 }}>
-              {kpi.value}
-            </div>
+            <div style={{ color: t.text, fontSize: isMobile ? '24px' : '30px', fontWeight: '800', marginBottom: '6px', lineHeight: 1 }}>{kpi.value}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: kpi.deltaType === 'up' ? '#3dbb82' : '#e05555' }}>
               <span>{kpi.deltaType === 'up' ? '↑' : '↓'}</span>
               <span>{kpi.delta}</span>
@@ -215,13 +157,13 @@ export default function DashboardPage() {
       </div>
 
       {/* ردیف دوم */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 320px', gap: '12px' }}>
 
         {/* گزارش‌های اخیر */}
         <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <div style={{ color: t.text, fontSize: '13px', fontWeight: '600' }}>آخرین گزارش‌ها</div>
-            <a href="/dashboard/reports" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>همه <span>→</span></a>
+            <a href="/dashboard/reports" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>همه →</a>
           </div>
           <div className="stagger">
             {recentReports.length === 0 ? (
@@ -241,23 +183,39 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* جلسات اخیر */}
+        {/* جلسات آینده */}
         <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <div style={{ color: t.text, fontSize: '13px', fontWeight: '600' }}>آخرین جلسات</div>
+            <div style={{ color: t.text, fontSize: '13px', fontWeight: '600' }}>جلسات پیش رو</div>
             <a href="/dashboard/meetings" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>همه →</a>
           </div>
           <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {todayMeetings.length === 0 ? (
+            {upcomingMeetings.length === 0 ? (
               <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '20px' }}>جلسه‌ای ثبت نشده</div>
-            ) : todayMeetings.map(meeting => (
+            ) : upcomingMeetings.map(meeting => (
               <div key={meeting.id} style={{ padding: '10px 12px', borderRadius: '10px', borderRight: `3px solid ${priorityColor[meeting.priority] || '#555'}`, background: t.inner, cursor: 'pointer', transition: 'all 0.2s' }}
                 onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = t.border}
                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = t.inner}
               >
-                <div style={{ color: t.muted, fontSize: '10px', marginBottom: '3px' }}>{meeting.time} — {meeting.date}</div>
-                <div style={{ color: t.text, fontSize: '12px', fontWeight: '600', marginBottom: '2px' }}>{meeting.title_fa}</div>
-                <div style={{ color: t.sub, fontSize: '10px' }}>📍 {meeting.location} — 👥 {meeting.participants} نفر</div>
+                {/* روز و ساعت */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                  {meeting.day_of_week && (
+                    <span style={{ padding: '1px 7px', borderRadius: '8px', fontSize: '10px', background: '#c9a84c22', color: '#e8c96a', border: '1px solid #c9a84c33', flexShrink: 0 }}>
+                      {meeting.day_of_week}
+                    </span>
+                  )}
+                  <span style={{ color: '#e8c96a', fontSize: '12px', fontWeight: '700' }}>{meeting.time}</span>
+                  {meeting.end_time && <span style={{ color: t.muted, fontSize: '10px' }}>— {meeting.end_time}</span>}
+                  <span style={{ color: t.muted, fontSize: '10px', marginRight: 'auto' }}>{toJalali(meeting.date)}</span>
+                </div>
+                {/* عنوان */}
+                <div style={{ color: t.text, fontSize: '12px', fontWeight: '600', marginBottom: '3px' }}>{meeting.title_fa}</div>
+                {/* جزئیات */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {meeting.location && <span style={{ color: t.sub, fontSize: '10px' }}>📍 {meeting.location}</span>}
+                  {meeting.participants && <span style={{ color: t.sub, fontSize: '10px' }}>👥 {meeting.participants} نفر</span>}
+                  {meeting.meeting_type && <span style={{ color: t.sub, fontSize: '10px' }}>🏷 {meeting.meeting_type}</span>}
+                </div>
               </div>
             ))}
           </div>
