@@ -156,20 +156,29 @@ export default function MeetingsPage() {
 
   // فیلتر جلسات هفته انتخاب شده
   const weekMeetings = meetings.filter(m => {
-    if (!m.date) return false
-    const mDate = new Date(m.date)
-    const endDate = new Date(weekStart)
-    endDate.setDate(weekStart.getDate() + 6)
-    return mDate >= weekStart && mDate <= endDate
-  })
+  if (!m.date) return false
+  const mDateStr = m.date.split('T')[0]
+  const startStr = dateToString(weekStart)
+  const endDate = new Date(weekStart)
+  endDate.setDate(weekStart.getDate() + 6)
+  const endStr = dateToString(endDate)
+  return mDateStr >= startStr && mDateStr <= endStr
+})
 
   // گروه‌بندی جلسات بر اساس روز
   const meetingsByDay: Record<string, any[]> = {}
   DAYS.forEach(day => { meetingsByDay[day] = [] })
   weekMeetings.forEach(m => {
-    const day = m.day_of_week || DAYS[new Date(m.date).getDay() === 0 ? 1 : new Date(m.date).getDay()]
-    if (meetingsByDay[day]) meetingsByDay[day].push(m)
-  })
+  let day = m.day_of_week
+  if (!day) {
+    const d = new Date(m.date)
+    // در ایران: شنبه=6، یک‌شنبه=0، دوشنبه=1، ...
+    const jsDay = d.getDay()
+    const irDay = jsDay === 6 ? 0 : jsDay + 1
+    day = DAYS[irDay] || DAYS[0]
+  }
+  if (meetingsByDay[day]) meetingsByDay[day].push(m)
+})
 
   const inputStyle = {
     width: '100%', background: t.input, border: `1px solid ${t.border}`,
