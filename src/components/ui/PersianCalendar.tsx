@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 
-// تعطیلات رسمی ۱۴۰۵ (ماه/روز جلالی)
 const HOLIDAYS_1405: Record<string, string> = {
-  // فروردین
   '1/1': 'نوروز — عید سعید فطر',
   '1/2': 'عید نوروز — تعطیل عید فطر',
   '1/3': 'عید نوروز',
@@ -12,25 +10,19 @@ const HOLIDAYS_1405: Record<string, string> = {
   '1/12': 'روز جمهوری اسلامی ایران',
   '1/13': 'روز طبیعت',
   '1/25': 'شهادت امام جعفر صادق (ع)',
-  // خرداد
   '3/3': 'شهادت امام محمد باقر (ع)',
   '3/6': 'عید سعید قربان',
   '3/14': 'عید سعید غدیر — رحلت امام خمینی (ره)',
   '3/15': 'قیام ۱۵ خرداد',
-  // مرداد
   '5/13': 'اربعین حسینی',
   '5/20': 'تاسوعای حسینی',
   '5/21': 'عاشورای حسینی',
   '5/30': 'اربعین حسینی',
-  // شهریور
   '6/18': 'شهادت امام رضا (ع)',
-  // دی
   '10/2': 'ولادت امام علی (ع) — روز پدر',
   '10/16': 'مبعث پیامبر اکرم (ص)',
-  // بهمن
   '11/4': 'ولادت حضرت مهدی (عج)',
   '11/22': 'پیروزی انقلاب اسلامی',
-  // اسفند
   '12/9': 'شهادت حضرت علی (ع)',
   '12/19': 'عید سعید فطر',
   '12/20': 'تعطیل عید فطر',
@@ -72,7 +64,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
   const daysInMonth = jalaali.jalaaliMonthLength(jYear, jMonth)
   const firstGregorian = jalaali.toGregorian(jYear, jMonth, 1)
   const firstDate = new Date(firstGregorian.gy, firstGregorian.gm - 1, firstGregorian.gd)
-  const firstDayOfWeek = (firstDate.getDay() + 1) % 7 // شنبه=0
+  const firstDayOfWeek = (firstDate.getDay() + 1) % 7
 
   const cells: (number | null)[] = []
   for (let i = 0; i < firstDayOfWeek; i++) cells.push(null)
@@ -89,14 +81,14 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
   const isPastDay = (jd: number) => {
     const g = jalaali.toGregorian(jYear, jMonth, jd)
     const d = new Date(g.gy, g.gm - 1, g.gd)
-    const t = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    return d < t
+    const t2 = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    return d < t2
   }
 
   const getDayOfWeek = (jd: number) => {
     const g = jalaali.toGregorian(jYear, jMonth, jd)
     const d = new Date(g.gy, g.gm - 1, g.gd)
-    return (d.getDay() + 1) % 7 // شنبه=0
+    return (d.getDay() + 1) % 7
   }
 
   const prevMonth = () => {
@@ -170,7 +162,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
               <button onClick={goToday} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '3px 10px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
                 امروز
               </button>
-              <span style={{ color: t.muted, fontSize: '11px', lineHeight: '22px' }}>{monthMeetings.length} جلسه این ماه</span>
+              <span style={{ color: t.muted, fontSize: '11px', lineHeight: '22px' }}>{monthMeetings.length} جلسه</span>
             </div>
           </div>
 
@@ -190,7 +182,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
         {/* روزها */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? '3px' : '4px' }}>
           {cells.map((jd, i) => {
-            if (!jd) return <div key={i} style={{ minHeight: isMobile ? '54px' : '76px' }} />
+            if (!jd) return <div key={i} style={{ minHeight: isMobile ? '44px' : '76px' }} />
 
             const dayMeetings = getMeetingsForDay(jd)
             const holiday = getHoliday(jd)
@@ -206,15 +198,14 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
                 key={i}
                 onClick={() => setSelectedDay(isSelected ? null : jd)}
                 style={{
-                  minHeight: isMobile ? '54px' : '76px',
-                  padding: isMobile ? '4px 3px' : '6px',
+                  minHeight: isMobile ? '44px' : '76px',
+                  padding: isMobile ? '3px 2px' : '6px',
                   borderRadius: '10px',
                   background: isSelected ? '#c9a84c33' : isToday ? '#c9a84c11' : holiday ? '#e0555508' : hasMeeting ? t.inner + '88' : 'transparent',
                   border: isSelected ? '2px solid #c9a84c' : isToday ? '2px solid #c9a84c66' : hasMeeting ? `1px solid ${t.border}` : '1px solid transparent',
                   cursor: 'pointer',
                   opacity: isPast && !isToday && !isSelected ? 0.55 : 1,
                   transition: 'all 0.15s',
-                  position: 'relative',
                 }}
                 onMouseEnter={e => {
                   if (!isSelected && !isToday)
@@ -226,45 +217,58 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
                 }}
               >
                 {/* شماره روز */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: holiday ? '2px' : '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: isMobile ? '2px' : '4px' }}>
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: isMobile ? '22px' : '26px', height: isMobile ? '22px' : '26px',
+                    width: isMobile ? '20px' : '26px', height: isMobile ? '20px' : '26px',
                     borderRadius: '50%',
                     background: isToday ? '#c9a84c' : 'transparent',
                     color: isToday ? '#1a1200' : holiday || isJumua ? '#e05555' : t.text,
-                    fontSize: isMobile ? '11px' : '13px',
+                    fontSize: isMobile ? '10px' : '13px',
                     fontWeight: isToday ? '800' : isPast ? '400' : '600',
                   }}>{jd}</span>
                 </div>
 
                 {/* نشانه تعطیل */}
                 {holiday && (
-                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '3px' }}>
-                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#e05555' }} />
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: isMobile ? '2px' : '3px' }}>
+                    <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#e05555' }} />
                   </div>
                 )}
 
-                {/* جلسات */}
-                {dayMeetings.slice(0, isMobile ? 1 : 2).map((m, mi) => (
-                  <div key={mi} style={{
-                    background: (PRIORITY_COLORS[m.priority] || '#555') + '28',
-                    borderRight: `2px solid ${PRIORITY_COLORS[m.priority] || '#555'}`,
-                    borderRadius: '4px',
-                    padding: '1px 3px',
-                    marginBottom: '2px',
-                    overflow: 'hidden',
-                  }}>
-                    <div style={{ color: PRIORITY_COLORS[m.priority] || t.text, fontSize: '9px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {!isMobile && m.time ? m.time + ' ' : ''}{m.title_fa}
-                    </div>
+                {/* موبایل: نقطه‌های رنگی */}
+                {isMobile ? (
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', flexWrap: 'wrap' }}>
+                    {dayMeetings.slice(0, 3).map((m, mi) => (
+                      <div key={mi} style={{ width: '5px', height: '5px', borderRadius: '50%', background: PRIORITY_COLORS[m.priority] || '#555' }} />
+                    ))}
+                    {dayMeetings.length > 3 && (
+                      <div style={{ color: '#c9a84c', fontSize: '7px', fontWeight: '700' }}>+</div>
+                    )}
                   </div>
-                ))}
-
-                {dayMeetings.length > (isMobile ? 1 : 2) && (
-                  <div style={{ color: '#c9a84c', fontSize: '9px', textAlign: 'center', fontWeight: '600' }}>
-                    +{dayMeetings.length - (isMobile ? 1 : 2)}
-                  </div>
+                ) : (
+                  /* دسکتاپ: نمایش کامل */
+                  <>
+                    {dayMeetings.slice(0, 2).map((m, mi) => (
+                      <div key={mi} style={{
+                        background: (PRIORITY_COLORS[m.priority] || '#555') + '28',
+                        borderRight: `2px solid ${PRIORITY_COLORS[m.priority] || '#555'}`,
+                        borderRadius: '4px',
+                        padding: '1px 3px',
+                        marginBottom: '2px',
+                        overflow: 'hidden',
+                      }}>
+                        <div style={{ color: PRIORITY_COLORS[m.priority] || t.text, fontSize: '9px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {m.time ? m.time + ' ' : ''}{m.title_fa}
+                        </div>
+                      </div>
+                    ))}
+                    {dayMeetings.length > 2 && (
+                      <div style={{ color: '#c9a84c', fontSize: '9px', textAlign: 'center', fontWeight: '600' }}>
+                        +{dayMeetings.length - 2}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )
@@ -299,14 +303,12 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
           {/* هدر روز */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <div>
-              <div style={{ color: t.text, fontSize: '16px', fontWeight: '700' }}>
+              <div style={{ color: t.text, fontSize: '15px', fontWeight: '700' }}>
                 {DAY_NAMES_FULL[selectedDayOfWeek]} {selectedDay} {MONTH_NAMES[jMonth - 1]} {jYear}
               </div>
               {(() => {
                 const g = jalaali.toGregorian(jYear, jMonth, selectedDay)
-                return <div style={{ color: t.muted, fontSize: '11px', marginTop: '3px' }}>
-                  {g.gd}/{g.gm}/{g.gy}
-                </div>
+                return <div style={{ color: t.muted, fontSize: '11px', marginTop: '3px' }}>{g.gd}/{g.gm}/{g.gy}</div>
               })()}
             </div>
             <button onClick={() => setSelectedDay(null)} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: t.muted, fontSize: '16px' }}>✕</button>
