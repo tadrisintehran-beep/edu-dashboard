@@ -63,14 +63,12 @@ function dateToString(d: Date): string {
   return d.toISOString().split('T')[0]
 }
 
-// تشخیص وضعیت جلسه بر اساس زمان
 function getMeetingTimeStatus(date: string, time: string, endTime: string): 'past' | 'ongoing' | 'soon' | 'upcoming' {
   if (!date || !time) return 'upcoming'
   const now = new Date()
   const [h, m] = time.split(':').map(Number)
   const meetingStart = new Date(date)
   meetingStart.setHours(h, m, 0, 0)
-
   let meetingEnd = new Date(meetingStart)
   meetingEnd.setHours(meetingStart.getHours() + 2)
   if (endTime) {
@@ -78,12 +76,142 @@ function getMeetingTimeStatus(date: string, time: string, endTime: string): 'pas
     meetingEnd = new Date(date)
     meetingEnd.setHours(eh, em, 0, 0)
   }
-
   if (now > meetingEnd) return 'past'
   if (now >= meetingStart && now <= meetingEnd) return 'ongoing'
   const diffMs = meetingStart.getTime() - now.getTime()
-  if (diffMs <= 60 * 60 * 1000) return 'soon' // کمتر از ۱ ساعت
+  if (diffMs <= 60 * 60 * 1000) return 'soon'
   return 'upcoming'
+}
+
+// کامپوننت تقویم
+function CalendarView({ meetings, isMobile, t }: { meetings: any[], isMobile: boolean, t: any }) {
+  const today = new Date()
+  const [calYear, setCalYear] = useState(today.getFullYear())
+  const [calMonth, setCalMonth] = useState(today.getMonth())
+
+  const firstDay = new Date(calYear, calMonth, 1)
+  const lastDay = new Date(calYear, calMonth + 1, 0)
+  const firstDayOfWeek = (firstDay.getDay() + 1) % 7
+
+  const days: (Date | null)[] = []
+  for (let i = 0; i < firstDayOfWeek; i++) days.push(null)
+  for (let i = 1; i <= lastDay.getDate(); i++) days.push(new Date(calYear, calMonth, i))
+
+  const getMeetingsForDate = (date: Date) => {
+    const dateStr = dateToString(date)
+    return meetings.filter(m => m.date && m.date.split('T')[0] === dateStr)
+  }
+
+  const jalaali = require('jalaali-js')
+  const jToday = jalaali.toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate())
+  const jFirst = jalaali.toJalaali(calYear, calMonth + 1, 1)
+
+  const monthNames = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
+
+  const prevMonth = () => {
+    if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) }
+    else setCalMonth(m => m - 1)
+  }
+  const nextMonth = () => {
+    if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) }
+    else setCalMonth(m => m + 1)
+  }
+
+  return (
+    <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '16px', direction: 'rtl' }}>
+
+      {/* هدر */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <button onClick={prevMonth} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 14px', color: t.sub, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>←</button>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: t.text, fontSize: '16px', fontWeight: '700' }}>
+            {monthNames[jFirst.jm - 1]} {jFirst.jy}
+          </div>
+          <div style={{ color: t.muted, fontSize: '11px', marginTop: '2px' }}>
+            {firstDay.toLocaleDateString('fa-IR', { month: 'long', year: 'numeric' })}
+          </div>
+        </div>
+        <button onClick={nextMonth} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 14px', color: t.sub, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>→</button>
+      </div>
+
+      {/* روزهای هفته */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '6px' }}>
+        {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map((d, i) => (
+          <div key={i} style={{ textAlign: 'center', color: i === 6 ? '#e05555' : t.muted, fontSize: '12px', fontWeight: '600', padding: '6px 0' }}>{d}</div>
+        ))}
+      </div>
+
+      {/* روزها */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+        {days.map((date, i) => {
+          if (!date) return <div key={i} style={{ minHeight: isMobile ? '50px' : '70px' }} />
+
+          const dayMeetings = getMeetingsForDate(date)
+          const jDate = jalaali.toJalaali(date.getFullYear(), date.getMonth() + 1, date.getDate())
+          const isToday = jDate.jy === jToday.jy && jDate.jm === jToday.jm && jDate.jd === jToday.jd
+          const isJumua = date.getDay() === 5
+          const hasMeeting = dayMeetings.length > 0
+
+          return (
+            <div key={i} style={{
+              minHeight: isMobile ? '50px' : '70px',
+              padding: '4px',
+              borderRadius: '8px',
+              background: isToday ? '#c9a84c22' : hasMeeting ? t.inner : 'transparent',
+              border: isToday ? '2px solid #c9a84c66' : hasMeeting ? `1px solid ${t.border}` : '1px solid transparent',
+              opacity: isJumua ? 0.5 : 1,
+              transition: 'all 0.15s',
+              cursor: hasMeeting ? 'pointer' : 'default',
+            }}>
+              <div style={{ textAlign: 'center', marginBottom: '3px' }}>
+                <span style={{
+                  display: 'inline-block',
+                  width: '22px', height: '22px',
+                  lineHeight: '22px',
+                  borderRadius: '50%',
+                  background: isToday ? '#c9a84c' : 'transparent',
+                  color: isToday ? '#1a1200' : isJumua ? '#e05555' : t.text,
+                  fontSize: isMobile ? '10px' : '12px',
+                  fontWeight: isToday ? '700' : '400',
+                  textAlign: 'center',
+                }}>{jDate.jd}</span>
+              </div>
+
+              {dayMeetings.slice(0, isMobile ? 1 : 2).map((m, mi) => (
+                <div key={mi} style={{
+                  background: (priorityColor[m.priority] || '#555') + '22',
+                  borderRight: `2px solid ${priorityColor[m.priority] || '#555'}`,
+                  borderRadius: '4px',
+                  padding: '2px 4px',
+                  marginBottom: '2px',
+                }}>
+                  <div style={{ color: priorityColor[m.priority] || t.text, fontSize: '9px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {m.time} {m.title_fa}
+                  </div>
+                </div>
+              ))}
+
+              {dayMeetings.length > (isMobile ? 1 : 2) && (
+                <div style={{ color: t.muted, fontSize: '9px', textAlign: 'center', marginTop: '2px' }}>
+                  +{dayMeetings.length - (isMobile ? 1 : 2)} بیشتر
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* راهنما */}
+      <div style={{ display: 'flex', gap: '12px', marginTop: '14px', paddingTop: '14px', borderTop: `1px solid ${t.border}`, flexWrap: 'wrap', justifyContent: 'center' }}>
+        {Object.entries(priorityColor).map(([key, color]) => (
+          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: color + '44', border: `2px solid ${color}` }} />
+            <span style={{ color: t.muted, fontSize: '10px' }}>{priorityLabel[key]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default function MeetingsPage() {
@@ -92,7 +220,7 @@ export default function MeetingsPage() {
   const isMobile = useIsMobile()
   const [meetings, setMeetings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState<'weekly' | 'list' | 'report'>('weekly')
+  const [view, setView] = useState<'weekly' | 'list' | 'calendar' | 'report'>('weekly')
   const [showForm, setShowForm] = useState(false)
   const [editMeeting, setEditMeeting] = useState<any | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
@@ -100,7 +228,7 @@ export default function MeetingsPage() {
   const [reportFilter, setReportFilter] = useState<'month' | '3months' | '6months' | 'year'>('month')
   const [newMeeting, setNewMeeting] = useState({
     title: '', day: 'شنبه', time: '', end_time: '', location: '',
-    participants: '', priority: 'med', meeting_type: 'جلسه', description: '',
+    participants: '', priority: 'med', meeting_type: 'جلسه',
   })
 
   const weekDates = getWeekDates(weekStart)
@@ -119,21 +247,16 @@ export default function MeetingsPage() {
       .channel('meetings-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, fetchMeetings)
       .subscribe()
-
-    // چک کردن جلسات نزدیک هر دقیقه
     const notifInterval = setInterval(checkUpcomingNotifications, 60 * 1000)
-
     return () => {
       supabase.removeChannel(channel)
       clearInterval(notifInterval)
     }
   }, [fetchMeetings])
 
-  // نوتیفیکیشن جلسات نزدیک
   const checkUpcomingNotifications = () => {
     if (!('Notification' in window)) return
     if (Notification.permission !== 'granted') return
-
     meetings.forEach(meeting => {
       const status = getMeetingTimeStatus(meeting.date, meeting.time, meeting.end_time)
       if (status === 'soon') {
@@ -142,7 +265,7 @@ export default function MeetingsPage() {
         if (!lastNotif || now - Number(lastNotif) > 30 * 60 * 1000) {
           new Notification('یادآوری جلسه', {
             body: `جلسه "${meeting.title_fa}" یک ساعت دیگر شروع می‌شود`,
-            icon: '/logo.png',
+            icon: '/icon-192.png',
             dir: 'rtl',
           })
           localStorage.setItem(`notif_${meeting.id}`, String(now))
@@ -157,11 +280,8 @@ export default function MeetingsPage() {
       return
     }
     const permission = await Notification.requestPermission()
-    if (permission === 'granted') {
-      showToast('نوتیفیکیشن‌ها فعال شدند ✅', 'success')
-    } else {
-      showToast('اجازه نوتیفیکیشن داده نشد', 'error')
-    }
+    if (permission === 'granted') showToast('نوتیفیکیشن‌ها فعال شدند ✅', 'success')
+    else showToast('اجازه نوتیفیکیشن داده نشد', 'error')
   }
 
   const handleAdd = async () => {
@@ -171,7 +291,6 @@ export default function MeetingsPage() {
     }
     const dayIndex = DAYS.indexOf(newMeeting.day)
     const meetingDate = weekDates[dayIndex]
-
     const { error } = await (supabase.from('meetings') as any).insert([{
       title_fa: newMeeting.title,
       date: dateToString(meetingDate),
@@ -186,11 +305,10 @@ export default function MeetingsPage() {
       week_start: dateToString(weekStart),
       meeting_type: newMeeting.meeting_type,
     }])
-
     if (!error) {
       showToast('جلسه با موفقیت ثبت شد', 'success')
       fetchMeetings()
-      setNewMeeting({ title: '', day: 'شنبه', time: '', end_time: '', location: '', participants: '', priority: 'med', meeting_type: 'جلسه', description: '' })
+      setNewMeeting({ title: '', day: 'شنبه', time: '', end_time: '', location: '', participants: '', priority: 'med', meeting_type: 'جلسه' })
       setShowForm(false)
     } else {
       showToast('خطا در ثبت جلسه', 'error')
@@ -209,7 +327,6 @@ export default function MeetingsPage() {
       meeting_type: editMeeting.meeting_type,
       status: editMeeting.status,
     }).eq('id', editMeeting.id)
-
     if (!error) {
       showToast('جلسه ویرایش شد', 'success')
       fetchMeetings()
@@ -235,7 +352,6 @@ export default function MeetingsPage() {
     fetchMeetings()
   }
 
-  // فیلتر جلسات هفته
   const weekMeetings = meetings.filter(m => {
     if (!m.date) return false
     const mDateStr = m.date.split('T')[0]
@@ -259,15 +375,12 @@ export default function MeetingsPage() {
     if (meetingsByDay[day]) meetingsByDay[day].push(m)
   })
 
-  // گزارش مدیریتی
   const getReportMeetings = () => {
     const now = new Date()
     const months = reportFilter === 'month' ? 1 : reportFilter === '3months' ? 3 : reportFilter === '6months' ? 6 : 12
     const fromDate = new Date(now)
     fromDate.setMonth(now.getMonth() - months)
-    const fromStr = dateToString(fromDate)
-    const toStr = dateToString(now)
-    return meetings.filter(m => m.date >= fromStr && m.date <= toStr)
+    return meetings.filter(m => m.date >= dateToString(fromDate) && m.date <= dateToString(now))
   }
 
   const reportMeetings = getReportMeetings()
@@ -276,15 +389,8 @@ export default function MeetingsPage() {
     approved: reportMeetings.filter(m => m.status === 'approved').length,
     pending: reportMeetings.filter(m => m.status === 'pending').length,
     cancelled: reportMeetings.filter(m => m.status === 'cancelled').length,
-    byType: reportMeetings.reduce((acc: Record<string, number>, m) => {
-      const type = m.meeting_type || 'سایر'
-      acc[type] = (acc[type] || 0) + 1
-      return acc
-    }, {}),
-    byPriority: reportMeetings.reduce((acc: Record<string, number>, m) => {
-      acc[m.priority] = (acc[m.priority] || 0) + 1
-      return acc
-    }, {}),
+    byType: reportMeetings.reduce((acc: Record<string, number>, m) => { const type = m.meeting_type || 'سایر'; acc[type] = (acc[type] || 0) + 1; return acc }, {}),
+    byPriority: reportMeetings.reduce((acc: Record<string, number>, m) => { acc[m.priority] = (acc[m.priority] || 0) + 1; return acc }, {}),
   }
 
   const inputStyle = {
@@ -312,18 +418,18 @@ export default function MeetingsPage() {
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{meetings.length} جلسه ثبت شده</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {Notification.permission !== 'granted' && (
+          {typeof window !== 'undefined' && Notification.permission !== 'granted' && (
             <button onClick={requestNotificationPermission} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '8px 12px', color: '#e8c96a', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
-              🔔 فعال کردن یادآور
+              🔔 یادآور
             </button>
           )}
           <button onClick={() => exportMeetingsToExcel(meetings)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '8px 14px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
             📊 Excel
           </button>
           <div style={{ display: 'flex', background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', overflow: 'hidden' }}>
-            {(['weekly', 'list', 'report'] as const).map((v, i) => (
-              <button key={v} onClick={() => setView(v)} style={{ padding: '8px 12px', background: view === v ? '#c9a84c22' : 'transparent', border: 'none', color: view === v ? '#e8c96a' : t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', borderRight: i < 2 ? `1px solid ${t.border}` : 'none' }}>
-                {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : '📈 گزارش'}
+            {(['weekly', 'list', 'calendar', 'report'] as const).map((v, i) => (
+              <button key={v} onClick={() => setView(v)} style={{ padding: '8px 10px', background: view === v ? '#c9a84c22' : 'transparent', border: 'none', color: view === v ? '#e8c96a' : t.sub, fontSize: isMobile ? '11px' : '12px', cursor: 'pointer', fontFamily: 'inherit', borderRight: i < 3 ? `1px solid ${t.border}` : 'none' }}>
+                {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : v === 'calendar' ? '🗓 تقویم' : '📈 گزارش'}
               </button>
             ))}
           </div>
@@ -332,7 +438,7 @@ export default function MeetingsPage() {
       </div>
 
       {/* ناوبری هفته */}
-      {(view === 'weekly') && (
+      {view === 'weekly' && (
         <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
           <button onClick={prevWeek} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 14px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>← قبلی</button>
           <div style={{ textAlign: 'center' }}>
@@ -352,7 +458,7 @@ export default function MeetingsPage() {
       {/* فرم جلسه جدید */}
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ثبت جلسه جدید</div>
+          <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ثبت جلسه جدید — هفته {toJalaliSimple(dateToString(weekStart))}</div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>عنوان جلسه</label>
@@ -369,7 +475,7 @@ export default function MeetingsPage() {
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>نوع</label>
               <select style={inputStyle} value={newMeeting.meeting_type} onChange={e => setNewMeeting(p => ({ ...p, meeting_type: e.target.value }))}>
-                {['جلسه', 'ملاقات', 'شورا', 'کنفرانس', 'بازدید', 'سفر', 'سایر'].map(t => <option key={t} value={t}>{t}</option>)}
+                {['جلسه', 'ملاقات', 'شورا', 'کنفرانس', 'بازدید', 'سفر', 'سایر'].map(tp => <option key={tp} value={tp}>{tp}</option>)}
               </select>
             </div>
             <div>
@@ -429,7 +535,7 @@ export default function MeetingsPage() {
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>نوع</label>
               <select style={inputStyle} value={editMeeting.meeting_type || 'جلسه'} onChange={e => setEditMeeting({ ...editMeeting, meeting_type: e.target.value })}>
-                {['جلسه', 'ملاقات', 'شورا', 'کنفرانس', 'بازدید', 'سفر', 'سایر'].map(t => <option key={t} value={t}>{t}</option>)}
+                {['جلسه', 'ملاقات', 'شورا', 'کنفرانس', 'بازدید', 'سفر', 'سایر'].map(tp => <option key={tp} value={tp}>{tp}</option>)}
               </select>
             </div>
             <div>
@@ -483,21 +589,17 @@ export default function MeetingsPage() {
                       return (
                         <div key={meeting.id} style={{
                           display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
-                          background: isPastMeeting ? t.inner : isOngoing ? '#3dbb8211' : isSoon ? '#c9a84c11' : t.inner,
+                          background: isOngoing ? '#3dbb8211' : isSoon ? '#c9a84c11' : t.inner,
                           borderRadius: '10px',
                           borderRight: `4px solid ${isPastMeeting ? t.border : priorityColor[meeting.priority] || '#555'}`,
                           opacity: isPastMeeting ? 0.5 : 1,
                           transition: 'all 0.2s',
                         }}>
-                          {/* ساعت */}
                           <div style={{ textAlign: 'center', minWidth: '60px', flexShrink: 0 }}>
                             <div style={{ color: isPastMeeting ? t.muted : '#e8c96a', fontSize: '13px', fontWeight: '700' }}>{meeting.time}</div>
                             {meeting.end_time && <div style={{ color: t.muted, fontSize: '10px' }}>{meeting.end_time}</div>}
                           </div>
-
                           <div style={{ width: '1px', height: '36px', background: t.border, flexShrink: 0 }}></div>
-
-                          {/* اطلاعات */}
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
                               <span style={{ color: isPastMeeting ? t.muted : t.text, fontSize: '13px', fontWeight: '600' }}>{meeting.title_fa}</span>
@@ -511,13 +613,9 @@ export default function MeetingsPage() {
                               {meeting.participants && <span style={{ color: t.sub, fontSize: '11px' }}>👥 {meeting.participants} نفر</span>}
                             </div>
                           </div>
-
-                          {/* وضعیت */}
                           <div style={{ padding: '3px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: (statusColor[meeting.status] || '#555') + '22', color: statusColor[meeting.status] || '#555', flexShrink: 0 }}>
                             {statusLabel[meeting.status]}
                           </div>
-
-                          {/* دکمه‌ها */}
                           {!isPastMeeting && (
                             <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
                               <button onClick={() => setEditMeeting(meeting)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
@@ -572,11 +670,14 @@ export default function MeetingsPage() {
         </div>
       )}
 
-      {/* نمای گزارش مدیریتی */}
+      {/* نمای تقویم */}
+      {view === 'calendar' && (
+        <CalendarView meetings={meetings} isMobile={isMobile} t={t} />
+      )}
+
+      {/* نمای گزارش */}
       {view === 'report' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-          {/* فیلتر بازه زمانی */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {([
               { key: 'month', label: 'یک ماه اخیر' },
@@ -593,7 +694,6 @@ export default function MeetingsPage() {
             </button>
           </div>
 
-          {/* آمار کلی */}
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: '10px' }}>
             {[
               { label: 'کل جلسات', value: reportStats.total, color: '#c9a84c', icon: '📅' },
@@ -609,36 +709,33 @@ export default function MeetingsPage() {
             ))}
           </div>
 
-          {/* آمار بر اساس نوع */}
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
             <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '16px' }}>
-              <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '14px' }}>بر اساس نوع جلسه</div>
+              <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '14px' }}>بر اساس نوع</div>
               {Object.entries(reportStats.byType).map(([type, count]) => (
                 <div key={type} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                  <div style={{ color: t.text, fontSize: '12px', minWidth: '80px' }}>{type}</div>
+                  <div style={{ color: t.text, fontSize: '12px', minWidth: '70px' }}>{type}</div>
                   <div style={{ flex: 1, background: t.inner, borderRadius: '4px', height: '8px', overflow: 'hidden' }}>
-                    <div style={{ width: `${(count / reportStats.total) * 100}%`, height: '100%', background: '#c9a84c', borderRadius: '4px', transition: 'width 0.5s' }} />
+                    <div style={{ width: `${reportStats.total ? (count / reportStats.total) * 100 : 0}%`, height: '100%', background: '#c9a84c', borderRadius: '4px' }} />
                   </div>
-                  <div style={{ color: t.muted, fontSize: '11px', minWidth: '30px', textAlign: 'left' }}>{count}</div>
+                  <div style={{ color: t.muted, fontSize: '11px', minWidth: '24px', textAlign: 'left' }}>{count}</div>
                 </div>
               ))}
             </div>
-
             <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '16px' }}>
               <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '14px' }}>بر اساس اولویت</div>
               {Object.entries(reportStats.byPriority).map(([priority, count]) => (
                 <div key={priority} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                  <div style={{ color: t.text, fontSize: '12px', minWidth: '80px' }}>{priorityLabel[priority] || priority}</div>
+                  <div style={{ color: t.text, fontSize: '12px', minWidth: '70px' }}>{priorityLabel[priority] || priority}</div>
                   <div style={{ flex: 1, background: t.inner, borderRadius: '4px', height: '8px', overflow: 'hidden' }}>
-                    <div style={{ width: `${(count / reportStats.total) * 100}%`, height: '100%', background: priorityColor[priority] || '#555', borderRadius: '4px', transition: 'width 0.5s' }} />
+                    <div style={{ width: `${reportStats.total ? (count / reportStats.total) * 100 : 0}%`, height: '100%', background: priorityColor[priority] || '#555', borderRadius: '4px' }} />
                   </div>
-                  <div style={{ color: t.muted, fontSize: '11px', minWidth: '30px', textAlign: 'left' }}>{count}</div>
+                  <div style={{ color: t.muted, fontSize: '11px', minWidth: '24px', textAlign: 'left' }}>{count}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* لیست جلسات بازه */}
           <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '16px' }}>
             <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '14px' }}>لیست جلسات</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -646,7 +743,7 @@ export default function MeetingsPage() {
                 <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '20px' }}>جلسه‌ای در این بازه یافت نشد</div>
               ) : reportMeetings.map(meeting => (
                 <div key={meeting.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: t.inner, borderRadius: '8px' }}>
-                  <div style={{ color: '#e8c96a', fontSize: '11px', minWidth: '100px', flexShrink: 0 }}>{meeting.day_of_week} {toJalaliSimple(meeting.date)}</div>
+                  <div style={{ color: '#e8c96a', fontSize: '11px', minWidth: '110px', flexShrink: 0 }}>{meeting.day_of_week} {toJalaliSimple(meeting.date)}</div>
                   <div style={{ color: t.text, fontSize: '12px', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meeting.title_fa}</div>
                   <div style={{ color: t.sub, fontSize: '11px', flexShrink: 0 }}>{meeting.time}</div>
                   <div style={{ padding: '2px 8px', borderRadius: '6px', fontSize: '10px', background: (statusColor[meeting.status] || '#555') + '22', color: statusColor[meeting.status] || '#555', flexShrink: 0 }}>
