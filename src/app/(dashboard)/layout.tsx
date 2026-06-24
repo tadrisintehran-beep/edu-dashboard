@@ -292,7 +292,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {showNotif && (
               <>
                 <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-                <div style={{ position: 'absolute', top: '44px', left: '-180px', width: '240px', background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', zIndex: 50, boxShadow: '0 8px 32px #00000033', overflow: 'hidden', animation: 'fadeInUp 0.2s ease' }}>
+                <div style={{ position: 'fixed', top: '60px', left: isMobile ? '8px' : 'auto', right: isMobile ? '8px' : '-180px', width: isMobile ? 'calc(100vw - 16px)' : '280px', background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', zIndex: 50, boxShadow: '0 8px 32px #00000033', overflow: 'hidden', animation: 'fadeInUp 0.2s ease' }}>
                   <div style={{ padding: '12px 14px', borderBottom: `1px solid ${t.border}`, color: t.text, fontSize: '12px', fontWeight: '600' }}>اعلان‌ها</div>
                   {[
                     { text: 'گزارش جدید دریافت شد', time: '۵ دقیقه پیش', icon: '📋', color: '#4a9eff' },
