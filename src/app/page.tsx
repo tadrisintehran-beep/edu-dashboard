@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { logAction } from '@/lib/logger'
-import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -30,10 +30,9 @@ export default function LoginPage() {
         return
       }
 
-      // دریافت پروفایل
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single()
+      const { data: profile } = await supabase
+        .from('profiles').select('*').eq('id', data.user.id).single()
 
-      // چک غیرفعال بودن
       if (profile?.is_active === false) {
         await supabase.auth.signOut()
         setError('حساب کاربری شما غیرفعال است. با مدیر سیستم تماس بگیرید.')
@@ -41,16 +40,12 @@ export default function LoginPage() {
         return
       }
 
-      // لاگ ورود
       await logAction({
         action: 'login',
         userName: profile?.name_fa || email,
         userEmail: email,
-        details: `ورود به سیستم`,
+        details: 'ورود به سیستم',
       })
-
-      // آپدیت last_login
-      await supabase.from('profiles').update({ last_login: new Date().toISOString() }).eq('id', data.user.id)
 
       await fetchProfile()
       router.push('/dashboard')
@@ -61,22 +56,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#0c0e14',
-      display: 'flex',
-      direction: 'rtl',
-      overflow: 'hidden',
-      position: 'relative',
-    }}>
+    <div style={{ minHeight: '100vh', background: '#0c0e14', display: 'flex', direction: 'rtl', overflow: 'hidden', position: 'relative' }}>
 
-      {/* پس‌زمینه دکوراتیو */}
+      {/* پس‌زمینه */}
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
         <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, #c9a84c11, transparent 70%)' }} />
         <div style={{ position: 'absolute', bottom: '-20%', left: '-10%', width: '400px', height: '400px', borderRadius: '50%', background: 'radial-gradient(circle, #4a9eff11, transparent 70%)' }} />
       </div>
 
-      {/* سمت چپ — اطلاعات */}
+      {/* سمت چپ */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative' }} className="hide-mobile">
         <div style={{ maxWidth: '400px', textAlign: 'center' }}>
           <div style={{ fontSize: '64px', marginBottom: '24px' }}>🏛️</div>
@@ -107,33 +95,28 @@ export default function LoginPage() {
       {/* خط جداکننده */}
       <div style={{ width: '1px', background: 'linear-gradient(to bottom, transparent, #ffffff0f, transparent)', flexShrink: 0 }} className="hide-mobile" />
 
-      {/* سمت راست — فرم لاگین */}
+      {/* فرم لاگین */}
       <div style={{ width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 32px', position: 'relative' }}>
         <div style={{ width: '100%', maxWidth: '360px' }}>
 
-          {/* لوگو */}
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <div style={{ width: '60px', height: '60px', background: 'linear-gradient(135deg, #c9a84c, #e8c96a)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px', boxShadow: '0 8px 32px #c9a84c33' }}>🏛️</div>
             <h1 style={{ color: '#e8eaf0', fontSize: '20px', fontWeight: '700', marginBottom: '6px' }}>خوش آمدید</h1>
             <p style={{ color: '#555c78', fontSize: '13px' }}>برای ادامه وارد شوید</p>
           </div>
 
-          {/* خطا */}
           {error && (
             <div style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '10px', padding: '12px 14px', color: '#e05555', fontSize: '12px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>⚠️</span> {error}
             </div>
           )}
 
-          {/* فرم */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <label style={{ color: '#8b90a8', fontSize: '12px', display: 'block', marginBottom: '8px', fontWeight: '500' }}>ایمیل</label>
               <div style={{ position: 'relative' }}>
                 <input
-                  type="email"
-                  placeholder="email@edu.ir"
-                  value={email}
+                  type="email" placeholder="email@edu.ir" value={email}
                   onChange={e => setEmail(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleLogin()}
                   style={{ width: '100%', background: '#131620', border: '1px solid #ffffff0f', borderRadius: '10px', padding: '12px 16px 12px 40px', color: '#e8eaf0', fontSize: '13px', outline: 'none', direction: 'rtl', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
@@ -148,10 +131,8 @@ export default function LoginPage() {
               <label style={{ color: '#8b90a8', fontSize: '12px', display: 'block', marginBottom: '8px', fontWeight: '500' }}>رمز عبور</label>
               <div style={{ position: 'relative' }}>
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="رمز عبور خود را وارد کنید"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  type={showPassword ? 'text' : 'password'} placeholder="رمز عبور خود را وارد کنید"
+                  value={password} onChange={e => setPassword(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleLogin()}
                   style={{ width: '100%', background: '#131620', border: '1px solid #ffffff0f', borderRadius: '10px', padding: '12px 16px 12px 80px', color: '#e8eaf0', fontSize: '13px', outline: 'none', direction: 'rtl', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
                   onFocus={e => (e.target as HTMLInputElement).style.borderColor = '#c9a84c55'}
@@ -165,8 +146,7 @@ export default function LoginPage() {
             </div>
 
             <button
-              onClick={handleLogin}
-              disabled={loading}
+              onClick={handleLogin} disabled={loading}
               style={{ width: '100%', marginTop: '8px', background: loading ? '#a07830' : 'linear-gradient(135deg, #c9a84c, #e8c96a)', border: 'none', borderRadius: '10px', padding: '14px', color: '#1a1200', fontSize: '14px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.2s', boxShadow: loading ? 'none' : '0 4px 20px #c9a84c44' }}
               onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)' }}
               onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)' }}
@@ -175,7 +155,6 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* فوتر */}
           <div style={{ textAlign: 'center', marginTop: '32px' }}>
             <p style={{ color: '#555c78', fontSize: '11px', lineHeight: '1.6' }}>
               سامانه مدیریت داخلی — دسترسی محدود<br />
