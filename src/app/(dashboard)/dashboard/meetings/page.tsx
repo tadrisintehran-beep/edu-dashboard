@@ -287,19 +287,19 @@ export default function MeetingsPage() {
           <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>برنامه جلسات</h1>
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{meetings.length} جلسه ثبت شده</p>
         </div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
           {typeof window !== 'undefined' && Notification.permission !== 'granted' && (
             <button onClick={requestNotificationPermission} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '8px 12px', color: '#e8c96a', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
               🔔 یادآور
             </button>
           )}
-          <button onClick={() => exportMeetingsToExcel(meetings)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '8px 14px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
-            📊 Excel
-          </button>
+          <button onClick={() => exportMeetingsToExcel(meetings)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '8px 10px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+  {isMobile ? '📊' : '📊 Excel'}
+</button>
           <div style={{ display: 'flex', background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', overflow: 'hidden' }}>
             {(['weekly', 'list', 'calendar', 'report'] as const).map((v, i) => (
               <button key={v} onClick={() => setView(v)} style={{ padding: '8px 10px', background: view === v ? '#c9a84c22' : 'transparent', border: 'none', color: view === v ? '#e8c96a' : t.sub, fontSize: isMobile ? '11px' : '12px', cursor: 'pointer', fontFamily: 'inherit', borderRight: i < 3 ? `1px solid ${t.border}` : 'none' }}>
-                {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : v === 'calendar' ? '🗓 تقویم' : '📈 گزارش'}
+                {v === 'weekly' ? (isMobile ? '📅' : '📅 هفتگی') : v === 'list' ? (isMobile ? '📋' : '📋 لیست') : v === 'calendar' ? (isMobile ? '🗓' : '🗓 تقویم') : (isMobile ? '📈' : '📈 گزارش')}
               </button>
             ))}
           </div>
