@@ -73,9 +73,11 @@ export function PrintWeekly({ weekStart, weekDates, meetingsByDay, days }: Print
           }
 
           .header-right p {
-            font-size: 11px;
-            color: #666;
-          }
+  font-size: 14px;
+  color: #444;
+  font-weight: 600;
+  margin-top: 4px;
+}
 
           .header-left {
             text-align: left;
