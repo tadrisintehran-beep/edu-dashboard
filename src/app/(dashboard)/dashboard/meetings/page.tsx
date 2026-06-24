@@ -1,5 +1,6 @@
 'use client'
 
+import { PrintWeekly } from '@/components/ui/PrintWeekly'
 import { useState, useEffect, useCallback } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
@@ -322,6 +323,16 @@ export default function MeetingsPage() {
             title="خروجی Excel"
             style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '9px 12px', color: '#3dbb82', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
           >📊</button>
+
+          {/* دکمه چاپ — فقط در نمای هفتگی */}
+{view === 'weekly' && (
+  <PrintWeekly
+    weekStart={weekStart}
+    weekDates={weekDates}
+    meetingsByDay={meetingsByDay}
+    days={DAYS}
+  />
+)}
 
           {/* دکمه یادآور */}
           {typeof window !== 'undefined' && Notification.permission !== 'granted' && (
