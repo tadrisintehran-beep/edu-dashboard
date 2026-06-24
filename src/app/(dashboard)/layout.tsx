@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { GlobalSearch } from '@/components/ui/GlobalSearch'
 import { supabase } from '@/lib/supabase'
+import { logAction } from '@/lib/logger'
 
 const menuItems = [
   { icon: '⊞', label: 'داشبورد', path: '/dashboard' },
@@ -31,10 +32,11 @@ const pageTitle: Record<string, string> = {
   '/dashboard/profile': 'پروفایل کاربری',
   '/dashboard/settings': 'تنظیمات',
   '/dashboard/documents': 'مدیریت اسناد',
+  '/dashboard/logs': 'لاگ دسترسی',
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated, logout, checkSession, isChecking } = useAuthStore()
+  const { user, isAuthenticated, signOut, fetchProfile, isChecking } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
   const { isDark, toggleTheme, t } = useTheme()
@@ -44,7 +46,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [showNotif, setShowNotif] = useState(false)
   const [badges, setBadges] = useState<Record<string, number>>({})
 
-  useEffect(() => { checkSession() }, [])
+  useEffect(() => { fetchProfile() }, [])
 
   useEffect(() => {
     if (!isChecking && !isAuthenticated) router.push('/')
@@ -78,6 +80,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
     fetchBadges()
   }, [pathname])
+
+  const handleLogout = async () => {
+    await signOut()
+    router.push('/')
+  }
 
   if (isChecking) return (
     <div style={{ minHeight: '100vh', background: '#0c0e14', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
@@ -155,7 +162,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         )}
         {!sidebarOpen && !isMobile && <div style={{ height: '12px' }} />}
         {bottomItems.map(item => (
-          <div key={item.path} onClick={() => router.push(item.path)}
+          <div key={item.path} onClick={() => { router.push(item.path); if (isMobile) setMobileMenuOpen(false) }}
             style={{
               display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
               borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
@@ -171,6 +178,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </div>
         ))}
+
+        {/* لاگ دسترسی — فقط SUPER_ADMIN */}
+        {user?.role === 'SUPER_ADMIN' && (
+          <div
+            onClick={() => { router.push('/dashboard/logs'); if (isMobile) setMobileMenuOpen(false) }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
+              borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
+              background: pathname === '/dashboard/logs' ? '#e0555522' : 'transparent',
+              border: pathname === '/dashboard/logs' ? '1px solid #e0555544' : '1px solid transparent',
+            }}
+            onMouseEnter={e => { if (pathname !== '/dashboard/logs') (e.currentTarget as HTMLDivElement).style.background = '#e0555511' }}
+            onMouseLeave={e => { if (pathname !== '/dashboard/logs') (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
+          >
+            <span style={{ fontSize: '16px', flexShrink: 0 }}>🔐</span>
+            {(sidebarOpen || isMobile) && (
+              <span style={{ fontSize: '12px', color: pathname === '/dashboard/logs' ? '#e05555' : t.sub }}>لاگ دسترسی</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* پایین سایدبار */}
@@ -178,7 +205,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* پروفایل */}
         <div
-          onClick={() => router.push('/dashboard/profile')}
+          onClick={() => { router.push('/dashboard/profile'); if (isMobile) setMobileMenuOpen(false) }}
           style={{
             display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
             borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
@@ -207,7 +234,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* خروج */}
         <div
-          onClick={() => { logout(); router.push('/') }}
+          onClick={handleLogout}
           style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
           onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#e0555511'}
           onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
@@ -292,20 +319,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {showNotif && (
               <>
                 <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-                <div style={{ 
-  position: 'fixed', 
-  top: '60px', 
-  left: isMobile ? '8px' : '60px',
-  right: isMobile ? '8px' : 'auto',
-  width: isMobile ? 'calc(100vw - 16px)' : '280px', 
-  background: t.card, 
-  border: `1px solid ${t.border}`, 
-  borderRadius: '12px', 
-  zIndex: 50, 
-  boxShadow: '0 8px 32px #00000033', 
-  overflow: 'hidden', 
-  animation: 'fadeInUp 0.2s ease' 
-}}>
+                <div style={{ position: 'fixed', top: '60px', left: isMobile ? '8px' : '60px', right: isMobile ? '8px' : 'auto', width: isMobile ? 'calc(100vw - 16px)' : '280px', background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', zIndex: 50, boxShadow: '0 8px 32px #00000033', overflow: 'hidden', animation: 'fadeInUp 0.2s ease' }}>
                   <div style={{ padding: '12px 14px', borderBottom: `1px solid ${t.border}`, color: t.text, fontSize: '12px', fontWeight: '600' }}>اعلان‌ها</div>
                   {[
                     { text: 'گزارش جدید دریافت شد', time: '۵ دقیقه پیش', icon: '📋', color: '#4a9eff' },
@@ -324,7 +338,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                   ))}
                   <div style={{ padding: '10px 14px', textAlign: 'center' }}>
-                    <a href="/dashboard/alerts" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }} onClick={() => setShowNotif(false)}>مشاهده همه →</a>
+                    <a href="/dashboard/alerts" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }} onClick={() => setShowNotif(false)}>مشاهده همه ←</a>
                   </div>
                 </div>
               </>
