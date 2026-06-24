@@ -7,21 +7,36 @@ import { supabase } from '@/lib/supabase'
 import { todayJalaliFull, toJalali } from '@/lib/date'
 import { useIsMobile } from '@/lib/useIsMobile'
 
-function Sparkline({ data, color }: { data: number[], color: string }) {
-  const max = Math.max(...data)
-  const min = Math.min(...data)
+// نمودار خطی پیشرفته با گرادیان
+function Sparkline({ data, color, width = 100, height = 28 }: { data: number[], color: string, width?: number, height?: number }) {
+  const max = Math.max(...data, 1)
+  const min = Math.min(...data, 0)
   const range = max - min || 1
-  const width = 80
-  const height = 32
-  const points = data.map((val, i) => {
+  const pts = data.map((val, i) => {
     const x = (i / (data.length - 1)) * width
-    const y = height - ((val - min) / range) * height
+    const y = height - ((val - min) / range) * (height - 4) - 2
     return `${x},${y}`
-  }).join(' ')
+  })
+  const pointsStr = pts.join(' ')
+  const gradId = `grad_${color.replace('#', '')}`
+
+  // مسیر بسته برای gradient fill
+  const areaPath = `M ${pts[0]} L ${pts.slice(1).join(' L ')} L ${width},${height} L 0,${height} Z`
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'visible' }}>
-      <polyline points={points} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {/* ناحیه پر شده */}
+      <path d={areaPath} fill={`url(#${gradId})`} />
+      {/* خط اصلی */}
+      <polyline points={pointsStr} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      {/* نقطه آخر */}
+      <circle cx={pts[pts.length - 1].split(',')[0]} cy={pts[pts.length - 1].split(',')[1]} r="3" fill={color} />
     </svg>
   )
 }
@@ -99,93 +114,159 @@ export default function DashboardPage() {
 
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <div style={{ height: '28px', width: '200px', background: t.inner, borderRadius: '8px' }} />
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '10px' }}>
+      <div style={{ height: '24px', width: '180px', background: t.inner, borderRadius: '8px' }} />
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '8px' }}>
         {[1, 2, 3, 4].map(i => (
-          <div key={i} style={{ height: '130px', background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '16px' }} />
+          <div key={i} style={{ height: '100px', background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px' }} />
         ))}
       </div>
     </div>
   )
 
   const kpiData = [
-    { label: 'جلسات در انتظار', value: kpis.pendingMeetings, delta: `از ${kpis.totalMeetings} جلسه`, icon: '📅', color: '#c9a84c', deltaType: kpis.pendingMeetings > 0 ? 'down' : 'up', spark: [2, 4, 3, 5, 4, 6, kpis.pendingMeetings || 1] },
-    { label: 'گزارش خوانده نشده', value: kpis.unreadReports, delta: `از ${kpis.totalReports} گزارش`, icon: '📋', color: '#4a9eff', deltaType: kpis.unreadReports > 0 ? 'down' : 'up', spark: [5, 3, 7, 4, 6, 3, kpis.unreadReports || 1] },
-    { label: 'هشدارهای فعال', value: kpis.totalAlerts, delta: `${kpis.criticalAlerts} بحرانی`, icon: '🔔', color: '#e05555', deltaType: kpis.criticalAlerts > 0 ? 'down' : 'up', spark: [1, 2, 1, 3, 2, 4, kpis.totalAlerts || 1] },
-    { label: 'مخاطبین', value: kpis.totalContacts, delta: 'دفترچه تلفن', icon: '👥', color: '#3dbb82', deltaType: 'up', spark: [1, 2, 3, 2, 4, 3, kpis.totalContacts || 1] },
+    {
+      label: 'جلسات در انتظار',
+      value: kpis.pendingMeetings,
+      sub: `از ${kpis.totalMeetings} جلسه`,
+      icon: '📅',
+      color: '#c9a84c',
+      trend: kpis.pendingMeetings > 0 ? 'down' : 'up',
+      spark: [2, 3, 2, 4, 3, 5, kpis.pendingMeetings || 1],
+    },
+    {
+      label: 'گزارش نخوانده',
+      value: kpis.unreadReports,
+      sub: `از ${kpis.totalReports} گزارش`,
+      icon: '📋',
+      color: '#4a9eff',
+      trend: kpis.unreadReports > 0 ? 'down' : 'up',
+      spark: [4, 3, 5, 2, 4, 3, kpis.unreadReports || 1],
+    },
+    {
+      label: 'هشدار فعال',
+      value: kpis.totalAlerts,
+      sub: `${kpis.criticalAlerts} بحرانی`,
+      icon: '🔔',
+      color: '#e05555',
+      trend: kpis.criticalAlerts > 0 ? 'down' : 'up',
+      spark: [1, 2, 1, 3, 2, 3, kpis.totalAlerts || 1],
+    },
+    {
+      label: 'مخاطبین',
+      value: kpis.totalContacts,
+      sub: 'دفترچه تلفن',
+      icon: '👥',
+      color: '#3dbb82',
+      trend: 'up',
+      spark: [1, 2, 2, 3, 3, 3, kpis.totalContacts || 1],
+    },
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', direction: 'rtl' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', direction: 'rtl' }}>
 
       {/* سلام */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '20px', fontWeight: '700' }}>
+          <h1 style={{ color: t.text, fontSize: isMobile ? '15px' : '18px', fontWeight: '700' }}>
             سلام، {user?.name} 👋
           </h1>
-          <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>
+          <p style={{ color: t.muted, fontSize: '11px', marginTop: '3px' }}>
             {todayJalaliFull()} — دفتر تهران
           </p>
         </div>
-        <button onClick={fetchData} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 14px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <button onClick={fetchData} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 12px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '5px' }}>
           🔄 بروزرسانی
         </button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="stagger" style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '10px' }}>
+      {/* KPI Cards — کوچک‌تر و شیک‌تر */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '8px' }}>
         {kpiData.map((kpi, i) => (
-          <div key={i} style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: isMobile ? '12px' : '16px', cursor: 'pointer', transition: 'all 0.2s', position: 'relative', overflow: 'hidden' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = kpi.color + '55'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 24px ${kpi.color}22` }}
-            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = t.border; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
+          <div key={i}
+            style={{
+              background: t.card, border: `1px solid ${t.border}`,
+              borderRadius: '12px', padding: '12px 14px',
+              cursor: 'pointer', transition: 'all 0.2s',
+              position: 'relative', overflow: 'hidden',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = kpi.color + '66'
+              ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'
+              ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 6px 20px ${kpi.color}18`
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = t.border
+              ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'
+              ;(e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
+            }}
           >
-            <div style={{ position: 'absolute', top: 0, right: 0, width: '80px', height: '80px', background: `radial-gradient(circle, ${kpi.color}18, transparent 70%)`, pointerEvents: 'none' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: kpi.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>{kpi.icon}</div>
-              <Sparkline data={kpi.spark} color={kpi.color} />
+            {/* گرادیان پس‌زمینه */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: `linear-gradient(135deg, ${kpi.color}08, transparent)`, pointerEvents: 'none' }} />
+
+            {/* هدر */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: kpi.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>
+                  {kpi.icon}
+                </div>
+              </div>
+              <div style={{ fontSize: '10px', color: kpi.trend === 'up' ? '#3dbb82' : '#e05555', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                {kpi.trend === 'up' ? '↑' : '↓'}
+              </div>
             </div>
-            <div style={{ color: t.sub, fontSize: '11px', marginBottom: '6px' }}>{kpi.label}</div>
-            <div style={{ color: t.text, fontSize: isMobile ? '24px' : '30px', fontWeight: '800', marginBottom: '6px', lineHeight: 1 }}>{kpi.value}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: kpi.deltaType === 'up' ? '#3dbb82' : '#e05555' }}>
-              <span>{kpi.deltaType === 'up' ? '↑' : '↓'}</span>
-              <span>{kpi.delta}</span>
+
+            {/* عدد */}
+            <div style={{ color: t.text, fontSize: isMobile ? '22px' : '26px', fontWeight: '800', lineHeight: 1, marginBottom: '4px' }}>
+              {kpi.value}
+            </div>
+
+            {/* لیبل */}
+            <div style={{ color: t.sub, fontSize: '10px', marginBottom: '8px' }}>{kpi.label}</div>
+
+            {/* نمودار */}
+            <div style={{ marginBottom: '6px' }}>
+              <Sparkline data={kpi.spark} color={kpi.color} width={isMobile ? 90 : 110} height={24} />
+            </div>
+
+            {/* زیرمتن */}
+            <div style={{ color: t.muted, fontSize: '10px', borderTop: `1px solid ${t.border}`, paddingTop: '6px' }}>
+              {kpi.sub}
             </div>
           </div>
         ))}
       </div>
 
-      {/* ردیف دوم — جلسات سمت راست، گزارش‌ها سمت چپ */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '320px 1fr', gap: '12px' }}>
+      {/* ردیف دوم */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '300px 1fr', gap: '10px' }}>
 
         {/* جلسات پیش رو */}
-        <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <div style={{ color: t.text, fontSize: '13px', fontWeight: '600' }}>جلسات پیش رو</div>
+        <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>📅 جلسات پیش رو</div>
             <a href="/dashboard/meetings" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>همه →</a>
           </div>
-          <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {upcomingMeetings.length === 0 ? (
-              <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '20px' }}>جلسه‌ای ثبت نشده</div>
+              <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '16px' }}>جلسه‌ای ثبت نشده</div>
             ) : upcomingMeetings.map(meeting => (
-              <div key={meeting.id} style={{ padding: '10px 12px', borderRadius: '10px', borderRight: `3px solid ${priorityColor[meeting.priority] || '#555'}`, background: t.inner, cursor: 'pointer', transition: 'all 0.2s' }}
-                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = t.border}
-                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = t.inner}
+              <div key={meeting.id} style={{ padding: '8px 10px', borderRadius: '8px', borderRight: `3px solid ${priorityColor[meeting.priority] || '#555'}`, background: t.inner, cursor: 'pointer', transition: 'all 0.2s' }}
+                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.opacity = '0.8'}
+                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.opacity = '1'}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px', flexWrap: 'wrap' }}>
                   {meeting.day_of_week && (
-                    <span style={{ padding: '1px 7px', borderRadius: '8px', fontSize: '10px', background: '#c9a84c22', color: '#e8c96a', border: '1px solid #c9a84c33', flexShrink: 0 }}>
+                    <span style={{ padding: '1px 6px', borderRadius: '6px', fontSize: '9px', background: '#c9a84c22', color: '#e8c96a', border: '1px solid #c9a84c33' }}>
                       {meeting.day_of_week}
                     </span>
                   )}
-                  <span style={{ color: '#e8c96a', fontSize: '12px', fontWeight: '700' }}>{meeting.time}</span>
+                  <span style={{ color: '#e8c96a', fontSize: '11px', fontWeight: '700' }}>{meeting.time}</span>
                   {meeting.end_time && <span style={{ color: t.muted, fontSize: '10px' }}>— {meeting.end_time}</span>}
                   <span style={{ color: t.muted, fontSize: '10px', marginRight: 'auto' }}>{toJalali(meeting.date)}</span>
                 </div>
-                <div style={{ color: t.text, fontSize: '12px', fontWeight: '600', marginBottom: '3px' }}>{meeting.title_fa}</div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <div style={{ color: t.text, fontSize: '11px', fontWeight: '600', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meeting.title_fa}</div>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   {meeting.location && <span style={{ color: t.sub, fontSize: '10px' }}>📍 {meeting.location}</span>}
-                  {meeting.participants && <span style={{ color: t.sub, fontSize: '10px' }}>👥 {meeting.participants} نفر</span>}
                   {meeting.meeting_type && <span style={{ color: t.sub, fontSize: '10px' }}>🏷 {meeting.meeting_type}</span>}
                 </div>
               </div>
@@ -194,22 +275,22 @@ export default function DashboardPage() {
         </div>
 
         {/* گزارش‌های اخیر */}
-        <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <div style={{ color: t.text, fontSize: '13px', fontWeight: '600' }}>آخرین گزارش‌ها</div>
+        <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>📋 آخرین گزارش‌ها</div>
             <a href="/dashboard/reports" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>همه →</a>
           </div>
-          <div className="stagger">
+          <div>
             {recentReports.length === 0 ? (
-              <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '20px' }}>گزارشی ثبت نشده</div>
+              <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '16px' }}>گزارشی ثبت نشده</div>
             ) : recentReports.map((report, i) => (
-              <div key={report.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: i < recentReports.length - 1 ? `1px solid ${t.border}` : 'none' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: report.seen ? 'transparent' : '#4a9eff', flexShrink: 0, border: report.seen ? `1px solid ${t.border}` : 'none' }}></div>
+              <div key={report.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 0', borderBottom: i < recentReports.length - 1 ? `1px solid ${t.border}` : 'none' }}>
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: report.seen ? 'transparent' : '#4a9eff', flexShrink: 0, border: report.seen ? `1px solid ${t.border}` : 'none' }}></div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ color: t.text, fontSize: '12px', fontWeight: report.seen ? '400' : '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{report.title_fa}</div>
                   <div style={{ color: t.muted, fontSize: '10px', marginTop: '2px' }}>{report.author} — {toJalali(report.created_at)}</div>
                 </div>
-                <div style={{ padding: '3px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '600', background: (statusColor[report.status] || '#555') + '22', color: statusColor[report.status] || '#555', flexShrink: 0 }}>
+                <div style={{ padding: '2px 7px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: (statusColor[report.status] || '#555') + '22', color: statusColor[report.status] || '#555', flexShrink: 0 }}>
                   {statusLabel[report.status] || report.status}
                 </div>
               </div>
@@ -219,19 +300,19 @@ export default function DashboardPage() {
       </div>
 
       {/* آمار کلی */}
-      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: '16px' }}>
-        <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '14px' }}>آمار کلی سامانه</div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '10px' }}>
+      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px' }}>
+        <div style={{ color: t.text, fontSize: '12px', fontWeight: '600', marginBottom: '12px' }}>آمار کلی سامانه</div>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '8px' }}>
           {[
             { value: kpis.totalMeetings, label: 'کل جلسات', color: '#c9a84c', icon: '📅' },
             { value: kpis.totalReports, label: 'کل گزارش‌ها', color: '#4a9eff', icon: '📋' },
             { value: kpis.totalAlerts, label: 'هشدار فعال', color: '#e05555', icon: '🔔' },
             { value: kpis.totalContacts, label: 'مخاطبین', color: '#3dbb82', icon: '👥' },
           ].map((item, i) => (
-            <div key={i} style={{ background: t.inner, borderRadius: '10px', padding: '14px', textAlign: 'center', border: `1px solid ${t.border}` }}>
-              <div style={{ fontSize: '20px', marginBottom: '6px' }}>{item.icon}</div>
-              <div style={{ color: item.color, fontSize: isMobile ? '24px' : '32px', fontWeight: '800' }}>{item.value}</div>
-              <div style={{ color: t.muted, fontSize: '11px', marginTop: '4px' }}>{item.label}</div>
+            <div key={i} style={{ background: t.inner, borderRadius: '10px', padding: '12px', textAlign: 'center', border: `1px solid ${t.border}` }}>
+              <div style={{ fontSize: '18px', marginBottom: '5px' }}>{item.icon}</div>
+              <div style={{ color: item.color, fontSize: isMobile ? '22px' : '28px', fontWeight: '800' }}>{item.value}</div>
+              <div style={{ color: t.muted, fontSize: '10px', marginTop: '3px' }}>{item.label}</div>
             </div>
           ))}
         </div>
