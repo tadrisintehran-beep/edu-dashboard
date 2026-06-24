@@ -259,8 +259,12 @@ export default function MeetingsPage() {
     approved: reportMeetings.filter(m => m.status === 'approved').length,
     pending: reportMeetings.filter(m => m.status === 'pending').length,
     cancelled: reportMeetings.filter(m => m.status === 'cancelled').length,
-    byType: reportMeetings.reduce((acc: Record<string, number>, m) => { const type = m.meeting_type || 'سایر'; acc[type] = (acc[type] || 0) + 1; return acc }, {}),
-    byPriority: reportMeetings.reduce((acc: Record<string, number>, m) => { acc[m.priority] = (acc[m.priority] || 0) + 1; return acc }, {}),
+    byType: reportMeetings.reduce((acc: Record<string, number>, m) => {
+      const type = m.meeting_type || 'سایر'; acc[type] = (acc[type] || 0) + 1; return acc
+    }, {}),
+    byPriority: reportMeetings.reduce((acc: Record<string, number>, m) => {
+      acc[m.priority] = (acc[m.priority] || 0) + 1; return acc
+    }, {}),
   }
 
   const inputStyle = {
@@ -282,28 +286,51 @@ export default function MeetingsPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', direction: 'rtl' }}>
 
       {/* هدر */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-        <div>
-          <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>برنامه جلسات</h1>
-          <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{meetings.length} جلسه ثبت شده</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* ردیف اول — عنوان و دکمه جلسه جدید */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>برنامه جلسات</h1>
+            <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{meetings.length} جلسه ثبت شده</p>
+          </div>
+          <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ جلسه جدید</button>
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
-          {typeof window !== 'undefined' && Notification.permission !== 'granted' && (
-            <button onClick={requestNotificationPermission} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '8px 12px', color: '#e8c96a', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
-              🔔 یادآور
-            </button>
-          )}
-          <button onClick={() => exportMeetingsToExcel(meetings)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '8px 10px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
-  {isMobile ? '📊' : '📊 Excel'}
-</button>
-          <div style={{ display: 'flex', background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', overflow: 'hidden' }}>
+
+        {/* ردیف دوم — تب‌ها و دکمه‌های کمکی */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {/* تب‌ها */}
+          <div style={{ display: 'flex', background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', overflow: 'hidden', flex: 1 }}>
             {(['weekly', 'list', 'calendar', 'report'] as const).map((v, i) => (
-              <button key={v} onClick={() => setView(v)} style={{ padding: '8px 10px', background: view === v ? '#c9a84c22' : 'transparent', border: 'none', color: view === v ? '#e8c96a' : t.sub, fontSize: isMobile ? '11px' : '12px', cursor: 'pointer', fontFamily: 'inherit', borderRight: i < 3 ? `1px solid ${t.border}` : 'none' }}>
-                {v === 'weekly' ? (isMobile ? '📅' : '📅 هفتگی') : v === 'list' ? (isMobile ? '📋' : '📋 لیست') : v === 'calendar' ? (isMobile ? '🗓' : '🗓 تقویم') : (isMobile ? '📈' : '📈 گزارش')}
+              <button key={v} onClick={() => setView(v)} style={{
+                flex: 1, padding: '9px 4px',
+                background: view === v ? '#c9a84c22' : 'transparent',
+                border: 'none',
+                color: view === v ? '#e8c96a' : t.sub,
+                fontSize: isMobile ? '10px' : '12px',
+                cursor: 'pointer', fontFamily: 'inherit',
+                borderRight: i < 3 ? `1px solid ${t.border}` : 'none',
+                whiteSpace: 'nowrap',
+              }}>
+                {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : v === 'calendar' ? '🗓 تقویم' : '📈 گزارش'}
               </button>
             ))}
           </div>
-          <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ جلسه جدید</button>
+
+          {/* دکمه Excel */}
+          <button
+            onClick={() => exportMeetingsToExcel(meetings)}
+            title="خروجی Excel"
+            style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '9px 12px', color: '#3dbb82', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
+          >📊</button>
+
+          {/* دکمه یادآور */}
+          {typeof window !== 'undefined' && Notification.permission !== 'granted' && (
+            <button
+              onClick={requestNotificationPermission}
+              title="فعال کردن یادآور"
+              style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '9px 12px', color: '#e8c96a', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
+            >🔔</button>
+          )}
         </div>
       </div>
 
@@ -318,8 +345,8 @@ export default function MeetingsPage() {
             <div style={{ color: t.muted, fontSize: '11px', marginTop: '3px' }}>{weekMeetings.length} جلسه</div>
           </div>
           <div style={{ display: 'flex', gap: '6px' }}>
-            <button onClick={() => setWeekStart(getCurrentWeekSaturday())} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 10px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>این هفته</button>
-            <button onClick={() => setWeekStart(getNextWeekSaturday())} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '6px 10px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>هفته آینده</button>
+            <button onClick={() => setWeekStart(getCurrentWeekSaturday())} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 8px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>این هفته</button>
+            <button onClick={() => setWeekStart(getNextWeekSaturday())} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '6px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>هفته آینده</button>
             <button onClick={nextWeek} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 14px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>بعدی ←</button>
           </div>
         </div>
