@@ -22,12 +22,12 @@ export const metadata: Metadata = {
   robots: 'noindex, nofollow',
   manifest: '/manifest.json',
   icons: {
-    icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
-    ],
-    apple: '/icon.svg',
-    shortcut: '/icon.svg',
-  },
+  icon: [
+    { url: '/logo.png', type: 'image/png' },
+  ],
+  apple: '/logo.png',
+  shortcut: '/logo.png',
+},
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
