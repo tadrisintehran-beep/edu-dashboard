@@ -75,7 +75,6 @@ export default function DashboardPage() {
 
     setRecentReports(r.slice(0, 5))
 
-    // جلسات آینده — مرتب شده بر اساس تاریخ و ساعت
     const today = new Date().toISOString().split('T')[0]
     const upcoming = m
       .filter(x => x.date >= today)
@@ -126,7 +125,7 @@ export default function DashboardPage() {
             سلام، {user?.name} 👋
           </h1>
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>
-            {todayJalaliFull()} — دفتر معاونت آموزش متوسطه
+            {todayJalaliFull()} — دفتر تهران
           </p>
         </div>
         <button onClick={fetchData} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 14px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -156,8 +155,43 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* ردیف دوم */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 320px', gap: '12px' }}>
+      {/* ردیف دوم — جلسات سمت راست، گزارش‌ها سمت چپ */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '320px 1fr', gap: '12px' }}>
+
+        {/* جلسات پیش رو */}
+        <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div style={{ color: t.text, fontSize: '13px', fontWeight: '600' }}>جلسات پیش رو</div>
+            <a href="/dashboard/meetings" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>همه →</a>
+          </div>
+          <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {upcomingMeetings.length === 0 ? (
+              <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '20px' }}>جلسه‌ای ثبت نشده</div>
+            ) : upcomingMeetings.map(meeting => (
+              <div key={meeting.id} style={{ padding: '10px 12px', borderRadius: '10px', borderRight: `3px solid ${priorityColor[meeting.priority] || '#555'}`, background: t.inner, cursor: 'pointer', transition: 'all 0.2s' }}
+                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = t.border}
+                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = t.inner}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                  {meeting.day_of_week && (
+                    <span style={{ padding: '1px 7px', borderRadius: '8px', fontSize: '10px', background: '#c9a84c22', color: '#e8c96a', border: '1px solid #c9a84c33', flexShrink: 0 }}>
+                      {meeting.day_of_week}
+                    </span>
+                  )}
+                  <span style={{ color: '#e8c96a', fontSize: '12px', fontWeight: '700' }}>{meeting.time}</span>
+                  {meeting.end_time && <span style={{ color: t.muted, fontSize: '10px' }}>— {meeting.end_time}</span>}
+                  <span style={{ color: t.muted, fontSize: '10px', marginRight: 'auto' }}>{toJalali(meeting.date)}</span>
+                </div>
+                <div style={{ color: t.text, fontSize: '12px', fontWeight: '600', marginBottom: '3px' }}>{meeting.title_fa}</div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {meeting.location && <span style={{ color: t.sub, fontSize: '10px' }}>📍 {meeting.location}</span>}
+                  {meeting.participants && <span style={{ color: t.sub, fontSize: '10px' }}>👥 {meeting.participants} نفر</span>}
+                  {meeting.meeting_type && <span style={{ color: t.sub, fontSize: '10px' }}>🏷 {meeting.meeting_type}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* گزارش‌های اخیر */}
         <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: '16px' }}>
@@ -177,44 +211,6 @@ export default function DashboardPage() {
                 </div>
                 <div style={{ padding: '3px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '600', background: (statusColor[report.status] || '#555') + '22', color: statusColor[report.status] || '#555', flexShrink: 0 }}>
                   {statusLabel[report.status] || report.status}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* جلسات آینده */}
-        <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <div style={{ color: t.text, fontSize: '13px', fontWeight: '600' }}>جلسات پیش رو</div>
-            <a href="/dashboard/meetings" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>همه →</a>
-          </div>
-          <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {upcomingMeetings.length === 0 ? (
-              <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '20px' }}>جلسه‌ای ثبت نشده</div>
-            ) : upcomingMeetings.map(meeting => (
-              <div key={meeting.id} style={{ padding: '10px 12px', borderRadius: '10px', borderRight: `3px solid ${priorityColor[meeting.priority] || '#555'}`, background: t.inner, cursor: 'pointer', transition: 'all 0.2s' }}
-                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = t.border}
-                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = t.inner}
-              >
-                {/* روز و ساعت */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                  {meeting.day_of_week && (
-                    <span style={{ padding: '1px 7px', borderRadius: '8px', fontSize: '10px', background: '#c9a84c22', color: '#e8c96a', border: '1px solid #c9a84c33', flexShrink: 0 }}>
-                      {meeting.day_of_week}
-                    </span>
-                  )}
-                  <span style={{ color: '#e8c96a', fontSize: '12px', fontWeight: '700' }}>{meeting.time}</span>
-                  {meeting.end_time && <span style={{ color: t.muted, fontSize: '10px' }}>— {meeting.end_time}</span>}
-                  <span style={{ color: t.muted, fontSize: '10px', marginRight: 'auto' }}>{toJalali(meeting.date)}</span>
-                </div>
-                {/* عنوان */}
-                <div style={{ color: t.text, fontSize: '12px', fontWeight: '600', marginBottom: '3px' }}>{meeting.title_fa}</div>
-                {/* جزئیات */}
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {meeting.location && <span style={{ color: t.sub, fontSize: '10px' }}>📍 {meeting.location}</span>}
-                  {meeting.participants && <span style={{ color: t.sub, fontSize: '10px' }}>👥 {meeting.participants} نفر</span>}
-                  {meeting.meeting_type && <span style={{ color: t.sub, fontSize: '10px' }}>🏷 {meeting.meeting_type}</span>}
                 </div>
               </div>
             ))}
