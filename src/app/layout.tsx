@@ -23,11 +23,11 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
   icon: [
-    { url: '/icon.svg', type: 'image/svg+xml' },
-    { url: '/logo.png', type: 'image/png', sizes: '192x192' },
+    { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
+    { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
   ],
-  apple: '/logo.png',
-  shortcut: '/icon.svg',
+  apple: '/icon-192.png',
+  shortcut: '/icon-512.png',
 },
   appleWebApp: {
     capable: true,
