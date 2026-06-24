@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { exportMeetingsToExcel } from '@/lib/exportData'
+import { PersianCalendar } from '@/components/ui/PersianCalendar'
 
 const DAYS = ['شنبه', 'یک‌شنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه']
 
@@ -81,137 +82,6 @@ function getMeetingTimeStatus(date: string, time: string, endTime: string): 'pas
   const diffMs = meetingStart.getTime() - now.getTime()
   if (diffMs <= 60 * 60 * 1000) return 'soon'
   return 'upcoming'
-}
-
-// کامپوننت تقویم
-function CalendarView({ meetings, isMobile, t }: { meetings: any[], isMobile: boolean, t: any }) {
-  const today = new Date()
-  const [calYear, setCalYear] = useState(today.getFullYear())
-  const [calMonth, setCalMonth] = useState(today.getMonth())
-
-  const firstDay = new Date(calYear, calMonth, 1)
-  const lastDay = new Date(calYear, calMonth + 1, 0)
-  const firstDayOfWeek = (firstDay.getDay() + 1) % 7
-
-  const days: (Date | null)[] = []
-  for (let i = 0; i < firstDayOfWeek; i++) days.push(null)
-  for (let i = 1; i <= lastDay.getDate(); i++) days.push(new Date(calYear, calMonth, i))
-
-  const getMeetingsForDate = (date: Date) => {
-    const dateStr = dateToString(date)
-    return meetings.filter(m => m.date && m.date.split('T')[0] === dateStr)
-  }
-
-  const jalaali = require('jalaali-js')
-  const jToday = jalaali.toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate())
-  const jFirst = jalaali.toJalaali(calYear, calMonth + 1, 1)
-
-  const monthNames = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
-
-  const prevMonth = () => {
-    if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) }
-    else setCalMonth(m => m - 1)
-  }
-  const nextMonth = () => {
-    if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) }
-    else setCalMonth(m => m + 1)
-  }
-
-  return (
-    <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '16px', direction: 'rtl' }}>
-
-      {/* هدر */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <button onClick={prevMonth} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 14px', color: t.sub, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>←</button>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ color: t.text, fontSize: '16px', fontWeight: '700' }}>
-            {monthNames[jFirst.jm - 1]} {jFirst.jy}
-          </div>
-          <div style={{ color: t.muted, fontSize: '11px', marginTop: '2px' }}>
-            {firstDay.toLocaleDateString('fa-IR', { month: 'long', year: 'numeric' })}
-          </div>
-        </div>
-        <button onClick={nextMonth} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 14px', color: t.sub, fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit' }}>→</button>
-      </div>
-
-      {/* روزهای هفته */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '6px' }}>
-        {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map((d, i) => (
-          <div key={i} style={{ textAlign: 'center', color: i === 6 ? '#e05555' : t.muted, fontSize: '12px', fontWeight: '600', padding: '6px 0' }}>{d}</div>
-        ))}
-      </div>
-
-      {/* روزها */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
-        {days.map((date, i) => {
-          if (!date) return <div key={i} style={{ minHeight: isMobile ? '50px' : '70px' }} />
-
-          const dayMeetings = getMeetingsForDate(date)
-          const jDate = jalaali.toJalaali(date.getFullYear(), date.getMonth() + 1, date.getDate())
-          const isToday = jDate.jy === jToday.jy && jDate.jm === jToday.jm && jDate.jd === jToday.jd
-          const isJumua = date.getDay() === 5
-          const hasMeeting = dayMeetings.length > 0
-
-          return (
-            <div key={i} style={{
-              minHeight: isMobile ? '50px' : '70px',
-              padding: '4px',
-              borderRadius: '8px',
-              background: isToday ? '#c9a84c22' : hasMeeting ? t.inner : 'transparent',
-              border: isToday ? '2px solid #c9a84c66' : hasMeeting ? `1px solid ${t.border}` : '1px solid transparent',
-              opacity: isJumua ? 0.5 : 1,
-              transition: 'all 0.15s',
-              cursor: hasMeeting ? 'pointer' : 'default',
-            }}>
-              <div style={{ textAlign: 'center', marginBottom: '3px' }}>
-                <span style={{
-                  display: 'inline-block',
-                  width: '22px', height: '22px',
-                  lineHeight: '22px',
-                  borderRadius: '50%',
-                  background: isToday ? '#c9a84c' : 'transparent',
-                  color: isToday ? '#1a1200' : isJumua ? '#e05555' : t.text,
-                  fontSize: isMobile ? '10px' : '12px',
-                  fontWeight: isToday ? '700' : '400',
-                  textAlign: 'center',
-                }}>{jDate.jd}</span>
-              </div>
-
-              {dayMeetings.slice(0, isMobile ? 1 : 2).map((m, mi) => (
-                <div key={mi} style={{
-                  background: (priorityColor[m.priority] || '#555') + '22',
-                  borderRight: `2px solid ${priorityColor[m.priority] || '#555'}`,
-                  borderRadius: '4px',
-                  padding: '2px 4px',
-                  marginBottom: '2px',
-                }}>
-                  <div style={{ color: priorityColor[m.priority] || t.text, fontSize: '9px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {m.time} {m.title_fa}
-                  </div>
-                </div>
-              ))}
-
-              {dayMeetings.length > (isMobile ? 1 : 2) && (
-                <div style={{ color: t.muted, fontSize: '9px', textAlign: 'center', marginTop: '2px' }}>
-                  +{dayMeetings.length - (isMobile ? 1 : 2)} بیشتر
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* راهنما */}
-      <div style={{ display: 'flex', gap: '12px', marginTop: '14px', paddingTop: '14px', borderTop: `1px solid ${t.border}`, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {Object.entries(priorityColor).map(([key, color]) => (
-          <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: color + '44', border: `2px solid ${color}` }} />
-            <span style={{ color: t.muted, fontSize: '10px' }}>{priorityLabel[key]}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
 }
 
 export default function MeetingsPage() {
@@ -672,7 +542,7 @@ export default function MeetingsPage() {
 
       {/* نمای تقویم */}
       {view === 'calendar' && (
-        <CalendarView meetings={meetings} isMobile={isMobile} t={t} />
+        <PersianCalendar meetings={meetings} isMobile={isMobile} t={t} />
       )}
 
       {/* نمای گزارش */}
