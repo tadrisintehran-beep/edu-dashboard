@@ -98,9 +98,9 @@ export default function MeetingsPage() {
   const [weekStart, setWeekStart] = useState<Date>(getCurrentWeekSaturday())
   const [reportFilter, setReportFilter] = useState<'month' | '3months' | '6months' | 'year'>('month')
   const [newMeeting, setNewMeeting] = useState({
-    title: '', day: 'شنبه', time: '', end_time: '', location: '',
-    participants: '', priority: 'med', meeting_type: 'جلسه',
-  })
+  title: '', day: 'شنبه', time: '', end_time: '', location: '',
+  letter_number: '', priority: 'med', meeting_type: 'جلسه',
+})
 
   const weekDates = getWeekDates(weekStart)
 
@@ -169,7 +169,7 @@ export default function MeetingsPage() {
       end_time: newMeeting.end_time,
       duration: newMeeting.end_time ? `${newMeeting.time}-${newMeeting.end_time}` : '',
       location: newMeeting.location,
-      participants: Number(newMeeting.participants) || 1,
+      participants: newMeeting.letter_number || '',
       priority: newMeeting.priority,
       status: 'pending',
       day_of_week: newMeeting.day,
@@ -402,9 +402,9 @@ export default function MeetingsPage() {
               <input style={inputStyle} placeholder="اتاق کنفرانس" value={newMeeting.location} onChange={e => setNewMeeting(p => ({ ...p, location: e.target.value }))} />
             </div>
             <div>
-              <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>تعداد شرکت‌کننده</label>
-              <input style={inputStyle} type="number" placeholder="۵" value={newMeeting.participants} onChange={e => setNewMeeting(p => ({ ...p, participants: e.target.value }))} />
-            </div>
+  <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>شماره نامه</label>
+  <input style={inputStyle} placeholder="مثال: ۱۲۳/۴۵۶۷۸" value={newMeeting.letter_number} onChange={e => setNewMeeting(p => ({ ...p, letter_number: e.target.value }))} />
+</div>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>اولویت</label>
               <select style={inputStyle} value={newMeeting.priority} onChange={e => setNewMeeting(p => ({ ...p, priority: e.target.value }))}>
@@ -521,7 +521,7 @@ export default function MeetingsPage() {
                             </div>
                             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                               {meeting.location && <span style={{ color: t.sub, fontSize: '11px' }}>📍 {meeting.location}</span>}
-                              {meeting.participants && <span style={{ color: t.sub, fontSize: '11px' }}>👥 {meeting.participants} نفر</span>}
+                              {meeting.participants && <span style={{ color: t.sub, fontSize: '11px' }}>📄 {meeting.participants}</span>}
                             </div>
                           </div>
                           <div style={{ padding: '3px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: (statusColor[meeting.status] || '#555') + '22', color: statusColor[meeting.status] || '#555', flexShrink: 0 }}>
