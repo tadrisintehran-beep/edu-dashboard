@@ -303,16 +303,19 @@ export default function MeetingsPage() {
           <div style={{ display: 'flex', background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', overflow: 'hidden', flex: 1 }}>
             {(['weekly', 'list', 'calendar', 'report'] as const).map((v, i) => (
   <button key={v} onClick={() => setView(v)} style={{
-    flex: 1, padding: '9px 4px',
-    background: view === v ? '#c9a84c22' : 'transparent',
-    border: 'none',
-borderRight: i < 3 ? `1px solid ${t.border}` : 'none',
-outline: 'none',
-    color: view === v ? '#e8c96a' : t.sub,
-    fontSize: isMobile ? '10px' : '12px',
-    cursor: 'pointer', fontFamily: 'inherit',
-    whiteSpace: 'nowrap',
-  }}>
+  flex: 1, padding: '9px 4px',
+  background: view === v ? '#c9a84c22' : 'transparent',
+  borderTop: 'none',
+  borderBottom: 'none',
+  borderLeft: 'none',
+  borderRight: i < 3 ? `1px solid ${t.border}` : 'none',
+  color: view === v ? '#e8c96a' : t.sub,
+  fontSize: isMobile ? '10px' : '12px',
+  cursor: 'pointer', fontFamily: 'inherit',
+  whiteSpace: 'nowrap',
+  outline: 'none',
+}}>
+ 
     {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : v === 'calendar' ? '📆 تقویم' : '📈 گزارش' }
   </button>
 ))}
