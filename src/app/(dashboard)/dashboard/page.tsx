@@ -150,10 +150,14 @@ function TrendChart({ meetingData, reportData, months, isDark, t }: {
               fill="#4a9eff" stroke={isDark ? '#1a1e2c' : '#fff'} strokeWidth="2" />
 
             {/* لیبل ماه */}
-            <text x={getX(i)} y={H - 8} textAnchor="middle" fontSize="10"
-              fill={isDark ? '#555c78' : '#999'} fontFamily="inherit">
-              {month}
-            </text>
+            <text x={getX(i)} y={H - 18} textAnchor="middle" fontSize="10"
+  fill={isDark ? '#555c78' : '#999'} fontFamily="inherit">
+  {month.split('\n')[0]}
+</text>
+<text x={getX(i)} y={H - 6} textAnchor="middle" fontSize="9"
+  fill={isDark ? '#3a3f55' : '#bbb'} fontFamily="inherit">
+  {month.split('\n')[1]}
+</text>
           </g>
         ))}
 
@@ -270,7 +274,7 @@ export default function DashboardPage() {
         while (jm <= 0) { jm += 12; jy-- }
 
         const key = `${jy}/${String(jm).padStart(2, '0')}`
-        const label = monthNames[jm - 1]
+        const label = `${monthNames[jm - 1]}\n${jy}`
 
         const mCount = meetings.filter(m => {
           if (!m.date) return false
