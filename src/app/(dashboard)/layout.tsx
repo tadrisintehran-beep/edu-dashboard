@@ -16,6 +16,7 @@ const menuItems = [
   { icon: '📒', label: 'دفترچه تلفن', path: '/dashboard/phonebook' },
   { icon: '🔔', label: 'هشدارها', path: '/dashboard/alerts' },
   { icon: '📁', label: 'اسناد', path: '/dashboard/documents' },
+  { icon: '📊', label: 'گزارش اجرایی', path: '/dashboard/executive-report' },
 ]
 
 const bottomItems = [
@@ -35,6 +36,7 @@ const pageTitle: Record<string, string> = {
   '/dashboard/documents': 'مدیریت اسناد',
   '/dashboard/logs': 'لاگ دسترسی',
   '/dashboard/tasks': 'درخواست‌ها و تکالیف',
+  '/dashboard/executive-report': 'گزارش اجرایی',
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
