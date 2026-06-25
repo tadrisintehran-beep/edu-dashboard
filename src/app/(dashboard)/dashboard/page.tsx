@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { todayJalaliFull, toJalali } from '@/lib/date'
 import { useIsMobile } from '@/lib/useIsMobile'
 
-// نمودار خطی پیشرفته با گرادیان
+// نمودار Sparkline ساده
 function Sparkline({ data, color, width = 100, height = 28 }: { data: number[], color: string, width?: number, height?: number }) {
   const max = Math.max(...data, 1)
   const min = Math.min(...data, 0)
@@ -17,12 +17,8 @@ function Sparkline({ data, color, width = 100, height = 28 }: { data: number[], 
     const y = height - ((val - min) / range) * (height - 4) - 2
     return `${x},${y}`
   })
-  const pointsStr = pts.join(' ')
-  const gradId = `grad_${color.replace('#', '')}`
-
-  // مسیر بسته برای gradient fill
+  const gradId = `sg_${color.replace('#', '')}`
   const areaPath = `M ${pts[0]} L ${pts.slice(1).join(' L ')} L ${width},${height} L 0,${height} Z`
-
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'visible' }}>
       <defs>
@@ -31,19 +27,170 @@ function Sparkline({ data, color, width = 100, height = 28 }: { data: number[], 
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      {/* ناحیه پر شده */}
       <path d={areaPath} fill={`url(#${gradId})`} />
-      {/* خط اصلی */}
-      <polyline points={pointsStr} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      {/* نقطه آخر */}
+      <polyline points={pts.join(' ')} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx={pts[pts.length - 1].split(',')[0]} cy={pts[pts.length - 1].split(',')[1]} r="3" fill={color} />
     </svg>
   )
 }
 
+// نمودار پیشرفته ماهانه
+function TrendChart({ meetingData, reportData, months, isDark, t }: {
+  meetingData: number[], reportData: number[], months: string[], isDark: boolean, t: any
+}) {
+  const [tooltip, setTooltip] = useState<{ x: number, y: number, month: string, meetings: number, reports: number } | null>(null)
+  const svgRef = useRef<SVGSVGElement>(null)
+
+  const W = 600
+  const H = 200
+  const PAD = { top: 20, right: 20, bottom: 40, left: 40 }
+  const chartW = W - PAD.left - PAD.right
+  const chartH = H - PAD.top - PAD.bottom
+
+  const maxVal = Math.max(...meetingData, ...reportData, 1)
+  const steps = 4
+
+  const getX = (i: number) => PAD.left + (i / (months.length - 1)) * chartW
+  const getY = (val: number) => PAD.top + chartH - (val / maxVal) * chartH
+
+  const meetingPoints = meetingData.map((v, i) => ({ x: getX(i), y: getY(v), v }))
+  const reportPoints = reportData.map((v, i) => ({ x: getX(i), y: getY(v), v }))
+
+  const linePath = (pts: { x: number, y: number }[]) =>
+    pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+
+  const areaPath = (pts: { x: number, y: number }[]) =>
+    `${linePath(pts)} L ${pts[pts.length - 1].x} ${PAD.top + chartH} L ${pts[0].x} ${PAD.top + chartH} Z`
+
+  // گرید افقی
+  const gridLines = Array.from({ length: steps + 1 }, (_, i) => {
+    const val = Math.round((maxVal / steps) * i)
+    const y = getY(val)
+    return { val, y }
+  })
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${W} ${H}`}
+        style={{ width: '100%', height: 'auto', overflow: 'visible', direction: 'ltr' }}
+        onMouseLeave={() => setTooltip(null)}
+      >
+        <defs>
+          <linearGradient id="gradMeeting" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#c9a84c" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#c9a84c" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="gradReport" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#4a9eff" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#4a9eff" stopOpacity="0" />
+          </linearGradient>
+          <filter id="glow-gold">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <filter id="glow-blue">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
+
+        {/* گرید */}
+        {gridLines.map(({ val, y }) => (
+          <g key={val}>
+            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y}
+              stroke={isDark ? '#ffffff10' : '#00000010'} strokeWidth="1" strokeDasharray="4,4" />
+            <text x={PAD.left - 6} y={y + 4} textAnchor="end" fontSize="10"
+              fill={isDark ? '#555c78' : '#999'} fontFamily="inherit">{val}</text>
+          </g>
+        ))}
+
+        {/* ناحیه جلسات */}
+        <path d={areaPath(meetingPoints)} fill="url(#gradMeeting)" />
+
+        {/* ناحیه گزارش‌ها */}
+        <path d={areaPath(reportPoints)} fill="url(#gradReport)" />
+
+        {/* خط جلسات */}
+        <path d={linePath(meetingPoints)} fill="none" stroke="#c9a84c" strokeWidth="2.5"
+          strokeLinecap="round" strokeLinejoin="round" filter="url(#glow-gold)" />
+
+        {/* خط گزارش‌ها */}
+        <path d={linePath(reportPoints)} fill="none" stroke="#4a9eff" strokeWidth="2.5"
+          strokeLinecap="round" strokeLinejoin="round" filter="url(#glow-blue)" />
+
+        {/* نقاط تعاملی */}
+        {months.map((month, i) => (
+          <g key={i}>
+            {/* ناحیه کلیک */}
+            <rect
+              x={getX(i) - 20} y={PAD.top} width={40} height={chartH}
+              fill="transparent" style={{ cursor: 'pointer' }}
+              onMouseEnter={(e) => {
+                const rect = svgRef.current?.getBoundingClientRect()
+                if (rect) {
+                  setTooltip({
+                    x: getX(i),
+                    y: Math.min(meetingPoints[i].y, reportPoints[i].y) - 10,
+                    month,
+                    meetings: meetingData[i],
+                    reports: reportData[i],
+                  })
+                }
+              }}
+            />
+
+            {/* نقطه جلسات */}
+            <circle cx={meetingPoints[i].x} cy={meetingPoints[i].y} r="4"
+              fill="#c9a84c" stroke={isDark ? '#1a1e2c' : '#fff'} strokeWidth="2" />
+
+            {/* نقطه گزارش‌ها */}
+            <circle cx={reportPoints[i].x} cy={reportPoints[i].y} r="4"
+              fill="#4a9eff" stroke={isDark ? '#1a1e2c' : '#fff'} strokeWidth="2" />
+
+            {/* لیبل ماه */}
+            <text x={getX(i)} y={H - 8} textAnchor="middle" fontSize="10"
+              fill={isDark ? '#555c78' : '#999'} fontFamily="inherit">
+              {month}
+            </text>
+          </g>
+        ))}
+
+        {/* Tooltip */}
+        {tooltip && (() => {
+          const tx = Math.min(Math.max(tooltip.x, 60), W - 80)
+          const ty = Math.max(tooltip.y - 60, PAD.top)
+          return (
+            <g>
+              <rect x={tx - 55} y={ty} width="110" height="56" rx="8"
+                fill={isDark ? '#1a1e2c' : '#fff'}
+                stroke={isDark ? '#ffffff15' : '#e0e0e0'} strokeWidth="1"
+                style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }}
+              />
+              <text x={tx} y={ty + 16} textAnchor="middle" fontSize="11" fontWeight="700"
+                fill={isDark ? '#e8eaf0' : '#1a1a2e'} fontFamily="inherit">
+                {tooltip.month}
+              </text>
+              <circle cx={tx - 35} cy={ty + 32} r="4" fill="#c9a84c" />
+              <text x={tx - 28} y={ty + 36} fontSize="10" fill={isDark ? '#c9a84c' : '#b8882c'} fontFamily="inherit">
+                جلسات: {tooltip.meetings}
+              </text>
+              <circle cx={tx - 35} cy={ty + 48} r="4" fill="#4a9eff" />
+              <text x={tx - 28} y={ty + 52} fontSize="10" fill={isDark ? '#4a9eff' : '#2a7edf'} fontFamily="inherit">
+                گزارش: {tooltip.reports}
+              </text>
+            </g>
+          )
+        })()}
+      </svg>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const { user } = useAuthStore()
-  const { t } = useTheme()
+  const { t, isDark } = useTheme()
   const isMobile = useIsMobile()
   const [loading, setLoading] = useState(true)
   const [kpis, setKpis] = useState({
@@ -54,6 +201,9 @@ export default function DashboardPage() {
   })
   const [recentReports, setRecentReports] = useState<any[]>([])
   const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([])
+  const [trendData, setTrendData] = useState<{ months: string[], meetings: number[], reports: number[] }>({
+    months: [], meetings: [], reports: [],
+  })
 
   useEffect(() => {
     fetchData()
@@ -99,7 +249,54 @@ export default function DashboardPage() {
       })
       .slice(0, 5)
     setUpcomingMeetings(upcoming)
+
+    // داده‌های روند ۶ ماه اخیر
+    buildTrendData(m, r)
     setLoading(false)
+  }
+
+  const buildTrendData = (meetings: any[], reports: any[]) => {
+    try {
+      const jalaali = require('jalaali-js')
+      const monthNames = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
+      const today = new Date()
+      const jToday = jalaali.toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate())
+
+      const monthsData: { key: string, label: string, meetings: number, reports: number }[] = []
+
+      for (let i = 5; i >= 0; i--) {
+        let jm = jToday.jm - i
+        let jy = jToday.jy
+        while (jm <= 0) { jm += 12; jy-- }
+
+        const key = `${jy}/${String(jm).padStart(2, '0')}`
+        const label = monthNames[jm - 1]
+
+        const mCount = meetings.filter(m => {
+          if (!m.date) return false
+          const d = new Date(m.date)
+          const j = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate())
+          return j.jy === jy && j.jm === jm
+        }).length
+
+        const rCount = reports.filter(r => {
+          if (!r.created_at) return false
+          const d = new Date(r.created_at)
+          const j = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate())
+          return j.jy === jy && j.jm === jm
+        }).length
+
+        monthsData.push({ key, label, meetings: mCount, reports: rCount })
+      }
+
+      setTrendData({
+        months: monthsData.map(d => d.label),
+        meetings: monthsData.map(d => d.meetings),
+        reports: monthsData.map(d => d.reports),
+      })
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const priorityColor: Record<string, string> = {
@@ -124,42 +321,10 @@ export default function DashboardPage() {
   )
 
   const kpiData = [
-    {
-      label: 'جلسات در انتظار',
-      value: kpis.pendingMeetings,
-      sub: `از ${kpis.totalMeetings} جلسه`,
-      icon: '📅',
-      color: '#c9a84c',
-      trend: kpis.pendingMeetings > 0 ? 'down' : 'up',
-      spark: [2, 3, 2, 4, 3, 5, kpis.pendingMeetings || 1],
-    },
-    {
-      label: 'گزارش نخوانده',
-      value: kpis.unreadReports,
-      sub: `از ${kpis.totalReports} گزارش`,
-      icon: '📋',
-      color: '#4a9eff',
-      trend: kpis.unreadReports > 0 ? 'down' : 'up',
-      spark: [4, 3, 5, 2, 4, 3, kpis.unreadReports || 1],
-    },
-    {
-      label: 'هشدار فعال',
-      value: kpis.totalAlerts,
-      sub: `${kpis.criticalAlerts} بحرانی`,
-      icon: '🔔',
-      color: '#e05555',
-      trend: kpis.criticalAlerts > 0 ? 'down' : 'up',
-      spark: [1, 2, 1, 3, 2, 3, kpis.totalAlerts || 1],
-    },
-    {
-      label: 'مخاطبین',
-      value: kpis.totalContacts,
-      sub: 'دفترچه تلفن',
-      icon: '👥',
-      color: '#3dbb82',
-      trend: 'up',
-      spark: [1, 2, 2, 3, 3, 3, kpis.totalContacts || 1],
-    },
+    { label: 'جلسات در انتظار', value: kpis.pendingMeetings, sub: `از ${kpis.totalMeetings} جلسه`, icon: '📅', color: '#c9a84c', trend: kpis.pendingMeetings > 0 ? 'down' : 'up', spark: [2, 3, 2, 4, 3, 5, kpis.pendingMeetings || 1] },
+    { label: 'گزارش نخوانده', value: kpis.unreadReports, sub: `از ${kpis.totalReports} گزارش`, icon: '📋', color: '#4a9eff', trend: kpis.unreadReports > 0 ? 'down' : 'up', spark: [4, 3, 5, 2, 4, 3, kpis.unreadReports || 1] },
+    { label: 'هشدار فعال', value: kpis.totalAlerts, sub: `${kpis.criticalAlerts} بحرانی`, icon: '🔔', color: '#e05555', trend: kpis.criticalAlerts > 0 ? 'down' : 'up', spark: [1, 2, 1, 3, 2, 3, kpis.totalAlerts || 1] },
+    { label: 'مخاطبین', value: kpis.totalContacts, sub: 'دفترچه تلفن', icon: '👥', color: '#3dbb82', trend: 'up', spark: [1, 2, 2, 3, 3, 3, kpis.totalContacts || 1] },
   ]
 
   return (
@@ -180,61 +345,62 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* KPI Cards — کوچک‌تر و شیک‌تر */}
+      {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '8px' }}>
         {kpiData.map((kpi, i) => (
-          <div key={i}
-            style={{
-              background: t.card, border: `1px solid ${t.border}`,
-              borderRadius: '12px', padding: '12px 14px',
-              cursor: 'pointer', transition: 'all 0.2s',
-              position: 'relative', overflow: 'hidden',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLDivElement).style.borderColor = kpi.color + '66'
-              ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'
-              ;(e.currentTarget as HTMLDivElement).style.boxShadow = `0 6px 20px ${kpi.color}18`
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLDivElement).style.borderColor = t.border
-              ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'
-              ;(e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
-            }}
+          <div key={i} style={{
+            background: t.card, border: `1px solid ${t.border}`,
+            borderRadius: '12px', padding: isMobile ? '12px' : '14px',
+            cursor: 'pointer', transition: 'all 0.2s',
+            position: 'relative', overflow: 'hidden',
+          }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = kpi.color + '66'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 6px 20px ${kpi.color}18` }}
+            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = t.border; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}
           >
-            {/* گرادیان پس‌زمینه */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: `linear-gradient(135deg, ${kpi.color}08, transparent)`, pointerEvents: 'none' }} />
-
-            {/* هدر */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: kpi.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>
-                  {kpi.icon}
-                </div>
-              </div>
-              <div style={{ fontSize: '10px', color: kpi.trend === 'up' ? '#3dbb82' : '#e05555', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                {kpi.trend === 'up' ? '↑' : '↓'}
-              </div>
+              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: kpi.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{kpi.icon}</div>
+              <div style={{ fontSize: '10px', color: kpi.trend === 'up' ? '#3dbb82' : '#e05555' }}>{kpi.trend === 'up' ? '↑' : '↓'}</div>
             </div>
-
-            {/* عدد */}
-            <div style={{ color: t.text, fontSize: isMobile ? '22px' : '26px', fontWeight: '800', lineHeight: 1, marginBottom: '4px' }}>
-              {kpi.value}
-            </div>
-
-            {/* لیبل */}
+            <div style={{ color: t.text, fontSize: isMobile ? '22px' : '26px', fontWeight: '800', lineHeight: 1, marginBottom: '4px' }}>{kpi.value}</div>
             <div style={{ color: t.sub, fontSize: '10px', marginBottom: '8px' }}>{kpi.label}</div>
-
-            {/* نمودار */}
-            <div style={{ marginBottom: '6px' }}>
-              <Sparkline data={kpi.spark} color={kpi.color} width={isMobile ? 90 : 110} height={24} />
-            </div>
-
-            {/* زیرمتن */}
-            <div style={{ color: t.muted, fontSize: '10px', borderTop: `1px solid ${t.border}`, paddingTop: '6px' }}>
-              {kpi.sub}
-            </div>
+            <Sparkline data={kpi.spark} color={kpi.color} width={isMobile ? 90 : 110} height={24} />
+            <div style={{ color: t.muted, fontSize: '10px', borderTop: `1px solid ${t.border}`, paddingTop: '6px', marginTop: '6px' }}>{kpi.sub}</div>
           </div>
         ))}
+      </div>
+
+      {/* نمودار روند */}
+      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: isMobile ? '14px' : '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div>
+            <div style={{ color: t.text, fontSize: '13px', fontWeight: '700' }}>روند ۶ ماه اخیر</div>
+            <div style={{ color: t.muted, fontSize: '11px', marginTop: '3px' }}>جلسات و گزارش‌های دریافتی</div>
+          </div>
+          <div style={{ display: 'flex', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '24px', height: '3px', background: '#c9a84c', borderRadius: '2px' }} />
+              <span style={{ color: t.muted, fontSize: '11px' }}>جلسات</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '24px', height: '3px', background: '#4a9eff', borderRadius: '2px' }} />
+              <span style={{ color: t.muted, fontSize: '11px' }}>گزارش‌ها</span>
+            </div>
+          </div>
+        </div>
+        {trendData.months.length > 0 ? (
+          <TrendChart
+            meetingData={trendData.meetings}
+            reportData={trendData.reports}
+            months={trendData.months}
+            isDark={isDark}
+            t={t}
+          />
+        ) : (
+          <div style={{ height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.muted, fontSize: '12px' }}>
+            داده‌ای برای نمایش وجود ندارد
+          </div>
+        )}
       </div>
 
       {/* ردیف دوم */}
@@ -256,9 +422,7 @@ export default function DashboardPage() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px', flexWrap: 'wrap' }}>
                   {meeting.day_of_week && (
-                    <span style={{ padding: '1px 6px', borderRadius: '6px', fontSize: '9px', background: '#c9a84c22', color: '#e8c96a', border: '1px solid #c9a84c33' }}>
-                      {meeting.day_of_week}
-                    </span>
+                    <span style={{ padding: '1px 6px', borderRadius: '6px', fontSize: '9px', background: '#c9a84c22', color: '#e8c96a', border: '1px solid #c9a84c33' }}>{meeting.day_of_week}</span>
                   )}
                   <span style={{ color: '#e8c96a', fontSize: '11px', fontWeight: '700' }}>{meeting.time}</span>
                   {meeting.end_time && <span style={{ color: t.muted, fontSize: '10px' }}>— {meeting.end_time}</span>}
