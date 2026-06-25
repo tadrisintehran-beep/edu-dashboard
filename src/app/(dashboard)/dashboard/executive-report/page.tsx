@@ -229,7 +229,7 @@ ${content.innerHTML}
           <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>گزارش اجرایی</h1>
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{periodLabel}</p>
         </div>
-        <button onClick={handlePrint} style={{ background: '#1a1a2e', border: 'none', borderRadius: '10px', padding: '10px 20px', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 16px #00000033' }}>
+        <button onClick={handlePrint} style={{ background: 'linear-gradient(135deg, #c9a84c, #e8c96a)', border: 'none', borderRadius: '10px', padding: '10px 20px', color: '#1a1200', fontSize: '13px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 16px #c9a84c44' }}>
           🖨️ چاپ گزارش
         </button>
       </div>
@@ -267,10 +267,10 @@ ${content.innerHTML}
       <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', overflow: 'hidden' }}>
 
         {/* هدر پیش‌نمایش */}
-        <div style={{ background: isDark ? '#0f1117' : '#1a1a2e', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ color: '#e8c96a', fontSize: '12px', fontWeight: '600' }}>پیش‌نمایش گزارش</div>
-          <div style={{ color: '#ffffff55', fontSize: '11px' }}>A4 — RTL — فارسی رسمی</div>
-        </div>
+        <div style={{ background: t.inner, borderBottom: `1px solid ${t.border}`, padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <div style={{ color: '#c9a84c', fontSize: '12px', fontWeight: '600' }}>👁 پیش‌نمایش گزارش</div>
+  <div style={{ color: t.muted, fontSize: '11px' }}>A4 — RTL — فارسی رسمی</div>
+</div>
 
         {/* محتوای قابل چاپ */}
         <div ref={printRef} style={{ background: '#fff', color: '#1a1a2e', direction: 'rtl', fontFamily: 'Segoe UI, Tahoma, Arial, sans-serif' }}>
