@@ -312,7 +312,7 @@ export default function MeetingsPage() {
     cursor: 'pointer', fontFamily: 'inherit',
     whiteSpace: 'nowrap',
   }}>
-    {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : v === 'calendar' ? '📆 تقویم' : '📈 گزارش'}
+    {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : v === 'calendar' ? '📆 تقویم' : '📈 گزارش' }
   </button>
 ))}
           </div>
