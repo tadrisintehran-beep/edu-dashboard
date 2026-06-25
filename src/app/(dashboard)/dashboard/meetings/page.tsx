@@ -98,9 +98,9 @@ export default function MeetingsPage() {
   const [weekStart, setWeekStart] = useState<Date>(getCurrentWeekSaturday())
   const [reportFilter, setReportFilter] = useState<'month' | '3months' | '6months' | 'year'>('month')
   const [newMeeting, setNewMeeting] = useState({
-  title: '', day: 'شنبه', time: '', end_time: '', location: '',
-  letter_number: '', priority: 'med', meeting_type: 'جلسه',
-})
+    title: '', day: 'شنبه', time: '', end_time: '', location: '',
+    letter_number: '', priority: 'med', meeting_type: 'جلسه',
+  })
 
   const weekDates = getWeekDates(weekStart)
 
@@ -179,7 +179,7 @@ export default function MeetingsPage() {
     if (!error) {
       showToast('جلسه با موفقیت ثبت شد', 'success')
       fetchMeetings()
-      setNewMeeting({ title: '', day: 'شنبه', time: '', end_time: '', location: '', participants: '', priority: 'med', meeting_type: 'جلسه' })
+      setNewMeeting({ title: '', day: 'شنبه', time: '', end_time: '', location: '', letter_number: '', priority: 'med', meeting_type: 'جلسه' })
       setShowForm(false)
     } else {
       showToast('خطا در ثبت جلسه', 'error')
@@ -300,50 +300,37 @@ export default function MeetingsPage() {
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <div style={{ display: 'flex', borderRadius: '8px', overflow: 'hidden', flex: 1, border: `1px solid ${t.border}`, background: t.inner }}>
             {(['weekly', 'list', 'calendar', 'report'] as const).map((v, i) => (
-              <div
-                key={v}
-                onClick={() => setView(v)}
-                style={{
-                  flex: 1,
-                  padding: '9px 4px',
-                  background: view === v ? '#c9a84c22' : 'transparent',
-                  borderRight: i < 3 ? `1px solid ${t.border}` : 'none',
-                  color: view === v ? '#e8c96a' : t.sub,
-                  fontSize: isMobile ? '10px' : '12px',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  whiteSpace: 'nowrap' as const,
-                  textAlign: 'center' as const,
-                  userSelect: 'none' as const,
-                  transition: 'all 0.15s',
-                }}
-              >
+              <div key={v} onClick={() => setView(v)} style={{
+                flex: 1, padding: '9px 4px',
+                background: view === v ? '#c9a84c22' : 'transparent',
+                borderRight: i < 3 ? `1px solid ${t.border}` : 'none',
+                color: view === v ? '#e8c96a' : t.sub,
+                fontSize: isMobile ? '10px' : '12px',
+                cursor: 'pointer', fontFamily: 'inherit',
+                whiteSpace: 'nowrap' as const,
+                textAlign: 'center' as const,
+                userSelect: 'none' as const,
+                transition: 'all 0.15s',
+              }}>
                 {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : v === 'calendar' ? '📆 تقویم' : '📈 گزارش'}
               </div>
             ))}
           </div>
 
-          <button
-            onClick={() => exportMeetingsToExcel(meetings)}
-            title="خروجی Excel"
-            style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '9px 12px', color: '#3dbb82', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
-          >📊</button>
+          <button onClick={() => exportMeetingsToExcel(meetings)} title="خروجی Excel"
+            style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '9px 12px', color: '#3dbb82', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+            📊
+          </button>
 
           {view === 'weekly' && (
-            <PrintWeekly
-              weekStart={weekStart}
-              weekDates={weekDates}
-              meetingsByDay={meetingsByDay}
-              days={DAYS}
-            />
+            <PrintWeekly weekStart={weekStart} weekDates={weekDates} meetingsByDay={meetingsByDay} days={DAYS} />
           )}
 
           {typeof window !== 'undefined' && Notification.permission !== 'granted' && (
-            <button
-              onClick={requestNotificationPermission}
-              title="فعال کردن یادآور"
-              style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '9px 12px', color: '#e8c96a', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
-            >🔔</button>
+            <button onClick={requestNotificationPermission} title="فعال کردن یادآور"
+              style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '9px 12px', color: '#e8c96a', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+              🔔
+            </button>
           )}
         </div>
       </div>
@@ -402,9 +389,9 @@ export default function MeetingsPage() {
               <input style={inputStyle} placeholder="اتاق کنفرانس" value={newMeeting.location} onChange={e => setNewMeeting(p => ({ ...p, location: e.target.value }))} />
             </div>
             <div>
-  <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>شماره نامه</label>
-  <input style={inputStyle} placeholder="مثال: ۱۲۳/۴۵۶۷۸" value={newMeeting.letter_number} onChange={e => setNewMeeting(p => ({ ...p, letter_number: e.target.value }))} />
-</div>
+              <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>شماره نامه</label>
+              <input style={inputStyle} placeholder="مثال: ۱۲۳/۴۵۶۷۸" value={newMeeting.letter_number} onChange={e => setNewMeeting(p => ({ ...p, letter_number: e.target.value }))} />
+            </div>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>اولویت</label>
               <select style={inputStyle} value={newMeeting.priority} onChange={e => setNewMeeting(p => ({ ...p, priority: e.target.value }))}>
@@ -530,6 +517,7 @@ export default function MeetingsPage() {
                           {!isPastMeeting && (
                             <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
                               <button onClick={() => setEditMeeting(meeting)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
+                              <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '4px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
                               {meeting.status === 'pending' && (
                                 <button onClick={() => handleApprove(meeting.id)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✓</button>
                               )}
@@ -572,6 +560,7 @@ export default function MeetingsPage() {
                 {!isPastMeeting && (
                   <div style={{ display: 'flex', gap: '5px' }}>
                     <button onClick={() => setEditMeeting(meeting)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
+                    <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
                     <button onClick={() => handleDelete(meeting.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
                   </div>
                 )}

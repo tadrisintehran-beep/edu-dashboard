@@ -11,6 +11,7 @@ import { logAction } from '@/lib/logger'
 const menuItems = [
   { icon: '⊞', label: 'داشبورد', path: '/dashboard' },
   { icon: '📅', label: 'جلسات', path: '/dashboard/meetings' },
+  { icon: '📌', label: 'درخواست‌ها', path: '/dashboard/tasks' },
   { icon: '📋', label: 'گزارش‌ها', path: '/dashboard/reports' },
   { icon: '📒', label: 'دفترچه تلفن', path: '/dashboard/phonebook' },
   { icon: '🔔', label: 'هشدارها', path: '/dashboard/alerts' },
@@ -33,6 +34,7 @@ const pageTitle: Record<string, string> = {
   '/dashboard/settings': 'تنظیمات',
   '/dashboard/documents': 'مدیریت اسناد',
   '/dashboard/logs': 'لاگ دسترسی',
+  '/dashboard/tasks': 'درخواست‌ها و تکالیف',
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
