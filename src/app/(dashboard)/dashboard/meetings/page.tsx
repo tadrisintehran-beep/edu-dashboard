@@ -288,7 +288,6 @@ export default function MeetingsPage() {
 
       {/* هدر */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {/* ردیف اول — عنوان و دکمه جلسه جدید */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>برنامه جلسات</h1>
@@ -297,62 +296,48 @@ export default function MeetingsPage() {
           <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ جلسه جدید</button>
         </div>
 
-        {/* ردیف دوم — تب‌ها و دکمه‌های کمکی */}
+        {/* تب‌ها و دکمه‌ها */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          {/* تب‌ها */}
-         <div style={{ display: 'flex', background: t.inner, borderRadius: '8px', overflow: 'hidden', flex: 1, border: `1px solid ${t.border}` }}>
-  {(['weekly', 'list', 'calendar', 'report'] as const).map((v, i) => (
-    <div key={v} onClick={() => setView(v)} style={{
-      flex: 1, padding: '9px 4px',
-      background: view === v ? '#c9a84c22' : 'transparent',
-      borderRight: i < 3 ? '1px solid #c9a84c44' : 'none',
-      color: view === v ? '#e8c96a' : t.sub,
-      fontSize: isMobile ? '10px' : '12px',
-      cursor: 'pointer', fontFamily: 'inherit',
-      whiteSpace: 'nowrap',
-      textAlign: 'center' as const,
-      userSelect: 'none' as const,
-    }}>
-      {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : v === 'calendar' ? '📆 تقویم' : '📈 گزارش'}
-    </div>
-  ))}
-</div>
-  flex: 1, padding: '9px 4px',
-  background: view === v ? '#c9a84c22' : 'transparent',
-  borderTop: 'none',
-  borderBottom: 'none',
-  borderLeft: 'none',
-  borderRight: i < 3 ? `1px solid ${t.border}` : 'none',
-  color: view === v ? '#e8c96a' : t.sub,
-  fontSize: isMobile ? '10px' : '12px',
-  cursor: 'pointer', fontFamily: 'inherit',
-  whiteSpace: 'nowrap',
-  outline: 'none',
-}}>
- 
-    {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : v === 'calendar' ? '📆 تقویم' : '📈 گزارش' }
-  </button>
-))}
+          <div style={{ display: 'flex', borderRadius: '8px', overflow: 'hidden', flex: 1, border: `1px solid ${t.border}`, background: t.inner }}>
+            {(['weekly', 'list', 'calendar', 'report'] as const).map((v, i) => (
+              <div
+                key={v}
+                onClick={() => setView(v)}
+                style={{
+                  flex: 1,
+                  padding: '9px 4px',
+                  background: view === v ? '#c9a84c22' : 'transparent',
+                  borderRight: i < 3 ? `1px solid ${t.border}` : 'none',
+                  color: view === v ? '#e8c96a' : t.sub,
+                  fontSize: isMobile ? '10px' : '12px',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  whiteSpace: 'nowrap' as const,
+                  textAlign: 'center' as const,
+                  userSelect: 'none' as const,
+                  transition: 'all 0.15s',
+                }}
+              >
+                {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : v === 'calendar' ? '📆 تقویم' : '📈 گزارش'}
+              </div>
+            ))}
           </div>
 
-          {/* دکمه Excel */}
           <button
             onClick={() => exportMeetingsToExcel(meetings)}
             title="خروجی Excel"
             style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '9px 12px', color: '#3dbb82', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
           >📊</button>
 
-          {/* دکمه چاپ — فقط در نمای هفتگی */}
-{view === 'weekly' && (
-  <PrintWeekly
-    weekStart={weekStart}
-    weekDates={weekDates}
-    meetingsByDay={meetingsByDay}
-    days={DAYS}
-  />
-)}
+          {view === 'weekly' && (
+            <PrintWeekly
+              weekStart={weekStart}
+              weekDates={weekDates}
+              meetingsByDay={meetingsByDay}
+              days={DAYS}
+            />
+          )}
 
-          {/* دکمه یادآور */}
           {typeof window !== 'undefined' && Notification.permission !== 'granted' && (
             <button
               onClick={requestNotificationPermission}
