@@ -305,7 +305,7 @@ export default function MeetingsPage() {
     <div key={v} onClick={() => setView(v)} style={{
       flex: 1, padding: '9px 4px',
       background: view === v ? '#c9a84c22' : 'transparent',
-      borderRight: i < 3 ? `1px solid ${t.border}` : 'none',
+      borderRight: i < 3 ? '1px solid #c9a84c44' : 'none',
       color: view === v ? '#e8c96a' : t.sub,
       fontSize: isMobile ? '10px' : '12px',
       cursor: 'pointer', fontFamily: 'inherit',
