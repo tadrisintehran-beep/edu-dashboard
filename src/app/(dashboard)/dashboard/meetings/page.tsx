@@ -300,9 +300,23 @@ export default function MeetingsPage() {
         {/* ردیف دوم — تب‌ها و دکمه‌های کمکی */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {/* تب‌ها */}
-          <div style={{ display: 'flex', background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', overflow: 'hidden', flex: 1 }}>
-            {(['weekly', 'list', 'calendar', 'report'] as const).map((v, i) => (
-  <button key={v} onClick={() => setView(v)} style={{
+         <div style={{ display: 'flex', background: t.inner, borderRadius: '8px', overflow: 'hidden', flex: 1, border: `1px solid ${t.border}` }}>
+  {(['weekly', 'list', 'calendar', 'report'] as const).map((v, i) => (
+    <div key={v} onClick={() => setView(v)} style={{
+      flex: 1, padding: '9px 4px',
+      background: view === v ? '#c9a84c22' : 'transparent',
+      borderRight: i < 3 ? `1px solid ${t.border}` : 'none',
+      color: view === v ? '#e8c96a' : t.sub,
+      fontSize: isMobile ? '10px' : '12px',
+      cursor: 'pointer', fontFamily: 'inherit',
+      whiteSpace: 'nowrap',
+      textAlign: 'center' as const,
+      userSelect: 'none' as const,
+    }}>
+      {v === 'weekly' ? '📅 هفتگی' : v === 'list' ? '📋 لیست' : v === 'calendar' ? '📆 تقویم' : '📈 گزارش'}
+    </div>
+  ))}
+</div>
   flex: 1, padding: '9px 4px',
   background: view === v ? '#c9a84c22' : 'transparent',
   borderTop: 'none',
