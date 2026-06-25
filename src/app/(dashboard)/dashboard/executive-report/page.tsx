@@ -76,7 +76,7 @@ const statusLabelR: Record<string, string> = { submitted: 'ارسال شده', r
 const statusLabelT: Record<string, string> = { pending: 'در انتظار', in_progress: 'در حال انجام', done: 'انجام شد', cancelled: 'لغو شد' }
 
 export default function ExecutiveReportPage() {
-  const { t } = useTheme()
+  const { t, isDark } = useTheme()
   const isMobile = useIsMobile()
   const printRef = useRef<HTMLDivElement>(null)
 
