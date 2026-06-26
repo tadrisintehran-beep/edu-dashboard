@@ -42,7 +42,7 @@ function TrendChart({ meetingData, reportData, months, isDark, t }: {
   const svgRef = useRef<SVGSVGElement>(null)
 
   const W = 600
-  const H = 200
+  const H = 140
   const PAD = { top: 20, right: 20, bottom: 40, left: 40 }
   const chartW = W - PAD.left - PAD.right
   const chartH = H - PAD.top - PAD.bottom
@@ -374,38 +374,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* نمودار روند */}
-      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: isMobile ? '14px' : '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div>
-            <div style={{ color: t.text, fontSize: '13px', fontWeight: '700' }}>روند ۶ ماه اخیر</div>
-            <div style={{ color: t.muted, fontSize: '11px', marginTop: '3px' }}>جلسات و گزارش‌های دریافتی</div>
-          </div>
-          <div style={{ display: 'flex', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '24px', height: '3px', background: '#c9a84c', borderRadius: '2px' }} />
-              <span style={{ color: t.muted, fontSize: '11px' }}>جلسات</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '24px', height: '3px', background: '#4a9eff', borderRadius: '2px' }} />
-              <span style={{ color: t.muted, fontSize: '11px' }}>گزارش‌ها</span>
-            </div>
-          </div>
-        </div>
-        {trendData.months.length > 0 ? (
-          <TrendChart
-            meetingData={trendData.meetings}
-            reportData={trendData.reports}
-            months={trendData.months}
-            isDark={isDark}
-            t={t}
-          />
-        ) : (
-          <div style={{ height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.muted, fontSize: '12px' }}>
-            داده‌ای برای نمایش وجود ندارد
-          </div>
-        )}
-      </div>
+     
 
       {/* ردیف دوم */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '300px 1fr', gap: '10px' }}>
@@ -465,6 +434,38 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
+      </div>
+       {/* نمودار روند */}
+      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: isMobile ? '14px' : '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div>
+            <div style={{ color: t.text, fontSize: '13px', fontWeight: '700' }}>روند ۶ ماه اخیر</div>
+            <div style={{ color: t.muted, fontSize: '11px', marginTop: '3px' }}>جلسات و گزارش‌های دریافتی</div>
+          </div>
+          <div style={{ display: 'flex', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '24px', height: '3px', background: '#c9a84c', borderRadius: '2px' }} />
+              <span style={{ color: t.muted, fontSize: '11px' }}>جلسات</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '24px', height: '3px', background: '#4a9eff', borderRadius: '2px' }} />
+              <span style={{ color: t.muted, fontSize: '11px' }}>گزارش‌ها</span>
+            </div>
+          </div>
+        </div>
+        {trendData.months.length > 0 ? (
+          <TrendChart
+            meetingData={trendData.meetings}
+            reportData={trendData.reports}
+            months={trendData.months}
+            isDark={isDark}
+            t={t}
+          />
+        ) : (
+          <div style={{ height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.muted, fontSize: '12px' }}>
+            داده‌ای برای نمایش وجود ندارد
+          </div>
+        )}
       </div>
 
       {/* آمار کلی */}
