@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { useAuthStore } from '@/stores/authStore'
+import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker'
 
 function toJalali(dateStr: string): string {
   if (!dateStr) return ''
@@ -108,8 +109,6 @@ export default function TasksPage() {
     fetchTasks()
   }
 
-  const handleDelete = (id: string) => { setConfirmDelete(id) }
-
   const confirmDeleteAction = async () => {
     if (!confirmDelete) return
     await supabase.from('tasks').delete().eq('id', confirmDelete)
@@ -149,7 +148,7 @@ export default function TasksPage() {
         <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ درخواست جدید</button>
       </div>
 
-      {/* فیلتر وضعیت */}
+      {/* فیلتر */}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {([
           { key: 'all', label: 'همه' },
@@ -218,35 +217,14 @@ export default function TasksPage() {
               </select>
             </div>
             <div>
-  <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>مهلت انجام (شمسی)</label>
-  <input
-    style={inputStyle}
-    type="text"
-    placeholder="مثال: ۱۴۰۵/۰۴/۱۵"
-    value={newTask.due_date}
-    onChange={e => {
-      const val = e.target.value
-      setNewTask(p => ({ ...p, due_date: val }))
-    }}
-    onBlur={e => {
-      // تبدیل تاریخ شمسی به میلادی برای ذخیره
-      const val = e.target.value.trim()
-      if (!val) return
-      try {
-        const jalaali = require('jalaali-js')
-        const parts = val.replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).split('/')
-        if (parts.length === 3) {
-          const jy = parseInt(parts[0])
-          const jm = parseInt(parts[1])
-          const jd = parseInt(parts[2])
-          const g = jalaali.toGregorian(jy, jm, jd)
-          const gregorian = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}`
-          setNewTask(p => ({ ...p, due_date: gregorian }))
-        }
-      } catch {}
-    }}
-  />
-</div>
+              <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>مهلت انجام</label>
+              <JalaliDatePicker
+                value={newTask.due_date}
+                onChange={(gregorian) => setNewTask(p => ({ ...p, due_date: gregorian }))}
+                placeholder="انتخاب تاریخ شمسی"
+                style={inputStyle}
+              />
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button onClick={() => setShowForm(false)} style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 16px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>انصراف</button>
@@ -271,7 +249,7 @@ export default function TasksPage() {
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
 
-              {/* اطلاعات اصلی */}
+              {/* اطلاعات */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
                   <span style={{ color: t.text, fontSize: '13px', fontWeight: '600' }}>{task.title}</span>
@@ -300,13 +278,13 @@ export default function TasksPage() {
                       🗓 {task.meetings.day_of_week} {toJalali(task.meetings.date)} — {task.meetings.title_fa}
                     </span>
                   )}
-                  <span style={{ color: t.muted, fontSize: '11px' }}>
-                    ثبت: {task.created_by}
-                  </span>
+                  {task.created_by && (
+                    <span style={{ color: t.muted, fontSize: '11px' }}>ثبت: {task.created_by}</span>
+                  )}
                 </div>
               </div>
 
-              {/* وضعیت و دکمه‌ها */}
+              {/* وضعیت و دکمه حذف */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end', flexShrink: 0 }}>
                 <select
                   value={task.status}
@@ -327,7 +305,7 @@ export default function TasksPage() {
                   <option value="cancelled">لغو شد</option>
                 </select>
 
-                <button onClick={() => handleDelete(task.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button onClick={() => setConfirmDelete(task.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
                   🗑 حذف
                 </button>
               </div>
