@@ -25,6 +25,17 @@ const statusColor: Record<string, string> = {
   pending: '#c9a84c', approved: '#3dbb82', cancelled: '#e05555',
 }
 
+function generateTimeOptions(): string[] {
+  const times: string[] = []
+  for (let h = 7; h <= 20; h++) {
+    for (let m = 0; m < 60; m += 15) {
+      times.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+    }
+  }
+  return times
+}
+const TIME_OPTIONS = generateTimeOptions()
+
 function toJalaliSimple(dateStr: string): string {
   if (!dateStr) return ''
   try {
@@ -296,7 +307,6 @@ export default function MeetingsPage() {
           <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ جلسه جدید</button>
         </div>
 
-        {/* تب‌ها و دکمه‌ها */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <div style={{ display: 'flex', borderRadius: '8px', overflow: 'hidden', flex: 1, border: `1px solid ${t.border}`, background: t.inner }}>
             {(['weekly', 'list', 'calendar', 'report'] as const).map((v, i) => (
@@ -378,11 +388,17 @@ export default function MeetingsPage() {
             </div>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>ساعت شروع</label>
-              <input style={inputStyle} type="time" value={newMeeting.time} onChange={e => setNewMeeting(p => ({ ...p, time: e.target.value }))} />
+              <select style={inputStyle} value={newMeeting.time} onChange={e => setNewMeeting(p => ({ ...p, time: e.target.value }))}>
+                <option value="">— انتخاب ساعت —</option>
+                {TIME_OPTIONS.map(time => <option key={time} value={time}>{time}</option>)}
+              </select>
             </div>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>ساعت پایان</label>
-              <input style={inputStyle} type="time" value={newMeeting.end_time} onChange={e => setNewMeeting(p => ({ ...p, end_time: e.target.value }))} />
+              <select style={inputStyle} value={newMeeting.end_time} onChange={e => setNewMeeting(p => ({ ...p, end_time: e.target.value }))}>
+                <option value="">— انتخاب ساعت —</option>
+                {TIME_OPTIONS.map(time => <option key={time} value={time}>{time}</option>)}
+              </select>
             </div>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>مکان</label>
@@ -420,11 +436,17 @@ export default function MeetingsPage() {
             </div>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>ساعت شروع</label>
-              <input style={inputStyle} type="time" value={editMeeting.time} onChange={e => setEditMeeting({ ...editMeeting, time: e.target.value })} />
+              <select style={inputStyle} value={editMeeting.time} onChange={e => setEditMeeting({ ...editMeeting, time: e.target.value })}>
+                <option value="">— انتخاب ساعت —</option>
+                {TIME_OPTIONS.map(time => <option key={time} value={time}>{time}</option>)}
+              </select>
             </div>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>ساعت پایان</label>
-              <input style={inputStyle} type="time" value={editMeeting.end_time || ''} onChange={e => setEditMeeting({ ...editMeeting, end_time: e.target.value })} />
+              <select style={inputStyle} value={editMeeting.end_time || ''} onChange={e => setEditMeeting({ ...editMeeting, end_time: e.target.value })}>
+                <option value="">— انتخاب ساعت —</option>
+                {TIME_OPTIONS.map(time => <option key={time} value={time}>{time}</option>)}
+              </select>
             </div>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>مکان</label>
