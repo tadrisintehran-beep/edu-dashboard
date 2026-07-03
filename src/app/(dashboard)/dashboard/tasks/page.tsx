@@ -218,10 +218,35 @@ export default function TasksPage() {
               </select>
             </div>
             <div>
-              <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>مهلت انجام</label>
-              <input style={inputStyle} type="date"
-                value={newTask.due_date} onChange={e => setNewTask(p => ({ ...p, due_date: e.target.value }))} />
-            </div>
+  <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>مهلت انجام (شمسی)</label>
+  <input
+    style={inputStyle}
+    type="text"
+    placeholder="مثال: ۱۴۰۵/۰۴/۱۵"
+    value={newTask.due_date}
+    onChange={e => {
+      const val = e.target.value
+      setNewTask(p => ({ ...p, due_date: val }))
+    }}
+    onBlur={e => {
+      // تبدیل تاریخ شمسی به میلادی برای ذخیره
+      const val = e.target.value.trim()
+      if (!val) return
+      try {
+        const jalaali = require('jalaali-js')
+        const parts = val.replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).split('/')
+        if (parts.length === 3) {
+          const jy = parseInt(parts[0])
+          const jm = parseInt(parts[1])
+          const jd = parseInt(parts[2])
+          const g = jalaali.toGregorian(jy, jm, jd)
+          const gregorian = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}`
+          setNewTask(p => ({ ...p, due_date: gregorian }))
+        }
+      } catch {}
+    }}
+  />
+</div>
           </div>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button onClick={() => setShowForm(false)} style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 16px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>انصراف</button>
