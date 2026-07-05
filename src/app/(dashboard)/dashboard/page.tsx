@@ -211,19 +211,19 @@ export default function DashboardPage() {
     const r = reports.data || []
     const a = alerts.data || []
 
-    setKpis({
-      pendingMeetings: m.filter(x => x.status === 'pending').length,
-      totalMeetings: m.length,
-      unreadReports: r.filter(x => !x.seen).length,
-      totalReports: r.length,
-      criticalAlerts: a.filter(x => x.level === 'critical' && !x.is_read).length,
-      totalAlerts: a.filter(x => !x.is_read).length,
-      totalContacts: contacts.data?.length || 0,
-    })
-
-    setRecentReports(r.slice(0, 5))
-
     const today = new Date().toISOString().split('T')[0]
+
+setKpis({
+  pendingMeetings: m.filter(x => x.status === 'pending' && x.date >= today).length,
+  totalMeetings: m.length,
+  unreadReports: r.filter(x => !x.seen).length,
+  totalReports: r.length,
+  criticalAlerts: a.filter(x => x.level === 'critical' && !x.is_read).length,
+  totalAlerts: a.filter(x => !x.is_read).length,
+  totalContacts: contacts.data?.length || 0,
+})
+
+setRecentReports(r.slice(0, 5))
     const allUpcoming = m
       .filter(x => x.date >= today)
       .sort((a, b) => {
