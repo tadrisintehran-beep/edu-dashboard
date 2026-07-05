@@ -7,7 +7,6 @@ import { supabase } from '@/lib/supabase'
 import { todayJalaliFull, toJalali } from '@/lib/date'
 import { useIsMobile } from '@/lib/useIsMobile'
 
-// نمودار Sparkline ساده
 function Sparkline({ data, color, width = 100, height = 28 }: { data: number[], color: string, width?: number, height?: number }) {
   const max = Math.max(...data, 1)
   const min = Math.min(...data, 0)
@@ -34,7 +33,6 @@ function Sparkline({ data, color, width = 100, height = 28 }: { data: number[], 
   )
 }
 
-// نمودار پیشرفته ماهانه
 function TrendChart({ meetingData, reportData, months, isDark, t }: {
   meetingData: number[], reportData: number[], months: string[], isDark: boolean, t: any
 }) {
@@ -62,7 +60,6 @@ function TrendChart({ meetingData, reportData, months, isDark, t }: {
   const areaPath = (pts: { x: number, y: number }[]) =>
     `${linePath(pts)} L ${pts[pts.length - 1].x} ${PAD.top + chartH} L ${pts[0].x} ${PAD.top + chartH} Z`
 
-  // گرید افقی
   const gridLines = Array.from({ length: steps + 1 }, (_, i) => {
     const val = Math.round((maxVal / steps) * i)
     const y = getY(val)
@@ -96,7 +93,6 @@ function TrendChart({ meetingData, reportData, months, isDark, t }: {
           </filter>
         </defs>
 
-        {/* گرید */}
         {gridLines.map(({ val, y }) => (
           <g key={val}>
             <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y}
@@ -106,62 +102,44 @@ function TrendChart({ meetingData, reportData, months, isDark, t }: {
           </g>
         ))}
 
-        {/* ناحیه جلسات */}
         <path d={areaPath(meetingPoints)} fill="url(#gradMeeting)" />
-
-        {/* ناحیه گزارش‌ها */}
         <path d={areaPath(reportPoints)} fill="url(#gradReport)" />
 
-        {/* خط جلسات */}
         <path d={linePath(meetingPoints)} fill="none" stroke="#c9a84c" strokeWidth="2.5"
           strokeLinecap="round" strokeLinejoin="round" filter="url(#glow-gold)" />
-
-        {/* خط گزارش‌ها */}
         <path d={linePath(reportPoints)} fill="none" stroke="#4a9eff" strokeWidth="2.5"
           strokeLinecap="round" strokeLinejoin="round" filter="url(#glow-blue)" />
 
-        {/* نقاط تعاملی */}
         {months.map((month, i) => (
           <g key={i}>
-            {/* ناحیه کلیک */}
             <rect
               x={getX(i) - 20} y={PAD.top} width={40} height={chartH}
               fill="transparent" style={{ cursor: 'pointer' }}
-              onMouseEnter={(e) => {
-                const rect = svgRef.current?.getBoundingClientRect()
-                if (rect) {
-                  setTooltip({
-                    x: getX(i),
-                    y: Math.min(meetingPoints[i].y, reportPoints[i].y) - 10,
-                    month,
-                    meetings: meetingData[i],
-                    reports: reportData[i],
-                  })
-                }
+              onMouseEnter={() => {
+                setTooltip({
+                  x: getX(i),
+                  y: Math.min(meetingPoints[i].y, reportPoints[i].y) - 10,
+                  month: month.split('\n')[0],
+                  meetings: meetingData[i],
+                  reports: reportData[i],
+                })
               }}
             />
-
-            {/* نقطه جلسات */}
             <circle cx={meetingPoints[i].x} cy={meetingPoints[i].y} r="4"
               fill="#c9a84c" stroke={isDark ? '#1a1e2c' : '#fff'} strokeWidth="2" />
-
-            {/* نقطه گزارش‌ها */}
             <circle cx={reportPoints[i].x} cy={reportPoints[i].y} r="4"
               fill="#4a9eff" stroke={isDark ? '#1a1e2c' : '#fff'} strokeWidth="2" />
-
-            {/* لیبل ماه */}
             <text x={getX(i)} y={H - 18} textAnchor="middle" fontSize="10"
-  fill={isDark ? '#555c78' : '#999'} fontFamily="inherit">
-  {month.split('\n')[0]}
-</text>
-<text x={getX(i)} y={H - 6} textAnchor="middle" fontSize="9"
-  fill={isDark ? '#3a3f55' : '#bbb'} fontFamily="inherit">
-  {month.split('\n')[1]}
-</text>
+              fill={isDark ? '#555c78' : '#999'} fontFamily="inherit">
+              {month.split('\n')[0]}
+            </text>
+            <text x={getX(i)} y={H - 6} textAnchor="middle" fontSize="9"
+              fill={isDark ? '#3a3f55' : '#bbb'} fontFamily="inherit">
+              {month.split('\n')[1]}
+            </text>
           </g>
         ))}
 
-        {/* Tooltip */}
         {tooltip && (() => {
           const tx = Math.min(Math.max(tooltip.x, 60), W - 80)
           const ty = Math.max(tooltip.y - 60, PAD.top)
@@ -205,6 +183,7 @@ export default function DashboardPage() {
   })
   const [recentReports, setRecentReports] = useState<any[]>([])
   const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([])
+  const [totalUpcoming, setTotalUpcoming] = useState(0)
   const [trendData, setTrendData] = useState<{ months: string[], meetings: number[], reports: number[] }>({
     months: [], meetings: [], reports: [],
   })
@@ -245,16 +224,15 @@ export default function DashboardPage() {
     setRecentReports(r.slice(0, 5))
 
     const today = new Date().toISOString().split('T')[0]
-    const upcoming = m
+    const allUpcoming = m
       .filter(x => x.date >= today)
       .sort((a, b) => {
         if (a.date !== b.date) return a.date.localeCompare(b.date)
         return (a.time || '').localeCompare(b.time || '')
       })
-      .slice(0, 5)
-    setUpcomingMeetings(upcoming)
+    setTotalUpcoming(allUpcoming.length)
+    setUpcomingMeetings(allUpcoming.slice(0, 5))
 
-    // داده‌های روند ۶ ماه اخیر
     buildTrendData(m, r)
     setLoading(false)
   }
@@ -273,7 +251,6 @@ export default function DashboardPage() {
         let jy = jToday.jy
         while (jm <= 0) { jm += 12; jy-- }
 
-        const key = `${jy}/${String(jm).padStart(2, '0')}`
         const label = `${monthNames[jm - 1]}\n${jy}`
 
         const mCount = meetings.filter(m => {
@@ -290,7 +267,7 @@ export default function DashboardPage() {
           return j.jy === jy && j.jm === jm
         }).length
 
-        monthsData.push({ key, label, meetings: mCount, reports: rCount })
+        monthsData.push({ key: label, label, meetings: mCount, reports: rCount })
       }
 
       setTrendData({
@@ -374,8 +351,6 @@ export default function DashboardPage() {
         ))}
       </div>
 
-     
-
       {/* ردیف دوم */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '300px 1fr', gap: '10px' }}>
 
@@ -383,7 +358,9 @@ export default function DashboardPage() {
         <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>📅 جلسات پیش رو</div>
-<a href="/dashboard/meetings" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>همه ({upcomingMeetings.length}) →</a>
+            <a href="/dashboard/meetings" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>
+              همه ({totalUpcoming}) →
+            </a>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {upcomingMeetings.length === 0 ? (
@@ -435,7 +412,8 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-       {/* نمودار روند */}
+
+      {/* نمودار روند */}
       <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: isMobile ? '14px' : '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
@@ -462,7 +440,7 @@ export default function DashboardPage() {
             t={t}
           />
         ) : (
-          <div style={{ height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.muted, fontSize: '12px' }}>
+          <div style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.muted, fontSize: '12px' }}>
             داده‌ای برای نمایش وجود ندارد
           </div>
         )}
