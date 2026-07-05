@@ -72,7 +72,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const fetchBadges = async () => {
       const [meetings, reports, alerts] = await Promise.all([
-        supabase.from('meetings').select('id').eq('status', 'pending'),
+       supabase.from('meetings').select('id').eq('status', 'pending').gte('date', new Date().toISOString().split('T')[0]),
         supabase.from('reports').select('id').eq('seen', false),
         supabase.from('alerts').select('id').eq('is_read', false),
       ])

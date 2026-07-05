@@ -536,16 +536,18 @@ export default function MeetingsPage() {
                           <div style={{ padding: '3px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: (statusColor[meeting.status] || '#555') + '22', color: statusColor[meeting.status] || '#555', flexShrink: 0 }}>
                             {statusLabel[meeting.status]}
                           </div>
-                          {!isPastMeeting && (
-                            <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
-                              <button onClick={() => setEditMeeting(meeting)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
-                              <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '4px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
-                              {meeting.status === 'pending' && (
-                                <button onClick={() => handleApprove(meeting.id)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✓</button>
-                              )}
-                              <button onClick={() => handleDelete(meeting.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '4px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
-                            </div>
-                          )}
+                          <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
+  {!isPastMeeting && (
+    <button onClick={() => setEditMeeting(meeting)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
+  )}
+  {!isPastMeeting && (
+    <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '4px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
+  )}
+  {meeting.status === 'pending' && (
+    <button onClick={() => handleApprove(meeting.id)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✓</button>
+  )}
+  <button onClick={() => handleDelete(meeting.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '4px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+</div>
                         </div>
                       )
                     })}
