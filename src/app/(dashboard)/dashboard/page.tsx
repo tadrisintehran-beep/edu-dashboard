@@ -383,7 +383,7 @@ export default function DashboardPage() {
         <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>📅 جلسات پیش رو</div>
-            <a href="/dashboard/meetings" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>همه →</a>
+<a href="/dashboard/meetings" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>همه ({upcomingMeetings.length}) →</a>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {upcomingMeetings.length === 0 ? (
