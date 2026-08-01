@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { useToast } from '@/components/ui/Toast'
 import { useIsMobile } from '@/lib/useIsMobile'
@@ -22,29 +22,10 @@ const fileTypeIcon: Record<string, string> = {
   'default': '📁',
 }
 
-const fileTypeGroups: Record<string, string[]> = {
-  'PDF': ['application/pdf'],
-  'Word': ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-  'Excel': ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
-  'PowerPoint': ['application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
-  'تصویر': ['image/jpeg', 'image/png'],
-}
-
 function formatSize(bytes: number): string {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
-}
-
-// تابع کمکی برای ثبت alert
-async function createAlert(title: string, body: string) {
-  await (supabase.from('alerts') as any).insert([{
-    title,
-    body,
-    level: 'info',
-    is_read: false,
-    is_snoozed: false,
-  }])
 }
 
 export default function DocumentsPage() {
@@ -63,7 +44,7 @@ export default function DocumentsPage() {
   const [activeTab, setActiveTab] = useState<'comments' | 'versions'>('comments')
   const [newComment, setNewComment] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [uploadForm, setUploadForm] = useState({ title: '', description: '', note: '' })
+  const [uploadForm, setUploadForm] = useState({ title: '', description: '' })
   const [showUpload, setShowUpload] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -71,57 +52,8 @@ export default function DocumentsPage() {
   const [showVersionUpload, setShowVersionUpload] = useState(false)
   const [versionNote, setVersionNote] = useState('')
 
-  // جستجو و فیلتر
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filterType, setFilterType] = useState<string>('')
-  const [filterDateFrom, setFilterDateFrom] = useState('')
-  const [filterDateTo, setFilterDateTo] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-
-  // تابع کمکی برای بررسی دسترسی حذف
-  const canDelete = (doc: any) =>
-    user?.role === 'ADMIN' || doc.uploaded_by === user?.name
-
-  // فیلتر کردن اسناد
-  const filteredDocuments = useMemo(() => {
-    return documents.filter(doc => {
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase()
-        const matchTitle = doc.title?.toLowerCase().includes(q)
-        const matchFileName = doc.file_name?.toLowerCase().includes(q)
-        if (!matchTitle && !matchFileName) return false
-      }
-      if (filterType) {
-        const types = fileTypeGroups[filterType] || []
-        if (!types.includes(doc.file_type)) return false
-      }
-      if (filterDateFrom) {
-        const docDate = new Date(doc.updated_at)
-        const fromDate = new Date(filterDateFrom)
-        if (docDate < fromDate) return false
-      }
-      if (filterDateTo) {
-        const docDate = new Date(doc.updated_at)
-        const toDate = new Date(filterDateTo)
-        toDate.setHours(23, 59, 59)
-        if (docDate > toDate) return false
-      }
-      return true
-    })
-  }, [documents, searchQuery, filterType, filterDateFrom, filterDateTo])
-
-  const hasActiveFilters = filterType || filterDateFrom || filterDateTo
-
-  const clearFilters = () => {
-    setSearchQuery('')
-    setFilterType('')
-    setFilterDateFrom('')
-    setFilterDateTo('')
-  }
-
   useEffect(() => {
     fetchDocuments()
-
     const channel = supabase
       .channel('documents-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'documents' }, () => fetchDocuments())
@@ -129,7 +61,6 @@ export default function DocumentsPage() {
         if (selected) fetchComments(selected.id)
       })
       .subscribe()
-
     return () => { supabase.removeChannel(channel) }
   }, [])
 
@@ -143,28 +74,20 @@ export default function DocumentsPage() {
   const fetchDocuments = async () => {
     setLoading(true)
     const { data, error } = await supabase
-      .from('documents')
-      .select('*')
-      .order('updated_at', { ascending: false })
+      .from('documents').select('*').order('updated_at', { ascending: false })
     if (!error && data) setDocuments(data)
     setLoading(false)
   }
 
   const fetchComments = async (docId: string) => {
     const { data } = await supabase
-      .from('document_comments')
-      .select('*')
-      .eq('document_id', docId)
-      .order('created_at', { ascending: true })
+      .from('document_comments').select('*').eq('document_id', docId).order('created_at', { ascending: true })
     if (data) setComments(data)
   }
 
   const fetchVersions = async (docId: string) => {
     const { data } = await supabase
-      .from('document_versions')
-      .select('*')
-      .eq('document_id', docId)
-      .order('version', { ascending: false })
+      .from('document_versions').select('*').eq('document_id', docId).order('version', { ascending: false })
     if (data) setVersions(data)
   }
 
@@ -175,18 +98,21 @@ export default function DocumentsPage() {
     }
     setUploading(true)
 
-    const filePath = `${Date.now()}_${selectedFile.name}`
+    // حذف کاراکترهای فارسی از نام فایل
+    const fileExt = selectedFile.name.split('.').pop()
+    const filePath = `${Date.now()}.${fileExt}`
+
     const { error: uploadError } = await supabase.storage
       .from('documents')
       .upload(filePath, selectedFile)
 
     if (uploadError) {
-      showToast('خطا در آپلود فایل', 'error')
+      showToast('خطا در آپلود فایل: ' + uploadError.message, 'error')
       setUploading(false)
       return
     }
 
-    const { data: doc, error: dbError } = await supabase.from('documents').insert([{
+    const { data: doc, error: dbError } = await (supabase.from('documents') as any).insert([{
       title: uploadForm.title,
       description: uploadForm.description,
       file_path: filePath,
@@ -206,21 +132,13 @@ export default function DocumentsPage() {
         uploaded_by: user?.name || 'کاربر',
         note: 'نسخه اول',
       }])
-
-      // ثبت alert برای آپلود سند جدید
-      await createAlert(
-        '📁 سند جدید آپلود شد',
-        `${user?.name || 'کاربر'} سند «${uploadForm.title}» را آپلود کرد.`
-      )
-
-      showToast('سند با موفقیت آپلود شد', 'success')
+      showToast('سند با موفقیت آپلود شد ✅', 'success')
       setShowUpload(false)
-      setUploadForm({ title: '', description: '', note: '' })
+      setUploadForm({ title: '', description: '' })
       setSelectedFile(null)
       fetchDocuments()
     } else {
-      console.error('DB Error:', dbError)
-      showToast('خطا: ' + dbError?.message, 'error')
+      showToast('خطا در ذخیره سند', 'error')
     }
     setUploading(false)
   }
@@ -232,13 +150,16 @@ export default function DocumentsPage() {
     }
     setUploading(true)
 
-    const filePath = `${Date.now()}_${versionFile.name}`
+    // حذف کاراکترهای فارسی از نام فایل
+    const fileExt = versionFile.name.split('.').pop()
+    const filePath = `${Date.now()}.${fileExt}`
+
     const { error: uploadError } = await supabase.storage
       .from('documents')
       .upload(filePath, versionFile)
 
     if (uploadError) {
-      showToast('خطا در آپلود فایل', 'error')
+      showToast('خطا در آپلود فایل: ' + uploadError.message, 'error')
       setUploading(false)
       return
     }
@@ -263,13 +184,7 @@ export default function DocumentsPage() {
       note: versionNote,
     }])
 
-    // ثبت alert برای نسخه جدید
-    await createAlert(
-      '🔄 نسخه جدید آپلود شد',
-      `${user?.name || 'کاربر'} نسخه ${newVersion} از سند «${selected.title}» را آپلود کرد.`
-    )
-
-    showToast(`نسخه ${newVersion} آپلود شد`, 'success')
+    showToast(`نسخه ${newVersion} آپلود شد ✅`, 'success')
     setShowVersionUpload(false)
     setVersionFile(null)
     setVersionNote('')
@@ -286,13 +201,6 @@ export default function DocumentsPage() {
       author: user?.name || 'کاربر',
       body: newComment,
     }])
-
-    // ثبت alert برای کامنت جدید
-    await createAlert(
-      '💬 کامنت جدید',
-      `${user?.name || 'کاربر'} روی سند «${selected.title}» کامنت گذاشت: ${newComment}`
-    )
-
     setNewComment('')
     fetchComments(selected.id)
   }
@@ -309,17 +217,9 @@ export default function DocumentsPage() {
     }
   }
 
-  const handleDelete = (id: string) => { setConfirmDelete(id) }
-
   const confirmDeleteAction = async () => {
     if (!confirmDelete) return
-    const { error } = await supabase.from('documents').delete().eq('id', confirmDelete)
-    if (error) {
-      console.error('Delete error:', error)
-      showToast('خطا در حذف: ' + error.message, 'error')
-      setConfirmDelete(null)
-      return
-    }
+    await supabase.from('documents').delete().eq('id', confirmDelete)
     showToast('سند حذف شد', 'info')
     if (selected?.id === confirmDelete) setSelected(null)
     setConfirmDelete(null)
@@ -345,81 +245,9 @@ export default function DocumentsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>مدیریت اسناد</h1>
-          <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>
-            {filteredDocuments.length !== documents.length
-              ? `${filteredDocuments.length} از ${documents.length} سند`
-              : `${documents.length} سند ثبت شده`}
-          </p>
+          <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{documents.length} سند ثبت شده</p>
         </div>
         <button onClick={() => setShowUpload(!showUpload)} className="btn-gold">+ آپلود سند</button>
-      </div>
-
-      {/* جستجو و فیلتر */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <div style={{ flex: 1, position: 'relative' }}>
-            <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px', pointerEvents: 'none' }}>🔍</span>
-            <input
-              style={{ ...inputStyle, paddingRight: '32px' }}
-              placeholder="جستجو در عنوان یا نام فایل..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            style={{
-              background: hasActiveFilters ? '#c9a84c22' : t.card,
-              border: `1px solid ${hasActiveFilters ? '#c9a84c44' : t.border}`,
-              borderRadius: '8px', padding: '8px 14px',
-              color: hasActiveFilters ? '#e8c96a' : t.sub,
-              fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
-            }}
-          >🎚️ فیلتر {hasActiveFilters ? '●' : ''}</button>
-          {(searchQuery || hasActiveFilters) && (
-            <button
-              onClick={clearFilters}
-              style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 12px', color: t.muted, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
-            >✕</button>
-          )}
-        </div>
-
-        {/* پنل فیلترها */}
-        {showFilters && (
-          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '16px' }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '6px' }}>نوع فایل</label>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {Object.keys(fileTypeGroups).map(type => (
-                  <button
-                    key={type}
-                    onClick={() => setFilterType(filterType === type ? '' : type)}
-                    style={{
-                      padding: '4px 10px', borderRadius: '20px', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit',
-                      background: filterType === type ? '#c9a84c22' : t.inner,
-                      border: `1px solid ${filterType === type ? '#c9a84c44' : t.border}`,
-                      color: filterType === type ? '#e8c96a' : t.sub,
-                    }}
-                  >{type}</button>
-                ))}
-              </div>
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '6px' }}>بازه تاریخ</label>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input type="date" style={{ ...inputStyle, flex: 1 }} value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} />
-                <span style={{ color: t.muted, fontSize: '11px', flexShrink: 0 }}>تا</span>
-                <input type="date" style={{ ...inputStyle, flex: 1 }} value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {filteredDocuments.length === 0 && documents.length > 0 && (
-          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '24px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>
-            نتیجه‌ای یافت نشد
-          </div>
-        )}
       </div>
 
       {/* فرم آپلود */}
@@ -473,10 +301,10 @@ export default function DocumentsPage() {
               <div style={{ fontSize: '48px', marginBottom: '12px' }}>📁</div>
               هنوز سندی آپلود نشده
             </div>
-          ) : filteredDocuments.map(doc => (
-            <div key={doc.id} className="hover-card"
+          ) : documents.map(doc => (
+            <div key={doc.id}
               onClick={() => setSelected(doc)}
-              style={{ background: selected?.id === doc.id ? t.inner : t.card, border: `1px solid ${selected?.id === doc.id ? '#c9a84c33' : t.border}`, borderRadius: '12px', padding: '14px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              style={{ background: selected?.id === doc.id ? t.inner : t.card, border: `1px solid ${selected?.id === doc.id ? '#c9a84c33' : t.border}`, borderRadius: '12px', padding: '14px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s' }}>
 
               <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: '#c9a84c22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
                 {fileTypeIcon[doc.file_type] || fileTypeIcon.default}
@@ -488,6 +316,7 @@ export default function DocumentsPage() {
                   <span style={{ color: t.muted, fontSize: '11px' }}>👤 {doc.uploaded_by}</span>
                   <span style={{ color: t.muted, fontSize: '11px' }}>📅 {toJalali(doc.updated_at)}</span>
                   {doc.file_size && <span style={{ color: t.muted, fontSize: '11px' }}>💾 {formatSize(doc.file_size)}</span>}
+                  <span style={{ color: t.muted, fontSize: '11px' }}>📎 {doc.file_name}</span>
                 </div>
               </div>
 
@@ -497,15 +326,15 @@ export default function DocumentsPage() {
 
               <button
                 onClick={e => { e.stopPropagation(); handleDownload(doc.file_path, doc.file_name) }}
-                style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '5px 10px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
-              >⬇️ دانلود</button>
+                style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '5px 10px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+                ⬇️ دانلود
+              </button>
 
-              {canDelete(doc) && (
-                <button
-                  onClick={e => { e.stopPropagation(); handleDelete(doc.id) }}
-                  style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
-                >حذف</button>
-              )}
+              <button
+                onClick={e => { e.stopPropagation(); setConfirmDelete(doc.id) }}
+                style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+                حذف
+              </button>
             </div>
           ))}
         </div>
@@ -538,8 +367,9 @@ export default function DocumentsPage() {
 
             <button
               onClick={() => setShowVersionUpload(!showVersionUpload)}
-              style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '8px', padding: '8px', color: '#4a9eff', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}
-            >📤 آپلود نسخه جدید</button>
+              style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '8px', padding: '8px', color: '#4a9eff', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              📤 آپلود نسخه جدید
+            </button>
 
             {showVersionUpload && (
               <div style={{ background: t.inner, borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -557,6 +387,7 @@ export default function DocumentsPage() {
               </div>
             )}
 
+            {/* تب‌ها */}
             <div style={{ display: 'flex', gap: '8px', borderBottom: `1px solid ${t.border}`, paddingBottom: '8px' }}>
               {[
                 { key: 'comments', label: `💬 کامنت‌ها (${comments.length})` },
@@ -569,9 +400,10 @@ export default function DocumentsPage() {
               ))}
             </div>
 
+            {/* کامنت‌ها */}
             {activeTab === 'comments' && (
               <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px' }}>
+                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px' }}>
                   {comments.length === 0 ? (
                     <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '16px' }}>هنوز کامنتی نیست</div>
                   ) : comments.map(comment => (
@@ -594,8 +426,9 @@ export default function DocumentsPage() {
               </div>
             )}
 
+            {/* نسخه‌ها */}
             {activeTab === 'versions' && (
-              <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px' }}>
+              <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px' }}>
                 {versions.map(version => (
                   <div key={version.id} style={{ background: t.inner, borderRadius: '8px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#4a9eff22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: '#4a9eff', flexShrink: 0 }}>
@@ -610,8 +443,9 @@ export default function DocumentsPage() {
                     </div>
                     <button
                       onClick={() => handleDownload(version.file_path, version.file_name)}
-                      style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: '#3dbb82', fontSize: '10px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
-                    >⬇️</button>
+                      style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: '#3dbb82', fontSize: '10px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+                      ⬇️
+                    </button>
                   </div>
                 ))}
               </div>
