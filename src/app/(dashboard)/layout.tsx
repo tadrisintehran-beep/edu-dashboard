@@ -31,6 +31,17 @@ function activateOnKey(e: React.KeyboardEvent, handler: () => void) {
   }
 }
 
+function timeAgo(dateStr: string): string {
+  const diffMs = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diffMs / 60000)
+  if (mins < 1) return 'همین الان'
+  if (mins < 60) return `${mins} دقیقه پیش`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours} ساعت پیش`
+  const days = Math.floor(hours / 24)
+  return `${days} روز پیش`
+}
+
 const pageTitle: Record<string, string> = {
   '/dashboard': 'داشبورد اجرایی',
   '/dashboard/meetings': 'مدیریت جلسات',
@@ -56,6 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showNotif, setShowNotif] = useState(false)
   const [badges, setBadges] = useState<Record<string, number>>({})
+  const [notifItems, setNotifItems] = useState<{ text: string; time: string; icon: string; color: string; path: string }[]>([])
 
   useEffect(() => { fetchProfile() }, [])
 
@@ -100,16 +112,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     const fetchBadges = async () => {
-      const [meetings, reports, alerts] = await Promise.all([
-       supabase.from('meetings').select('id').eq('status', 'pending').gte('date', new Date().toISOString().split('T')[0]),
+      const today = new Date().toISOString().split('T')[0]
+      const [meetings, reports, alerts, latestReport, nearestMeeting, latestAlert] = await Promise.all([
+        supabase.from('meetings').select('id').eq('status', 'pending').gte('date', today),
         supabase.from('reports').select('id').eq('seen', false),
         supabase.from('alerts').select('id').eq('is_read', false),
+        supabase.from('reports').select('id,title_fa,created_at').eq('seen', false).order('created_at', { ascending: false }).limit(1),
+        supabase.from('meetings').select('id,title_fa,date,time').eq('status', 'pending').gte('date', today).order('date').order('time').limit(1),
+        supabase.from('alerts').select('id,title,created_at').eq('is_read', false).order('created_at', { ascending: false }).limit(1),
       ])
       setBadges({
         '/dashboard/meetings': meetings.data?.length || 0,
         '/dashboard/reports': reports.data?.length || 0,
         '/dashboard/alerts': alerts.data?.length || 0,
       })
+
+      const items: typeof notifItems = []
+      const r = latestReport.data?.[0]
+      if (r) items.push({ text: `گزارش جدید: ${r.title_fa}`, time: timeAgo(r.created_at), icon: '📋', color: '#4a9eff', path: '/dashboard/reports' })
+      const m = nearestMeeting.data?.[0]
+      if (m) items.push({ text: `جلسه: ${m.title_fa}`, time: `${m.date} — ${m.time}`, icon: '📅', color: '#c9a84c', path: '/dashboard/meetings' })
+      const a = latestAlert.data?.[0]
+      if (a) items.push({ text: a.title, time: timeAgo(a.created_at), icon: '🚨', color: '#e05555', path: '/dashboard/alerts' })
+      setNotifItems(items)
     }
     fetchBadges()
   }, [pathname])
@@ -374,18 +399,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div onClick={() => setShowNotif(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
                 <div style={{ position: 'fixed', top: '60px', left: isMobile ? '8px' : '60px', right: isMobile ? '8px' : 'auto', width: isMobile ? 'calc(100vw - 16px)' : '280px', background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', zIndex: 50, boxShadow: '0 8px 32px #00000033', overflow: 'hidden', animation: 'fadeInUp 0.2s ease' }}>
                   <div style={{ padding: '12px 14px', borderBottom: `1px solid ${t.border}`, color: t.text, fontSize: '12px', fontWeight: '600' }}>اعلان‌ها</div>
-                  {[
-                    { text: 'گزارش جدید دریافت شد', time: '۵ دقیقه پیش', icon: '📋', color: '#4a9eff' },
-                    { text: 'جلسه ۱۵ دقیقه دیگر', time: '۱۵ دقیقه پیش', icon: '📅', color: '#c9a84c' },
-                    { text: 'هشدار بحرانی جدید', time: '۱ ساعت پیش', icon: '🚨', color: '#e05555' },
-                  ].map((notif, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderBottom: i < 2 ? `1px solid ${t.border}` : 'none', cursor: 'pointer', transition: 'background 0.15s' }}
+                  {notifItems.length === 0 ? (
+                    <div style={{ padding: '20px 14px', textAlign: 'center', color: t.muted, fontSize: '11px' }}>اعلان جدیدی نیست</div>
+                  ) : notifItems.map((notif, i) => (
+                    <div key={i} onClick={() => { setShowNotif(false); router.push(notif.path) }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderBottom: i < notifItems.length - 1 ? `1px solid ${t.border}` : 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                       onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = t.inner}
                       onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
                     >
                       <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: notif.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>{notif.icon}</div>
-                      <div>
-                        <div style={{ color: t.text, fontSize: '11px', fontWeight: '500' }}>{notif.text}</div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ color: t.text, fontSize: '11px', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{notif.text}</div>
                         <div style={{ color: t.muted, fontSize: '10px', marginTop: '2px' }}>{notif.time}</div>
                       </div>
                     </div>

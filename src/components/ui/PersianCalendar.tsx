@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import jalaali from 'jalaali-js'
 
 const HOLIDAYS_1405: Record<string, string> = {
   '1/1': 'نوروز — عید سعید فطر',
@@ -53,7 +54,6 @@ interface PersianCalendarProps {
 }
 
 export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps) {
-  const jalaali = require('jalaali-js')
   const today = new Date()
   const jToday = jalaali.toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate())
 

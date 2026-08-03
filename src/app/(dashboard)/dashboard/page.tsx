@@ -184,8 +184,8 @@ export default function DashboardPage() {
   const [recentReports, setRecentReports] = useState<any[]>([])
   const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([])
   const [totalUpcoming, setTotalUpcoming] = useState(0)
-  const [trendData, setTrendData] = useState<{ months: string[], meetings: number[], reports: number[] }>({
-    months: [], meetings: [], reports: [],
+  const [trendData, setTrendData] = useState<{ months: string[], meetings: number[], reports: number[], alerts: number[], contacts: number[] }>({
+    months: [], meetings: [], reports: [], alerts: [], contacts: [],
   })
 
   useEffect(() => {
@@ -210,7 +210,7 @@ export default function DashboardPage() {
       totalMeetings, pendingMeetings, totalReports, unreadReports,
       totalAlerts, criticalAlerts, totalContacts,
       recentReportsRes, upcomingMeetingsRes, totalUpcomingRes,
-      trendMeetings, trendReports,
+      trendMeetings, trendReports, trendAlerts, trendContacts,
     ] = await Promise.all([
       supabase.from('meetings').select('id', { count: 'exact', head: true }),
       supabase.from('meetings').select('id', { count: 'exact', head: true }).eq('status', 'pending').gte('date', today),
@@ -224,6 +224,8 @@ export default function DashboardPage() {
       supabase.from('meetings').select('id', { count: 'exact', head: true }).gte('date', today),
       supabase.from('meetings').select('date').gte('date', sixMonthsAgoDate),
       supabase.from('reports').select('created_at').gte('created_at', sixMonthsAgoDate),
+      supabase.from('alerts').select('created_at').gte('created_at', sixMonthsAgoDate),
+      supabase.from('contacts').select('created_at').gte('created_at', sixMonthsAgoDate),
     ])
 
     setKpis({
@@ -240,18 +242,26 @@ export default function DashboardPage() {
     setUpcomingMeetings(upcomingMeetingsRes.data || [])
     setTotalUpcoming(totalUpcomingRes.count || 0)
 
-    buildTrendData(trendMeetings.data || [], trendReports.data || [])
+    buildTrendData(trendMeetings.data || [], trendReports.data || [], trendAlerts.data || [], trendContacts.data || [])
     setLoading(false)
   }
 
-  const buildTrendData = (meetings: any[], reports: any[]) => {
+  const buildTrendData = (meetings: any[], reports: any[], alerts: any[], contacts: any[]) => {
     try {
       const jalaali = require('jalaali-js')
       const monthNames = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
       const today = new Date()
       const jToday = jalaali.toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate())
 
-      const monthsData: { key: string, label: string, meetings: number, reports: number }[] = []
+      const countInMonth = (rows: any[], field: string, jy: number, jm: number) =>
+        rows.filter(r => {
+          if (!r[field]) return false
+          const d = new Date(r[field])
+          const j = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate())
+          return j.jy === jy && j.jm === jm
+        }).length
+
+      const monthsData: { key: string, label: string, meetings: number, reports: number, alerts: number, contacts: number }[] = []
 
       for (let i = 5; i >= 0; i--) {
         let jm = jToday.jm - i
@@ -260,27 +270,21 @@ export default function DashboardPage() {
 
         const label = `${monthNames[jm - 1]}\n${jy}`
 
-        const mCount = meetings.filter(m => {
-          if (!m.date) return false
-          const d = new Date(m.date)
-          const j = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate())
-          return j.jy === jy && j.jm === jm
-        }).length
-
-        const rCount = reports.filter(r => {
-          if (!r.created_at) return false
-          const d = new Date(r.created_at)
-          const j = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate())
-          return j.jy === jy && j.jm === jm
-        }).length
-
-        monthsData.push({ key: label, label, meetings: mCount, reports: rCount })
+        monthsData.push({
+          key: label, label,
+          meetings: countInMonth(meetings, 'date', jy, jm),
+          reports: countInMonth(reports, 'created_at', jy, jm),
+          alerts: countInMonth(alerts, 'created_at', jy, jm),
+          contacts: countInMonth(contacts, 'created_at', jy, jm),
+        })
       }
 
       setTrendData({
         months: monthsData.map(d => d.label),
         meetings: monthsData.map(d => d.meetings),
         reports: monthsData.map(d => d.reports),
+        alerts: monthsData.map(d => d.alerts),
+        contacts: monthsData.map(d => d.contacts),
       })
     } catch (e) {
       console.error(e)
@@ -308,11 +312,12 @@ export default function DashboardPage() {
     </div>
   )
 
+  // spark از داده‌ی واقعی ۶ ماه اخیر ساخته می‌شه (همون trendData که در نمودار روند استفاده می‌شه)
   const kpiData = [
-    { label: 'جلسات در انتظار', value: kpis.pendingMeetings, sub: `از ${kpis.totalMeetings} جلسه`, icon: '📅', color: '#c9a84c', trend: kpis.pendingMeetings > 0 ? 'down' : 'up', spark: [2, 3, 2, 4, 3, 5, kpis.pendingMeetings || 1] },
-    { label: 'گزارش نخوانده', value: kpis.unreadReports, sub: `از ${kpis.totalReports} گزارش`, icon: '📋', color: '#4a9eff', trend: kpis.unreadReports > 0 ? 'down' : 'up', spark: [4, 3, 5, 2, 4, 3, kpis.unreadReports || 1] },
-    { label: 'هشدار فعال', value: kpis.totalAlerts, sub: `${kpis.criticalAlerts} بحرانی`, icon: '🔔', color: '#e05555', trend: kpis.criticalAlerts > 0 ? 'down' : 'up', spark: [1, 2, 1, 3, 2, 3, kpis.totalAlerts || 1] },
-    { label: 'مخاطبین', value: kpis.totalContacts, sub: 'دفترچه تلفن', icon: '👥', color: '#3dbb82', trend: 'up', spark: [1, 2, 2, 3, 3, 3, kpis.totalContacts || 1] },
+    { label: 'جلسات در انتظار', value: kpis.pendingMeetings, sub: `از ${kpis.totalMeetings} جلسه`, icon: '📅', color: '#c9a84c', trend: kpis.pendingMeetings > 0 ? 'down' : 'up', spark: trendData.meetings.length ? trendData.meetings : [0, 0] },
+    { label: 'گزارش نخوانده', value: kpis.unreadReports, sub: `از ${kpis.totalReports} گزارش`, icon: '📋', color: '#4a9eff', trend: kpis.unreadReports > 0 ? 'down' : 'up', spark: trendData.reports.length ? trendData.reports : [0, 0] },
+    { label: 'هشدار فعال', value: kpis.totalAlerts, sub: `${kpis.criticalAlerts} بحرانی`, icon: '🔔', color: '#e05555', trend: kpis.criticalAlerts > 0 ? 'down' : 'up', spark: trendData.alerts.length ? trendData.alerts : [0, 0] },
+    { label: 'مخاطبین', value: kpis.totalContacts, sub: 'دفترچه تلفن', icon: '👥', color: '#3dbb82', trend: 'up', spark: trendData.contacts.length ? trendData.contacts : [0, 0] },
   ]
 
   return (

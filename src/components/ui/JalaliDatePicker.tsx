@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import jalaali from 'jalaali-js'
 
 const MONTH_NAMES = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
 const DAY_NAMES = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']
@@ -13,7 +14,6 @@ interface JalaliDatePickerProps {
 }
 
 export function JalaliDatePicker({ value, onChange, placeholder = 'انتخاب تاریخ', style }: JalaliDatePickerProps) {
-  const jalaali = require('jalaali-js')
   const today = new Date()
   const jToday = jalaali.toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate())
 

@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next'
 import { Vazirmatn } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/lib/ThemeContext'
-import { QueryProvider } from '@/lib/QueryProvider'
 import { PWARegister } from '@/components/ui/PWARegister'
 
 const vazirmatn = Vazirmatn({
@@ -48,10 +47,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fa" dir="rtl" className={vazirmatn.variable}>
       <body className="font-vazirmatn antialiased">
         <ThemeProvider>
-          <QueryProvider>
-            <PWARegister />
-            {children}
-          </QueryProvider>
+          <PWARegister />
+          {children}
         </ThemeProvider>
       </body>
     </html>
