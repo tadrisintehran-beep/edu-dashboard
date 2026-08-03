@@ -99,13 +99,23 @@ export default function UsersPage() {
   }
 
   const handleUpdateRole = async (id: string, role: string) => {
-    const { error } = await supabase.from('profiles').update({ role }).eq('id', id)
-    if (!error) {
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch('/api/admin/update-role', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ userId: id, role }),
+    })
+    const body = await res.json()
+
+    if (res.ok) {
       showToast('نقش کاربر بروزرسانی شد', 'success')
       fetchUsers()
       setEditUser(null)
     } else {
-      showToast('خطا در بروزرسانی', 'error')
+      showToast('خطا در بروزرسانی: ' + (body.error || 'خطای نامشخص'), 'error')
     }
   }
 
