@@ -3,6 +3,7 @@ import { Vazirmatn } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/lib/ThemeContext'
 import { QueryProvider } from '@/lib/QueryProvider'
+import { PWARegister } from '@/components/ui/PWARegister'
 
 const vazirmatn = Vazirmatn({
   subsets: ['arabic'],
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-vazirmatn antialiased">
         <ThemeProvider>
           <QueryProvider>
+            <PWARegister />
             {children}
           </QueryProvider>
         </ThemeProvider>

@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+
 interface ConfirmModalProps {
   title: string
   message: string
@@ -21,8 +23,14 @@ export function ConfirmModal({
   }
   const c = colors[type]
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onCancel])
+
   return (
-    <div style={{
+    <div role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message" style={{
       position: 'fixed', inset: 0, background: '#00000077',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       zIndex: 9999, direction: 'rtl', backdropFilter: 'blur(4px)',
@@ -39,8 +47,8 @@ export function ConfirmModal({
             background: c.bg, display: 'flex', alignItems: 'center',
             justifyContent: 'center', fontSize: '24px', margin: '0 auto 14px',
           }}>{c.icon}</div>
-          <div style={{ color: '#e8eaf0', fontSize: '16px', fontWeight: '700', marginBottom: '8px' }}>{title}</div>
-          <div style={{ color: '#8b90a8', fontSize: '13px', lineHeight: '1.7' }}>{message}</div>
+          <div id="confirm-modal-title" style={{ color: '#e8eaf0', fontSize: '16px', fontWeight: '700', marginBottom: '8px' }}>{title}</div>
+          <div id="confirm-modal-message" style={{ color: '#8b90a8', fontSize: '13px', lineHeight: '1.7' }}>{message}</div>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button

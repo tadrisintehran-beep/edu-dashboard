@@ -24,6 +24,13 @@ const bottomItems = [
   { icon: '⚙️', label: 'تنظیمات', path: '/dashboard/settings' },
 ]
 
+function activateOnKey(e: React.KeyboardEvent, handler: () => void) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault()
+    handler()
+  }
+}
+
 const pageTitle: Record<string, string> = {
   '/dashboard': 'داشبورد اجرایی',
   '/dashboard/meetings': 'مدیریت جلسات',
@@ -105,9 +112,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const NavItem = ({ item }: { item: typeof menuItems[0] }) => {
     const isActive = pathname === item.path
+    const go = () => { router.push(item.path); if (isMobile) setMobileMenuOpen(false) }
     return (
       <div
-        onClick={() => { router.push(item.path); if (isMobile) setMobileMenuOpen(false) }}
+        onClick={go}
+        role="button"
+        tabIndex={0}
+        aria-current={isActive ? 'page' : undefined}
+        onKeyDown={e => activateOnKey(e, go)}
         style={{
           display: 'flex', alignItems: 'center', gap: '10px',
           padding: '10px 12px', borderRadius: '10px', cursor: 'pointer',
@@ -165,8 +177,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         )}
         {!sidebarOpen && !isMobile && <div style={{ height: '12px' }} />}
-        {bottomItems.filter(item => item.path !== '/dashboard/users' || user?.role === 'SUPER_ADMIN').map(item => (
-          <div key={item.path} onClick={() => { router.push(item.path); if (isMobile) setMobileMenuOpen(false) }}
+        {bottomItems.filter(item => item.path !== '/dashboard/users' || user?.role === 'SUPER_ADMIN').map(item => {
+          const go = () => { router.push(item.path); if (isMobile) setMobileMenuOpen(false) }
+          return (
+          <div key={item.path} onClick={go}
+            role="button" tabIndex={0} aria-current={pathname === item.path ? 'page' : undefined}
+            onKeyDown={e => activateOnKey(e, go)}
             style={{
               display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
               borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
@@ -181,12 +197,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span style={{ fontSize: '12px', color: pathname === item.path ? '#e8c96a' : t.sub }}>{item.label}</span>
             )}
           </div>
-        ))}
+          )
+        })}
 
         {/* لاگ دسترسی — فقط SUPER_ADMIN */}
         {user?.role === 'SUPER_ADMIN' && (
           <div
             onClick={() => { router.push('/dashboard/logs'); if (isMobile) setMobileMenuOpen(false) }}
+            role="button" tabIndex={0} aria-current={pathname === '/dashboard/logs' ? 'page' : undefined}
+            onKeyDown={e => activateOnKey(e, () => { router.push('/dashboard/logs'); if (isMobile) setMobileMenuOpen(false) })}
             style={{
               display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
               borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
@@ -210,6 +229,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* پروفایل */}
         <div
           onClick={() => { router.push('/dashboard/profile'); if (isMobile) setMobileMenuOpen(false) }}
+          role="button" tabIndex={0} aria-current={pathname === '/dashboard/profile' ? 'page' : undefined}
+          onKeyDown={e => activateOnKey(e, () => { router.push('/dashboard/profile'); if (isMobile) setMobileMenuOpen(false) })}
           style={{
             display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
             borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
@@ -228,6 +249,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* dark/light */}
         <div
           onClick={toggleTheme}
+          role="button" tabIndex={0} aria-label={isDark ? 'فعال‌سازی حالت روز' : 'فعال‌سازی حالت شب'}
+          onKeyDown={e => activateOnKey(e, toggleTheme)}
           style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
           onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = isDark ? '#ffffff08' : '#00000008'}
           onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
@@ -239,6 +262,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* خروج */}
         <div
           onClick={handleLogout}
+          role="button" tabIndex={0} aria-label="خروج از سامانه"
+          onKeyDown={e => activateOnKey(e, handleLogout)}
           style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
           onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#e0555511'}
           onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
@@ -285,6 +310,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <button
             onClick={() => isMobile ? setMobileMenuOpen(!mobileMenuOpen) : setSidebarOpen(!sidebarOpen)}
+            aria-label={isMobile ? (mobileMenuOpen ? 'بستن منو' : 'باز کردن منو') : (sidebarOpen ? 'جمع کردن سایدبار' : 'باز کردن سایدبار')}
             style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', width: '36px', height: '36px', cursor: 'pointer', color: t.sub, fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}
             onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = '#c9a84c55'}
             onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = t.border}
@@ -306,7 +332,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* dark/light */}
-          <button onClick={toggleTheme} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', width: '36px', height: '36px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
+          <button onClick={toggleTheme} aria-label={isDark ? 'فعال‌سازی حالت روز' : 'فعال‌سازی حالت شب'} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', width: '36px', height: '36px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
             {isDark ? '☀️' : '🌙'}
           </button>
 
@@ -314,6 +340,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <button
               onClick={() => setShowNotif(!showNotif)}
+              aria-label="اعلان‌ها" aria-expanded={showNotif}
               style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', width: '36px', height: '36px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
             >🔔</button>
             {(badges['/dashboard/alerts'] || 0) > 0 && (
@@ -352,6 +379,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* آواتار */}
           <div
             onClick={() => router.push('/dashboard/profile')}
+            role="button" tabIndex={0} aria-label="پروفایل کاربری"
+            onKeyDown={e => activateOnKey(e, () => router.push('/dashboard/profile'))}
             style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #c9a84c, #e8c96a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '700', color: '#1a1200', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 8px #c9a84c44', transition: 'transform 0.2s' }}
             onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.1)'}
             onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)'}

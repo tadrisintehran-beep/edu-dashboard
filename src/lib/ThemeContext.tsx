@@ -21,9 +21,16 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | null>(null)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setIsDark] = useState(true)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('theme')
+    if (saved) setIsDark(saved === 'dark')
+  }, [])
+
   useEffect(() => {
     document.body.className = isDark ? '' : 'light'
+    localStorage.setItem('theme', isDark ? 'dark' : 'light')
   }, [isDark])
 
   const toggleTheme = () => setIsDark(prev => !prev)
