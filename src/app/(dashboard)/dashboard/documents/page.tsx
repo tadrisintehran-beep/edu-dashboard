@@ -28,15 +28,31 @@ function formatSize(bytes: number): string {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
 
+const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+]
+const ALLOWED_EXT = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp'
+const PAGE_SIZE = 30
+
 export default function DocumentsPage() {
   const { t } = useTheme()
   const { showToast, ToastComponent } = useToast()
   const isMobile = useIsMobile()
-  const { user } = useAuthStore()
+  const { user, can } = useAuthStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const versionInputRef = useRef<HTMLInputElement>(null)
 
   const [documents, setDocuments] = useState<any[]>([])
+  const [totalDocuments, setTotalDocuments] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [comments, setComments] = useState<any[]>([])
   const [versions, setVersions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -51,6 +67,18 @@ export default function DocumentsPage() {
   const [versionFile, setVersionFile] = useState<File | null>(null)
   const [showVersionUpload, setShowVersionUpload] = useState(false)
   const [versionNote, setVersionNote] = useState('')
+
+  const validateFile = (file: File): boolean => {
+    if (file.size > MAX_FILE_SIZE) {
+      showToast('حجم فایل نباید بیشتر از ۲۰ مگابایت باشد', 'error')
+      return false
+    }
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      showToast('فرمت فایل مجاز نیست. فقط PDF، Office و تصاویر مجازند', 'error')
+      return false
+    }
+    return true
+  }
 
   useEffect(() => {
     fetchDocuments()
@@ -73,10 +101,23 @@ export default function DocumentsPage() {
 
   const fetchDocuments = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('documents').select('*').order('updated_at', { ascending: false })
+    const { data, error, count } = await supabase
+      .from('documents').select('*', { count: 'exact' })
+      .order('updated_at', { ascending: false })
+      .range(0, PAGE_SIZE - 1)
     if (!error && data) setDocuments(data)
+    setTotalDocuments(count || 0)
     setLoading(false)
+  }
+
+  const loadMoreDocuments = async () => {
+    setLoadingMore(true)
+    const { data, error } = await supabase
+      .from('documents').select('*')
+      .order('updated_at', { ascending: false })
+      .range(documents.length, documents.length + PAGE_SIZE - 1)
+    if (!error && data) setDocuments(prev => [...prev, ...data])
+    setLoadingMore(false)
   }
 
   const fetchComments = async (docId: string) => {
@@ -245,9 +286,11 @@ export default function DocumentsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>مدیریت اسناد</h1>
-          <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{documents.length} سند ثبت شده</p>
+          <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{totalDocuments} سند ثبت شده</p>
         </div>
-        <button onClick={() => setShowUpload(!showUpload)} className="btn-gold">+ آپلود سند</button>
+        {can('documents', 'create') && (
+          <button onClick={() => setShowUpload(!showUpload)} className="btn-gold">+ آپلود سند</button>
+        )}
       </div>
 
       {/* فرم آپلود */}
@@ -278,8 +321,8 @@ export default function DocumentsPage() {
               </div>
               {selectedFile && <div style={{ color: t.muted, fontSize: '11px', marginTop: '4px' }}>{formatSize(selectedFile.size)}</div>}
             </div>
-            <input ref={fileInputRef} type="file" style={{ display: 'none' }}
-              onChange={e => setSelectedFile(e.target.files?.[0] || null)} />
+            <input ref={fileInputRef} type="file" style={{ display: 'none' }} accept={ALLOWED_EXT}
+              onChange={e => { const file = e.target.files?.[0]; if (file && validateFile(file)) setSelectedFile(file) }} />
           </div>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button onClick={() => { setShowUpload(false); setSelectedFile(null) }}
@@ -330,13 +373,21 @@ export default function DocumentsPage() {
                 ⬇️ دانلود
               </button>
 
-              <button
-                onClick={e => { e.stopPropagation(); setConfirmDelete(doc.id) }}
-                style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
-                حذف
-              </button>
+              {can('documents', 'delete') && (
+                <button
+                  onClick={e => { e.stopPropagation(); setConfirmDelete(doc.id) }}
+                  style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+                  حذف
+                </button>
+              )}
             </div>
           ))}
+          {documents.length < totalDocuments && (
+            <button onClick={loadMoreDocuments} disabled={loadingMore}
+              style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', padding: '10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', opacity: loadingMore ? 0.6 : 1 }}>
+              {loadingMore ? '⏳ در حال بارگذاری...' : `بارگذاری بیشتر (${documents.length} از ${totalDocuments})`}
+            </button>
+          )}
         </div>
 
         {/* پنل جزئیات */}
@@ -365,11 +416,13 @@ export default function DocumentsPage() {
               ))}
             </div>
 
-            <button
-              onClick={() => setShowVersionUpload(!showVersionUpload)}
-              style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '8px', padding: '8px', color: '#4a9eff', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
-              📤 آپلود نسخه جدید
-            </button>
+            {can('documents', 'update') && (
+              <button
+                onClick={() => setShowVersionUpload(!showVersionUpload)}
+                style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '8px', padding: '8px', color: '#4a9eff', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                📤 آپلود نسخه جدید
+              </button>
+            )}
 
             {showVersionUpload && (
               <div style={{ background: t.inner, borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -377,8 +430,8 @@ export default function DocumentsPage() {
                   style={{ border: `2px dashed ${versionFile ? '#4a9eff' : t.border}`, borderRadius: '8px', padding: '12px', textAlign: 'center', cursor: 'pointer', fontSize: '12px', color: versionFile ? '#4a9eff' : t.muted }}>
                   {versionFile ? versionFile.name : '📁 انتخاب فایل'}
                 </div>
-                <input ref={versionInputRef} type="file" style={{ display: 'none' }}
-                  onChange={e => setVersionFile(e.target.files?.[0] || null)} />
+                <input ref={versionInputRef} type="file" style={{ display: 'none' }} accept={ALLOWED_EXT}
+                  onChange={e => { const file = e.target.files?.[0]; if (file && validateFile(file)) setVersionFile(file) }} />
                 <input style={inputStyle} placeholder="توضیح تغییرات (اختیاری)"
                   value={versionNote} onChange={e => setVersionNote(e.target.value)} />
                 <button onClick={handleNewVersion} disabled={uploading} className="btn-gold" style={{ padding: '8px', fontSize: '12px', opacity: uploading ? 0.7 : 1 }}>

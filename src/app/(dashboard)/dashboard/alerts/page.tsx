@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { toJalali } from '@/lib/date'
+import { useAuthStore } from '@/stores/authStore'
 
 type AlertLevel = 'critical' | 'important' | 'warning' | 'info'
 
@@ -16,12 +17,17 @@ const levelConfig: Record<AlertLevel, { label: string; color: string; bg: string
   warning:   { label: 'هشدار', color: '#c9a84c', bg: '#c9a84c22', icon: '🔔' },
   info:      { label: 'اطلاع', color: '#4a9eff', bg: '#4a9eff22', icon: 'ℹ️' },
 }
+const PAGE_SIZE = 30
 
 export default function AlertsPage() {
   const { t } = useTheme()
   const { showToast, ToastComponent } = useToast()
   const isMobile = useIsMobile()
+  const { can } = useAuthStore()
   const [alerts, setAlerts] = useState<any[]>([])
+  const [totalAlerts, setTotalAlerts] = useState(0)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [showForm, setShowForm] = useState(false)
@@ -30,27 +36,48 @@ export default function AlertsPage() {
 
   useEffect(() => {
   fetchAlerts()
+  fetchUnreadCount()
 
   const channel = supabase
     .channel('alerts-changes')
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'alerts' },
-      () => { fetchAlerts() }
+      () => { fetchAlerts(); fetchUnreadCount() }
     )
     .subscribe()
 
   return () => { supabase.removeChannel(channel) }
-}, [])
+}, [filter])
+
+  const applyFilter = (query: any) => {
+    if (filter === 'unread') return query.eq('is_read', false)
+    if (filter !== 'all') return query.eq('level', filter)
+    return query
+  }
+
+  const fetchUnreadCount = async () => {
+    const { count } = await supabase.from('alerts').select('id', { count: 'exact', head: true }).eq('is_read', false)
+    setUnreadCount(count || 0)
+  }
 
   const fetchAlerts = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('alerts')
-      .select('*')
-      .order('created_at', { ascending: false })
+    let query = supabase.from('alerts').select('*', { count: 'exact' }).order('created_at', { ascending: false })
+    query = applyFilter(query)
+    const { data, error, count } = await query.range(0, PAGE_SIZE - 1)
     if (!error && data) setAlerts(data)
+    setTotalAlerts(count || 0)
     setLoading(false)
+  }
+
+  const loadMoreAlerts = async () => {
+    setLoadingMore(true)
+    let query = supabase.from('alerts').select('*').order('created_at', { ascending: false })
+    query = applyFilter(query)
+    const { data, error } = await query.range(alerts.length, alerts.length + PAGE_SIZE - 1)
+    if (!error && data) setAlerts(prev => [...prev, ...data])
+    setLoadingMore(false)
   }
 
   const handleAdd = async () => {
@@ -100,15 +127,10 @@ export default function AlertsPage() {
     await supabase.from('alerts').update({ is_read: true }).eq('is_read', false)
     showToast('همه هشدارها خوانده شد', 'success')
     fetchAlerts()
+    fetchUnreadCount()
   }
 
-  const filtered = alerts.filter(a => {
-    if (filter === 'all') return true
-    if (filter === 'unread') return !a.is_read
-    return a.level === filter
-  })
-
-  const unreadCount = alerts.filter(a => !a.is_read).length
+  const filtered = alerts
 
   const filters = [
     { key: 'all', label: 'همه' },
@@ -145,7 +167,9 @@ export default function AlertsPage() {
               همه را خواندم
             </button>
           )}
-          <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ هشدار جدید</button>
+          {can('alerts', 'create') && (
+            <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ هشدار جدید</button>
+          )}
         </div>
       </div>
 
@@ -213,7 +237,9 @@ export default function AlertsPage() {
                   <button onClick={() => snooze(alert.id, alert.is_snoozed)} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
                     {alert.is_snoozed ? 'بازگردانی' : 'تعویق'}
                   </button>
-                  <button onClick={() => dismiss(alert.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>بستن</button>
+                  {can('alerts', 'delete') && (
+                    <button onClick={() => dismiss(alert.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>بستن</button>
+                  )}
                 </div>
               </div>
             </div>
@@ -221,6 +247,12 @@ export default function AlertsPage() {
         })}
         {filtered.length === 0 && (
           <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>هشداری یافت نشد ✓</div>
+        )}
+        {alerts.length < totalAlerts && (
+          <button onClick={loadMoreAlerts} disabled={loadingMore}
+            style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', padding: '10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', opacity: loadingMore ? 0.6 : 1 }}>
+            {loadingMore ? '⏳ در حال بارگذاری...' : `بارگذاری بیشتر (${alerts.length} از ${totalAlerts})`}
+          </button>
         )}
       </div>
 

@@ -201,39 +201,46 @@ export default function DashboardPage() {
 
   const fetchData = async () => {
     setLoading(true)
-    const [meetings, reports, alerts, contacts] = await Promise.all([
-      supabase.from('meetings').select('*').order('date', { ascending: true }).order('time', { ascending: true }),
-      supabase.from('reports').select('*').order('created_at', { ascending: false }),
-      supabase.from('alerts').select('*').order('created_at', { ascending: false }),
-      supabase.from('contacts').select('id'),
-    ])
-    const m = meetings.data || []
-    const r = reports.data || []
-    const a = alerts.data || []
-
     const today = new Date().toISOString().split('T')[0]
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+    const sixMonthsAgoDate = sixMonthsAgo.toISOString().split('T')[0]
 
-setKpis({
-  pendingMeetings: m.filter(x => x.status === 'pending' && x.date >= today).length,
-  totalMeetings: m.length,
-  unreadReports: r.filter(x => !x.seen).length,
-  totalReports: r.length,
-  criticalAlerts: a.filter(x => x.level === 'critical' && !x.is_read).length,
-  totalAlerts: a.filter(x => !x.is_read).length,
-  totalContacts: contacts.data?.length || 0,
-})
+    const [
+      totalMeetings, pendingMeetings, totalReports, unreadReports,
+      totalAlerts, criticalAlerts, totalContacts,
+      recentReportsRes, upcomingMeetingsRes, totalUpcomingRes,
+      trendMeetings, trendReports,
+    ] = await Promise.all([
+      supabase.from('meetings').select('id', { count: 'exact', head: true }),
+      supabase.from('meetings').select('id', { count: 'exact', head: true }).eq('status', 'pending').gte('date', today),
+      supabase.from('reports').select('id', { count: 'exact', head: true }),
+      supabase.from('reports').select('id', { count: 'exact', head: true }).eq('seen', false),
+      supabase.from('alerts').select('id', { count: 'exact', head: true }).eq('is_read', false),
+      supabase.from('alerts').select('id', { count: 'exact', head: true }).eq('level', 'critical').eq('is_read', false),
+      supabase.from('contacts').select('id', { count: 'exact', head: true }),
+      supabase.from('reports').select('*').order('created_at', { ascending: false }).limit(5),
+      supabase.from('meetings').select('*').gte('date', today).order('date', { ascending: true }).order('time', { ascending: true }).limit(5),
+      supabase.from('meetings').select('id', { count: 'exact', head: true }).gte('date', today),
+      supabase.from('meetings').select('date').gte('date', sixMonthsAgoDate),
+      supabase.from('reports').select('created_at').gte('created_at', sixMonthsAgoDate),
+    ])
 
-setRecentReports(r.slice(0, 5))
-    const allUpcoming = m
-      .filter(x => x.date >= today)
-      .sort((a, b) => {
-        if (a.date !== b.date) return a.date.localeCompare(b.date)
-        return (a.time || '').localeCompare(b.time || '')
-      })
-    setTotalUpcoming(allUpcoming.length)
-    setUpcomingMeetings(allUpcoming.slice(0, 5))
+    setKpis({
+      pendingMeetings: pendingMeetings.count || 0,
+      totalMeetings: totalMeetings.count || 0,
+      unreadReports: unreadReports.count || 0,
+      totalReports: totalReports.count || 0,
+      criticalAlerts: criticalAlerts.count || 0,
+      totalAlerts: totalAlerts.count || 0,
+      totalContacts: totalContacts.count || 0,
+    })
 
-    buildTrendData(m, r)
+    setRecentReports(recentReportsRes.data || [])
+    setUpcomingMeetings(upcomingMeetingsRes.data || [])
+    setTotalUpcoming(totalUpcomingRes.count || 0)
+
+    buildTrendData(trendMeetings.data || [], trendReports.data || [])
     setLoading(false)
   }
 

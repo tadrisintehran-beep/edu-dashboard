@@ -8,20 +8,26 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { SkeletonList } from '@/components/ui/Skeleton'
 import { exportContactsToExcel } from '@/lib/exportData'
+import { useAuthStore } from '@/stores/authStore'
 
 const provinces = ['همه', 'تهران', 'اصفهان', 'مازندران', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی']
 const tagColors: Record<string, string> = {
   'مدیر': '#c9a84c', 'معاون': '#4a9eff', 'کارشناس': '#3dbb82', 'رئیس': '#8b6fdb',
 }
 const avatarColors = ['#c9a84c', '#4a9eff', '#3dbb82', '#e05555', '#8b6fdb', '#e09444', '#2ec4a8', '#e05599']
+const PAGE_SIZE = 30
 
 export default function PhonebookPage() {
   const { t } = useTheme()
   const { showToast, ToastComponent } = useToast()
   const isMobile = useIsMobile()
+  const { can } = useAuthStore()
   const [contacts, setContacts] = useState<any[]>([])
+  const [totalContacts, setTotalContacts] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [province, setProvince] = useState('همه')
   const [showFavorites, setShowFavorites] = useState(false)
   const [showForm, setShowForm] = useState(false)
@@ -31,14 +37,46 @@ export default function PhonebookPage() {
     name: '', position: '', organization: '', province: 'تهران', phone: '', email: '', tag: 'کارشناس',
   })
 
-  useEffect(() => { fetchContacts() }, [])
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  useEffect(() => { fetchContacts() }, [debouncedSearch, province, showFavorites])
+
+  const applyFilters = (query: any) => {
+    if (debouncedSearch) {
+      query = query.or(`name.ilike.%${debouncedSearch}%,organization.ilike.%${debouncedSearch}%,position.ilike.%${debouncedSearch}%`)
+    }
+    if (province !== 'همه') query = query.eq('province', province)
+    if (showFavorites) query = query.eq('favorite', true)
+    return query
+  }
 
   const fetchContacts = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('contacts').select('*').order('created_at', { ascending: false })
+    let query = supabase.from('contacts').select('*', { count: 'exact' }).order('created_at', { ascending: false })
+    query = applyFilters(query)
+    const { data, error, count } = await query.range(0, PAGE_SIZE - 1)
     if (!error && data) setContacts(data)
+    setTotalContacts(count || 0)
     setLoading(false)
+  }
+
+  const loadMoreContacts = async () => {
+    setLoadingMore(true)
+    let query = supabase.from('contacts').select('*').order('created_at', { ascending: false })
+    query = applyFilters(query)
+    const { data, error } = await query.range(contacts.length, contacts.length + PAGE_SIZE - 1)
+    if (!error && data) setContacts(prev => [...prev, ...data])
+    setLoadingMore(false)
+  }
+
+  const handleExport = async () => {
+    let query = supabase.from('contacts').select('*').order('created_at', { ascending: false })
+    query = applyFilters(query)
+    const { data } = await query
+    exportContactsToExcel(data || [])
   }
 
   const handleAdd = async () => {
@@ -78,12 +116,7 @@ export default function PhonebookPage() {
     if (selected?.id === id) setSelected((prev: any) => prev ? { ...prev, favorite: !current } : null)
   }
 
-  const filtered = contacts.filter(c => {
-    const matchSearch = c.name?.includes(search) || c.organization?.includes(search) || c.position?.includes(search)
-    const matchProvince = province === 'همه' || c.province === province
-    const matchFav = !showFavorites || c.favorite
-    return matchSearch && matchProvince && matchFav
-  })
+  const filtered = contacts
 
   const inputStyle = {
     width: '100%', background: t.input, border: `1px solid ${t.border}`,
@@ -109,16 +142,18 @@ export default function PhonebookPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
   <div>
     <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>دفترچه تلفن</h1>
-    <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{contacts.length} مخاطب ثبت شده</p>
+    <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{totalContacts} مخاطب ثبت شده</p>
   </div>
   <div style={{ display: 'flex', gap: '8px' }}>
     <button
-      onClick={() => exportContactsToExcel(filtered)}
+      onClick={handleExport}
       style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px 16px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px' }}
     >
       📊 خروجی Excel
     </button>
-    <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ مخاطب جدید</button>
+    {can('contacts', 'create') && (
+      <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ مخاطب جدید</button>
+    )}
   </div>
 </div>
 
@@ -206,6 +241,11 @@ export default function PhonebookPage() {
           {filtered.length === 0 && (
             <div style={{ gridColumn: '1/-1', background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>مخاطبی یافت نشد</div>
           )}
+          {contacts.length < totalContacts && (
+            <button onClick={loadMoreContacts} disabled={loadingMore} style={{ gridColumn: '1/-1', background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', padding: '10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', opacity: loadingMore ? 0.6 : 1 }}>
+              {loadingMore ? '⏳ در حال بارگذاری...' : `بارگذاری بیشتر (${contacts.length} از ${totalContacts})`}
+            </button>
+          )}
         </div>
 
         {selected && !isMobile && (
@@ -241,10 +281,12 @@ export default function PhonebookPage() {
               style={{ background: selected.favorite ? '#c9a84c22' : t.inner, border: `1px solid ${selected.favorite ? '#c9a84c44' : t.border}`, borderRadius: '8px', padding: '10px', color: selected.favorite ? '#e8c96a' : t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
               {selected.favorite ? '⭐ حذف از موردعلاقه‌ها' : '☆ افزودن به موردعلاقه‌ها'}
             </button>
-            <button onClick={() => handleDelete(selected.id)}
-              style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
-              🗑 حذف مخاطب
-            </button>
+            {can('contacts', 'delete') && (
+              <button onClick={() => handleDelete(selected.id)}
+                style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                🗑 حذف مخاطب
+              </button>
+            )}
           </div>
         )}
       </div>

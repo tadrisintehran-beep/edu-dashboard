@@ -8,6 +8,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { toJalali } from '@/lib/date'
 import { exportReportsToExcel } from '@/lib/exportData'
+import { useAuthStore } from '@/stores/authStore'
 
 const statusLabel: Record<string, string> = {
   submitted: 'ارسال شده', reviewing: 'در حال بررسی', approved: 'تأیید شده', rejected: 'رد شده',
@@ -31,6 +32,7 @@ const fileTypeIcon: Record<string, string> = {
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+const PAGE_SIZE = 30
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return bytes + ' B'
@@ -42,8 +44,12 @@ export default function ReportsPage() {
   const { t } = useTheme()
   const { showToast, ToastComponent } = useToast()
   const isMobile = useIsMobile()
+  const { can } = useAuthStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [reports, setReports] = useState<any[]>([])
+  const [totalReports, setTotalReports] = useState(0)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [showForm, setShowForm] = useState(false)
@@ -57,19 +63,36 @@ export default function ReportsPage() {
 
   useEffect(() => {
     fetchReports()
+    fetchUnreadCount()
     const channel = supabase
       .channel('reports-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => fetchReports())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => { fetchReports(); fetchUnreadCount() })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [])
+  }, [filter])
+
+  const fetchUnreadCount = async () => {
+    const { count } = await supabase.from('reports').select('id', { count: 'exact', head: true }).eq('seen', false)
+    setUnreadCount(count || 0)
+  }
 
   const fetchReports = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('reports').select('*').order('created_at', { ascending: false })
+    let query = supabase.from('reports').select('*', { count: 'exact' }).order('created_at', { ascending: false })
+    if (filter !== 'all') query = query.eq('status', filter)
+    const { data, error, count } = await query.range(0, PAGE_SIZE - 1)
     if (!error && data) setReports(data)
+    setTotalReports(count || 0)
     setLoading(false)
+  }
+
+  const loadMoreReports = async () => {
+    setLoadingMore(true)
+    let query = supabase.from('reports').select('*').order('created_at', { ascending: false })
+    if (filter !== 'all') query = query.eq('status', filter)
+    const { data, error } = await query.range(reports.length, reports.length + PAGE_SIZE - 1)
+    if (!error && data) setReports(prev => [...prev, ...data])
+    setLoadingMore(false)
   }
 
   const handleFileSelect = (file: File) => {
@@ -180,6 +203,13 @@ export default function ReportsPage() {
     fetchReports()
   }
 
+  const handleExport = async () => {
+    let query = supabase.from('reports').select('*').order('created_at', { ascending: false })
+    if (filter !== 'all') query = query.eq('status', filter)
+    const { data } = await query
+    exportReportsToExcel(data || [])
+  }
+
   const handleDelete = (id: string) => { setConfirmDelete(id) }
 
   const confirmDeleteAction = async () => {
@@ -195,7 +225,7 @@ export default function ReportsPage() {
     fetchReports()
   }
 
-  const filtered = filter === 'all' ? reports : reports.filter(r => r.status === filter)
+  const filtered = reports
 
   const filters = [
     { key: 'all', label: 'همه' },
@@ -223,13 +253,15 @@ export default function ReportsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>سیستم گزارش‌ها</h1>
-          <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{reports.filter(r => !r.seen).length} گزارش خوانده نشده</p>
+          <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{unreadCount} گزارش خوانده نشده — {totalReports} کل</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={() => exportReportsToExcel(filtered)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px 16px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={handleExport} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px 16px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
             📊 Excel
           </button>
-          <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ گزارش جدید</button>
+          {can('reports', 'create') && (
+            <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ گزارش جدید</button>
+          )}
         </div>
       </div>
 
@@ -331,6 +363,12 @@ export default function ReportsPage() {
           {filtered.length === 0 && (
             <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>گزارشی یافت نشد</div>
           )}
+          {reports.length < totalReports && (
+            <button onClick={loadMoreReports} disabled={loadingMore}
+              style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', padding: '10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', opacity: loadingMore ? 0.6 : 1 }}>
+              {loadingMore ? '⏳ در حال بارگذاری...' : `بارگذاری بیشتر (${reports.length} از ${totalReports})`}
+            </button>
+          )}
         </div>
 
         {selected && (
@@ -377,22 +415,18 @@ export default function ReportsPage() {
               وضعیت: {statusLabel[selected.status]}
             </div>
 
-            {(selected.status === 'submitted' || selected.status === 'reviewing') && (
+            {can('reports', 'update') && (selected.status === 'submitted' || selected.status === 'reviewing') && (
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button onClick={() => handleApprove(selected.id)} style={{ flex: 1, background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px', color: '#3dbb82', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>✓ تأیید</button>
                 <button onClick={() => handleReject(selected.id)} style={{ flex: 1, background: '#e0555522', border: '1px solid #e0555544', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>✕ رد</button>
-                <button
-  onClick={() => handleDelete(selected.id)}
-  style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', width: '100%' }}
->
-  🗑 حذف گزارش
-</button>
               </div>
             )}
 
-            <button onClick={() => handleDelete(selected.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
-              🗑 حذف گزارش
-            </button>
+            {can('reports', 'delete') && (
+              <button onClick={() => handleDelete(selected.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                🗑 حذف گزارش
+              </button>
+            )}
           </div>
         )}
       </div>

@@ -9,6 +9,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { exportMeetingsToExcel } from '@/lib/exportData'
 import { PersianCalendar } from '@/components/ui/PersianCalendar'
+import { useAuthStore } from '@/stores/authStore'
 
 const DAYS = ['شنبه', 'یک‌شنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه']
 
@@ -100,6 +101,7 @@ export default function MeetingsPage() {
   const { t } = useTheme()
   const { showToast, ToastComponent } = useToast()
   const isMobile = useIsMobile()
+  const { can } = useAuthStore()
   const [meetings, setMeetings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<'weekly' | 'list' | 'calendar' | 'report'>('weekly')
@@ -117,8 +119,10 @@ export default function MeetingsPage() {
 
   const fetchMeetings = useCallback(async () => {
     setLoading(true)
+    // این صفحه با نمای هفتگی/تقویم/گزارش کار می‌کنه، نه یک لیست ساده — به‌جای صفحه‌بندی،
+    // یک سقف امن روی حجم داده گذاشته شده تا با رشد سال‌ها داده، حافظه‌ی مرورگر پر نشه
     const { data, error } = await supabase
-      .from('meetings').select('*').order('date', { ascending: true }).order('time', { ascending: true })
+      .from('meetings').select('*').order('date', { ascending: true }).order('time', { ascending: true }).limit(5000)
     if (!error && data) setMeetings(data)
     setLoading(false)
   }, [])
@@ -304,7 +308,9 @@ export default function MeetingsPage() {
             <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>برنامه جلسات</h1>
             <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{meetings.length} جلسه ثبت شده</p>
           </div>
-          <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ جلسه جدید</button>
+          {can('meetings', 'create') && (
+            <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ جلسه جدید</button>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -537,16 +543,18 @@ export default function MeetingsPage() {
                             {statusLabel[meeting.status]}
                           </div>
                           <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
-  {!isPastMeeting && (
+  {!isPastMeeting && can('meetings', 'update') && (
     <button onClick={() => setEditMeeting(meeting)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
   )}
   {!isPastMeeting && (
     <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '4px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
   )}
-  {meeting.status === 'pending' && (
+  {meeting.status === 'pending' && can('meetings', 'update') && (
     <button onClick={() => handleApprove(meeting.id)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✓</button>
   )}
-  <button onClick={() => handleDelete(meeting.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '4px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+  {can('meetings', 'delete') && (
+    <button onClick={() => handleDelete(meeting.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '4px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+  )}
 </div>
                         </div>
                       )
@@ -583,9 +591,13 @@ export default function MeetingsPage() {
                 </div>
                 {!isPastMeeting && (
                   <div style={{ display: 'flex', gap: '5px' }}>
-                    <button onClick={() => setEditMeeting(meeting)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
+                    {can('meetings', 'update') && (
+                      <button onClick={() => setEditMeeting(meeting)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
+                    )}
                     <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
-                    <button onClick={() => handleDelete(meeting.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+                    {can('meetings', 'delete') && (
+                      <button onClick={() => handleDelete(meeting.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+                    )}
                   </div>
                 )}
               </div>
