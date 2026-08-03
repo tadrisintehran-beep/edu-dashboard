@@ -7,6 +7,8 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { supabase } from '@/lib/supabase'
 import { toJalali } from '@/lib/date'
+import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'next/navigation'
 
 const roleLabel: Record<string, string> = {
   DEPUTY_MINISTER: 'معاون وزیر',
@@ -28,6 +30,8 @@ export default function UsersPage() {
   const { t } = useTheme()
   const { showToast, ToastComponent } = useToast()
   const isMobile = useIsMobile()
+  const { user: currentUser } = useAuthStore()
+  const router = useRouter()
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -36,6 +40,14 @@ export default function UsersPage() {
   const [newUser, setNewUser] = useState({
     email: '', name_fa: '', password: '', role: 'VIEWER',
   })
+  const [adding, setAdding] = useState(false)
+
+  // فقط SUPER_ADMIN
+  useEffect(() => {
+    if (currentUser && currentUser.role !== 'SUPER_ADMIN') {
+      router.replace('/dashboard')
+    }
+  }, [currentUser, router])
 
   useEffect(() => { fetchUsers() }, [])
 
@@ -59,34 +71,31 @@ export default function UsersPage() {
       return
     }
 
-    // ساخت کاربر در Supabase Auth
-    const { data, error } = await supabase.auth.admin.createUser({
-      email: newUser.email,
-      password: newUser.password,
-      email_confirm: true,
-    })
+    setAdding(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/admin/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify(newUser),
+      })
+      const body = await res.json()
 
-    if (error || !data.user) {
-      showToast('خطا در ساخت کاربر: ' + error?.message, 'error')
-      return
+      if (!res.ok) {
+        showToast('خطا در ساخت کاربر: ' + (body.error || 'خطای نامشخص'), 'error')
+        return
+      }
+
+      showToast('کاربر با موفقیت اضافه شد', 'success')
+      setNewUser({ email: '', name_fa: '', password: '', role: 'VIEWER' })
+      setShowForm(false)
+      fetchUsers()
+    } finally {
+      setAdding(false)
     }
-
-    // اضافه کردن پروفایل
-    const { error: profileError } = await supabase.from('profiles').insert([{
-      id: data.user.id,
-      name_fa: newUser.name_fa,
-      role: newUser.role,
-    }])
-
-    if (profileError) {
-      showToast('خطا در ذخیره پروفایل', 'error')
-      return
-    }
-
-    showToast('کاربر با موفقیت اضافه شد', 'success')
-    setNewUser({ email: '', name_fa: '', password: '', role: 'VIEWER' })
-    setShowForm(false)
-    fetchUsers()
   }
 
   const handleUpdateRole = async (id: string, role: string) => {
@@ -119,6 +128,8 @@ export default function UsersPage() {
     borderRadius: '8px', padding: '8px 12px', color: t.text,
     fontSize: '12px', outline: 'none', direction: 'rtl' as const, fontFamily: 'inherit',
   }
+
+  if (currentUser?.role !== 'SUPER_ADMIN') return null
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: t.sub, fontSize: '13px' }}>
@@ -168,7 +179,7 @@ export default function UsersPage() {
           </div>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button onClick={() => setShowForm(false)} style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 16px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>انصراف</button>
-            <button onClick={handleAdd} className="btn-gold" style={{ padding: '8px 16px', fontSize: '12px' }}>ثبت کاربر</button>
+            <button onClick={handleAdd} disabled={adding} className="btn-gold" style={{ padding: '8px 16px', fontSize: '12px', opacity: adding ? 0.6 : 1, cursor: adding ? 'default' : 'pointer' }}>{adding ? 'در حال ثبت...' : 'ثبت کاربر'}</button>
           </div>
         </div>
       )}

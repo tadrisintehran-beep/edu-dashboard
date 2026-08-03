@@ -165,7 +165,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         )}
         {!sidebarOpen && !isMobile && <div style={{ height: '12px' }} />}
-        {bottomItems.map(item => (
+        {bottomItems.filter(item => item.path !== '/dashboard/users' || user?.role === 'SUPER_ADMIN').map(item => (
           <div key={item.path} onClick={() => { router.push(item.path); if (isMobile) setMobileMenuOpen(false) }}
             style={{
               display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
