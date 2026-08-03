@@ -113,12 +113,22 @@ export default function UsersPage() {
 
   const confirmDeleteAction = async () => {
     if (!confirmDelete) return
-    const { error } = await supabase.from('profiles').delete().eq('id', confirmDelete)
-    if (!error) {
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch('/api/admin/delete-user', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ userId: confirmDelete }),
+    })
+    const body = await res.json()
+
+    if (res.ok) {
       showToast('کاربر حذف شد', 'info')
       fetchUsers()
     } else {
-      showToast('خطا در حذف کاربر', 'error')
+      showToast('خطا در حذف کاربر: ' + (body.error || 'خطای نامشخص'), 'error')
     }
     setConfirmDelete(null)
   }
