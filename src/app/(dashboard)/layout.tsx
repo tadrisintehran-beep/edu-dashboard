@@ -2,7 +2,7 @@
 
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter, usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { GlobalSearch } from '@/components/ui/GlobalSearch'
 import { supabase } from '@/lib/supabase'
@@ -75,6 +75,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [])
 
   useEffect(() => { setMobileMenuOpen(false) }, [pathname])
+
+  // خروج خودکار بعد از عدم فعالیت — بر اساس مهلت نشست ذخیره‌شده در تنظیمات کاربر
+  const lastActivityRef = useRef(Date.now())
+  useEffect(() => {
+    if (!isAuthenticated) return
+    const markActive = () => { lastActivityRef.current = Date.now() }
+    const events: (keyof WindowEventMap)[] = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart']
+    events.forEach(evt => window.addEventListener(evt, markActive))
+
+    const timeoutMs = (user?.sessionTimeoutMinutes || 30) * 60 * 1000
+    const interval = setInterval(() => {
+      if (Date.now() - lastActivityRef.current > timeoutMs) {
+        signOut()
+        router.push('/')
+      }
+    }, 30 * 1000)
+
+    return () => {
+      events.forEach(evt => window.removeEventListener(evt, markActive))
+      clearInterval(interval)
+    }
+  }, [isAuthenticated, user?.sessionTimeoutMinutes, signOut, router])
 
   useEffect(() => {
     const fetchBadges = async () => {
