@@ -34,7 +34,7 @@ const statusLabel: Record<string, string> = {
 
 export default function TasksPage() {
   const { t } = useTheme()
-  const { user } = useAuthStore()
+  const { user, can } = useAuthStore()
   const { showToast, ToastComponent } = useToast()
   const isMobile = useIsMobile()
   const [tasks, setTasks] = useState<any[]>([])
@@ -145,7 +145,9 @@ export default function TasksPage() {
             {tasks.length} درخواست — {pendingCount} در انتظار
           </p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ درخواست جدید</button>
+        {can('tasks', 'create') && (
+          <button onClick={() => setShowForm(!showForm)} className="btn-gold">+ درخواست جدید</button>
+        )}
       </div>
 
       {/* فیلتر */}
@@ -286,28 +288,36 @@ export default function TasksPage() {
 
               {/* وضعیت و دکمه حذف */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end', flexShrink: 0 }}>
-                <select
-                  value={task.status}
-                  onChange={e => handleStatusChange(task.id, e.target.value)}
-                  style={{
-                    background: (statusColor[task.status] || '#555') + '22',
-                    border: `1px solid ${(statusColor[task.status] || '#555')}44`,
-                    borderRadius: '8px', padding: '4px 10px',
-                    color: statusColor[task.status] || '#555',
-                    fontSize: '11px', fontWeight: '600',
-                    cursor: 'pointer', fontFamily: 'inherit',
-                    outline: 'none', direction: 'rtl',
-                  }}
-                >
-                  <option value="pending">در انتظار</option>
-                  <option value="in_progress">در حال انجام</option>
-                  <option value="done">انجام شد</option>
-                  <option value="cancelled">لغو شد</option>
-                </select>
+                {can('tasks', 'update') ? (
+                  <select
+                    value={task.status}
+                    onChange={e => handleStatusChange(task.id, e.target.value)}
+                    style={{
+                      background: (statusColor[task.status] || '#555') + '22',
+                      border: `1px solid ${(statusColor[task.status] || '#555')}44`,
+                      borderRadius: '8px', padding: '4px 10px',
+                      color: statusColor[task.status] || '#555',
+                      fontSize: '11px', fontWeight: '600',
+                      cursor: 'pointer', fontFamily: 'inherit',
+                      outline: 'none', direction: 'rtl',
+                    }}
+                  >
+                    <option value="pending">در انتظار</option>
+                    <option value="in_progress">در حال انجام</option>
+                    <option value="done">انجام شد</option>
+                    <option value="cancelled">لغو شد</option>
+                  </select>
+                ) : (
+                  <span style={{ background: (statusColor[task.status] || '#555') + '22', border: `1px solid ${(statusColor[task.status] || '#555')}44`, borderRadius: '8px', padding: '4px 10px', color: statusColor[task.status] || '#555', fontSize: '11px', fontWeight: '600' }}>
+                    {statusLabel[task.status]}
+                  </span>
+                )}
 
-                <button onClick={() => setConfirmDelete(task.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                  🗑 حذف
-                </button>
+                {can('tasks', 'delete') && (
+                  <button onClick={() => setConfirmDelete(task.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    🗑 حذف
+                  </button>
+                )}
               </div>
             </div>
           </div>
