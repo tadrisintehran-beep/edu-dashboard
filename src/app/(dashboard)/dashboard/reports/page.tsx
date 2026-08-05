@@ -9,6 +9,7 @@ import { useIsMobile } from '@/lib/useIsMobile'
 import { toJalali } from '@/lib/date'
 import { exportReportsToExcel } from '@/lib/exportData'
 import { useAuthStore } from '@/stores/authStore'
+import { activateOnKey } from '@/lib/a11y'
 
 const statusLabel: Record<string, string> = {
   submitted: 'ارسال شده', reviewing: 'در حال بررسی', approved: 'تأیید شده', rejected: 'رد شده',
@@ -297,6 +298,8 @@ export default function ReportsPage() {
               onClick={() => fileInputRef.current?.click()}
               onDragOver={e => e.preventDefault()}
               onDrop={e => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file) handleFileSelect(file) }}
+              role="button" tabIndex={0} aria-label={selectedFile ? `فایل انتخاب‌شده: ${selectedFile.name}` : 'انتخاب یا رها کردن فایل پیوست'}
+              onKeyDown={e => activateOnKey(e, () => fileInputRef.current?.click())}
               style={{ border: `2px dashed ${selectedFile ? '#c9a84c' : t.border}`, borderRadius: '10px', padding: '20px', textAlign: 'center', cursor: 'pointer', background: selectedFile ? '#c9a84c11' : t.inner, transition: 'all 0.2s' }}
             >
               {selectedFile ? (
@@ -334,7 +337,10 @@ export default function ReportsPage() {
 
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {filters.map(f => (
-          <div key={f.key} onClick={() => setFilter(f.key)} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: filter === f.key ? '#c9a84c22' : t.card, border: filter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: filter === f.key ? '#e8c96a' : t.sub, transition: 'all 0.2s' }}>
+          <div key={f.key} onClick={() => setFilter(f.key)}
+            role="button" tabIndex={0} aria-pressed={filter === f.key}
+            onKeyDown={e => activateOnKey(e, () => setFilter(f.key))}
+            style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: filter === f.key ? '#c9a84c22' : t.card, border: filter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: filter === f.key ? '#e8c96a' : t.sub, transition: 'all 0.2s' }}>
             {f.label}
           </div>
         ))}
@@ -344,6 +350,8 @@ export default function ReportsPage() {
         <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {filtered.map(report => (
             <div key={report.id} className="hover-card" onClick={() => { setSelected(report); handleSeen(report.id) }}
+              role="button" tabIndex={0} aria-pressed={selected?.id === report.id} aria-label={`گزارش: ${report.title_fa}`}
+              onKeyDown={e => activateOnKey(e, () => { setSelected(report); handleSeen(report.id) })}
               style={{ background: selected?.id === report.id ? t.inner : t.card, border: `1px solid ${selected?.id === report.id ? '#c9a84c33' : t.border}`, borderRadius: '12px', padding: '14px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: report.seen ? 'transparent' : '#4a9eff', flexShrink: 0, border: report.seen ? `1px solid ${t.border}` : 'none' }}></div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -375,7 +383,7 @@ export default function ReportsPage() {
           <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', position: isMobile ? 'fixed' : 'relative', inset: isMobile ? '0' : 'auto', zIndex: isMobile ? 100 : 'auto', overflowY: isMobile ? 'auto' : 'visible' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div style={{ color: t.text, fontSize: '14px', fontWeight: '700', flex: 1 }}>{selected.title_fa}</div>
-              <button onClick={() => setSelected(null)} style={{ background: 'transparent', border: 'none', color: t.muted, fontSize: '20px', cursor: 'pointer' }}>✕</button>
+              <button onClick={() => setSelected(null)} aria-label="بستن" style={{ background: 'transparent', border: 'none', color: t.muted, fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[

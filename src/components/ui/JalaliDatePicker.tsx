@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import jalaali from 'jalaali-js'
+import { activateOnKey } from '@/lib/a11y'
 
 const MONTH_NAMES = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
 const DAY_NAMES = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']
@@ -86,6 +87,8 @@ export function JalaliDatePicker({ value, onChange, placeholder = 'انتخاب 
       {/* input نمایش */}
       <div
         onClick={() => setOpen(!open)}
+        role="button" tabIndex={0} aria-haspopup="dialog" aria-expanded={open} aria-label={placeholder}
+        onKeyDown={e => activateOnKey(e, () => setOpen(!open))}
         style={{
           ...style,
           cursor: 'pointer',
@@ -117,12 +120,12 @@ export function JalaliDatePicker({ value, onChange, placeholder = 'انتخاب 
 
             {/* هدر */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <button onClick={prevMonth} style={{ background: '#f5f5f5', border: 'none', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', fontSize: '14px' }}>←</button>
+              <button onClick={prevMonth} aria-label="ماه قبل" style={{ background: '#f5f5f5', border: 'none', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', fontSize: '14px' }}>←</button>
               <div style={{ textAlign: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: '700', color: '#1a1a2e' }}>{MONTH_NAMES[jMonth - 1]}</span>
                 <span style={{ fontSize: '12px', color: '#c9a84c', marginRight: '6px', fontWeight: '600' }}>{jYear}</span>
               </div>
-              <button onClick={nextMonth} style={{ background: '#f5f5f5', border: 'none', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', fontSize: '14px' }}>→</button>
+              <button onClick={nextMonth} aria-label="ماه بعد" style={{ background: '#f5f5f5', border: 'none', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', fontSize: '14px' }}>→</button>
             </div>
 
             {/* روزهای هفته */}
@@ -144,6 +147,8 @@ export function JalaliDatePicker({ value, onChange, placeholder = 'انتخاب 
                   <div
                     key={i}
                     onClick={() => handleSelect(jd)}
+                    role="button" tabIndex={0} aria-pressed={isSelected} aria-label={`${jd} ${MONTH_NAMES[jMonth - 1]} ${jYear}`}
+                    onKeyDown={e => activateOnKey(e, () => handleSelect(jd))}
                     style={{
                       textAlign: 'center', padding: '5px 2px',
                       borderRadius: '6px', cursor: 'pointer', fontSize: '12px',

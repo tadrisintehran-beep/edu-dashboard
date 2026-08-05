@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { useRouter } from 'next/navigation'
+import { activateOnKey } from '@/lib/a11y'
 
 const ACTION_LABELS: Record<string, string> = {
   login: 'ورود', logout: 'خروج', view: 'مشاهده',
@@ -117,7 +118,9 @@ export default function LogsPage() {
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3,1fr)' : 'repeat(6,1fr)', gap: '8px' }}>
         {Object.entries(ACTION_LABELS).map(([key, label]) => (
           <div key={key} style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '10px', padding: '10px', textAlign: 'center', cursor: 'pointer', opacity: filterAction !== 'all' && filterAction !== key ? 0.5 : 1 }}
-            onClick={() => setFilterAction(filterAction === key ? 'all' : key)}>
+            onClick={() => setFilterAction(filterAction === key ? 'all' : key)}
+            role="button" tabIndex={0} aria-pressed={filterAction === key} aria-label={`فیلتر بر اساس ${label}`}
+            onKeyDown={e => activateOnKey(e, () => setFilterAction(filterAction === key ? 'all' : key))}>
             <div style={{ color: ACTION_COLORS[key], fontSize: '18px', fontWeight: '800' }}>
               {logs.filter(l => l.action === key).length}
             </div>

@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { toJalali } from '@/lib/date'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { activateOnKey } from '@/lib/a11y'
 
 const fileTypeIcon: Record<string, string> = {
   'application/pdf': '📄',
@@ -313,6 +314,8 @@ export default function DocumentsPage() {
             <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>فایل</label>
             <div
               onClick={() => fileInputRef.current?.click()}
+              role="button" tabIndex={0} aria-label={selectedFile ? `فایل انتخاب‌شده: ${selectedFile.name}` : 'انتخاب فایل برای آپلود'}
+              onKeyDown={e => activateOnKey(e, () => fileInputRef.current?.click())}
               style={{ border: `2px dashed ${selectedFile ? '#c9a84c' : t.border}`, borderRadius: '10px', padding: '24px', textAlign: 'center', cursor: 'pointer', background: selectedFile ? '#c9a84c11' : t.inner, transition: 'all 0.2s' }}
             >
               <div style={{ fontSize: '32px', marginBottom: '8px' }}>{selectedFile ? '✅' : '📁'}</div>
@@ -347,6 +350,8 @@ export default function DocumentsPage() {
           ) : documents.map(doc => (
             <div key={doc.id}
               onClick={() => setSelected(doc)}
+              role="button" tabIndex={0} aria-pressed={selected?.id === doc.id} aria-label={`سند: ${doc.title}`}
+              onKeyDown={e => activateOnKey(e, () => setSelected(doc))}
               style={{ background: selected?.id === doc.id ? t.inner : t.card, border: `1px solid ${selected?.id === doc.id ? '#c9a84c33' : t.border}`, borderRadius: '12px', padding: '14px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s' }}>
 
               <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: '#c9a84c22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
@@ -399,7 +404,7 @@ export default function DocumentsPage() {
                 <div style={{ color: t.text, fontSize: '14px', fontWeight: '700', marginBottom: '4px' }}>{selected.title}</div>
                 {selected.description && <div style={{ color: t.muted, fontSize: '11px' }}>{selected.description}</div>}
               </div>
-              <button onClick={() => setSelected(null)} style={{ background: 'transparent', border: 'none', color: t.muted, fontSize: '18px', cursor: 'pointer', flexShrink: 0 }}>✕</button>
+              <button onClick={() => setSelected(null)} aria-label="بستن" style={{ background: 'transparent', border: 'none', color: t.muted, fontSize: '18px', cursor: 'pointer', flexShrink: 0 }}>✕</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -427,6 +432,8 @@ export default function DocumentsPage() {
             {showVersionUpload && (
               <div style={{ background: t.inner, borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div onClick={() => versionInputRef.current?.click()}
+                  role="button" tabIndex={0} aria-label={versionFile ? `فایل انتخاب‌شده: ${versionFile.name}` : 'انتخاب فایل نسخه جدید'}
+                  onKeyDown={e => activateOnKey(e, () => versionInputRef.current?.click())}
                   style={{ border: `2px dashed ${versionFile ? '#4a9eff' : t.border}`, borderRadius: '8px', padding: '12px', textAlign: 'center', cursor: 'pointer', fontSize: '12px', color: versionFile ? '#4a9eff' : t.muted }}>
                   {versionFile ? versionFile.name : '📁 انتخاب فایل'}
                 </div>
@@ -447,6 +454,8 @@ export default function DocumentsPage() {
                 { key: 'versions', label: `📚 نسخه‌ها (${versions.length})` },
               ].map(tab => (
                 <div key={tab.key} onClick={() => setActiveTab(tab.key as any)}
+                  role="tab" tabIndex={0} aria-selected={activeTab === tab.key}
+                  onKeyDown={e => activateOnKey(e, () => setActiveTab(tab.key as any))}
                   style={{ padding: '5px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: activeTab === tab.key ? '#c9a84c22' : 'transparent', color: activeTab === tab.key ? '#e8c96a' : t.sub, border: activeTab === tab.key ? '1px solid #c9a84c44' : '1px solid transparent' }}>
                   {tab.label}
                 </div>
@@ -496,6 +505,7 @@ export default function DocumentsPage() {
                     </div>
                     <button
                       onClick={() => handleDownload(version.file_path, version.file_name)}
+                      aria-label={`دانلود نسخه ${version.version}`}
                       style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: '#3dbb82', fontSize: '10px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
                       ⬇️
                     </button>

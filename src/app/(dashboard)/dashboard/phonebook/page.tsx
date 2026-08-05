@@ -9,6 +9,7 @@ import { useIsMobile } from '@/lib/useIsMobile'
 import { SkeletonList } from '@/components/ui/Skeleton'
 import { exportContactsToExcel } from '@/lib/exportData'
 import { useAuthStore } from '@/stores/authStore'
+import { activateOnKey } from '@/lib/a11y'
 
 const provinces = ['همه', 'تهران', 'اصفهان', 'مازندران', 'خراسان رضوی', 'فارس', 'آذربایجان شرقی']
 const tagColors: Record<string, string> = {
@@ -198,7 +199,10 @@ export default function PhonebookPage() {
             {provinces.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
         )}
-        <div onClick={() => setShowFavorites(!showFavorites)} style={{ padding: '8px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', background: showFavorites ? '#c9a84c22' : t.card, border: showFavorites ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: showFavorites ? '#e8c96a' : t.sub }}>
+        <div onClick={() => setShowFavorites(!showFavorites)}
+          role="button" tabIndex={0} aria-pressed={showFavorites} aria-label="فیلتر موردعلاقه‌ها"
+          onKeyDown={e => activateOnKey(e, () => setShowFavorites(!showFavorites))}
+          style={{ padding: '8px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', background: showFavorites ? '#c9a84c22' : t.card, border: showFavorites ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: showFavorites ? '#e8c96a' : t.sub }}>
           ⭐ {!isMobile && 'موردعلاقه‌ها'}
         </div>
       </div>
@@ -215,6 +219,8 @@ export default function PhonebookPage() {
         <div className="stagger" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))', gap: '10px' }}>
           {filtered.map((contact, i) => (
             <div key={contact.id} className="hover-card" onClick={() => setSelected(contact)}
+              role="button" tabIndex={0} aria-pressed={selected?.id === contact.id} aria-label={`مخاطب: ${contact.name}`}
+              onKeyDown={e => activateOnKey(e, () => setSelected(contact))}
               style={{ background: selected?.id === contact.id ? t.inner : t.card, border: `1px solid ${selected?.id === contact.id ? '#c9a84c33' : t.border}`, borderRadius: '12px', padding: '14px', cursor: 'pointer' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0, background: avatarColors[i % avatarColors.length] + '33', border: '2px solid ' + avatarColors[i % avatarColors.length] + '55', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '700', color: avatarColors[i % avatarColors.length] }}>
@@ -227,6 +233,8 @@ export default function PhonebookPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                   <div onClick={e => { e.stopPropagation(); toggleFavorite(contact.id, contact.favorite) }}
+                    role="button" tabIndex={0} aria-pressed={contact.favorite} aria-label={contact.favorite ? 'حذف از موردعلاقه‌ها' : 'افزودن به موردعلاقه‌ها'}
+                    onKeyDown={e => { e.stopPropagation(); activateOnKey(e, () => toggleFavorite(contact.id, contact.favorite)) }}
                     style={{ fontSize: '16px', cursor: 'pointer', opacity: contact.favorite ? 1 : 0.3 }}>⭐</div>
                   <div style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '600', background: (tagColors[contact.tag] || '#555') + '22', color: tagColors[contact.tag] || t.sub }}>
                     {contact.tag}
@@ -252,7 +260,7 @@ export default function PhonebookPage() {
           <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <div style={{ color: t.text, fontSize: '13px', fontWeight: '600' }}>اطلاعات مخاطب</div>
-              <button onClick={() => setSelected(null)} style={{ background: 'transparent', border: 'none', color: t.muted, fontSize: '18px', cursor: 'pointer' }}>✕</button>
+              <button onClick={() => setSelected(null)} aria-label="بستن" style={{ background: 'transparent', border: 'none', color: t.muted, fontSize: '18px', cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ textAlign: 'center', padding: '10px 0' }}>
               <div style={{ width: '64px', height: '64px', borderRadius: '50%', margin: '0 auto 10px', background: '#c9a84c33', border: '2px solid #c9a84c55', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', color: '#c9a84c' }}>

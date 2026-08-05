@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { useIsMobile } from '@/lib/useIsMobile'
+import { activateOnKey } from '@/lib/a11y'
 
 const JALALI_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
 
@@ -229,7 +230,7 @@ ${content.innerHTML}
           <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '18px', fontWeight: '700' }}>گزارش اجرایی</h1>
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{periodLabel}</p>
         </div>
-        <button onClick={handlePrint} style={{ background: 'linear-gradient(135deg, #c9a84c, #e8c96a)', border: 'none', borderRadius: '10px', padding: '10px 20px', color: '#1a1200', fontSize: '13px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 16px #c9a84c44' }}>
+        <button onClick={handlePrint} aria-label="چاپ گزارش اجرایی" style={{ background: 'linear-gradient(135deg, #c9a84c, #e8c96a)', border: 'none', borderRadius: '10px', padding: '10px 20px', color: '#1a1200', fontSize: '13px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 16px #c9a84c44' }}>
           🖨️ چاپ گزارش
         </button>
       </div>
@@ -238,26 +239,32 @@ ${content.innerHTML}
       <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         {/* نوع گزارش */}
         <div style={{ display: 'flex', background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', overflow: 'hidden' }}>
-          {(['weekly', 'monthly'] as const).map((v, i) => (
-            <div key={v} onClick={() => { setReportType(v); setWeekOffset(0); setMonthOffset(0) }} style={{ padding: '7px 16px', background: reportType === v ? '#c9a84c22' : 'transparent', borderRight: i === 0 ? `1px solid ${t.border}` : 'none', color: reportType === v ? '#e8c96a' : t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', userSelect: 'none' as const }}>
-              {v === 'weekly' ? '📅 هفتگی' : '📆 ماهانه'}
-            </div>
-          ))}
+          {(['weekly', 'monthly'] as const).map((v, i) => {
+            const activate = () => { setReportType(v); setWeekOffset(0); setMonthOffset(0) }
+            return (
+              <div key={v} onClick={activate}
+                role="tab" tabIndex={0} aria-selected={reportType === v}
+                onKeyDown={e => activateOnKey(e, activate)}
+                style={{ padding: '7px 16px', background: reportType === v ? '#c9a84c22' : 'transparent', borderRight: i === 0 ? `1px solid ${t.border}` : 'none', color: reportType === v ? '#e8c96a' : t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', userSelect: 'none' as const }}>
+                {v === 'weekly' ? '📅 هفتگی' : '📆 ماهانه'}
+              </div>
+            )
+          })}
         </div>
 
         {/* ناوبری */}
         {reportType === 'weekly' ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button onClick={() => setWeekOffset(w => w - 1)} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>←</button>
+            <button onClick={() => setWeekOffset(w => w - 1)} aria-label="هفته قبل" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>←</button>
             <span style={{ color: t.text, fontSize: '12px', fontWeight: '600', minWidth: '160px', textAlign: 'center' }}>{weekRange.label}</span>
-            <button onClick={() => setWeekOffset(w => w + 1)} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>→</button>
+            <button onClick={() => setWeekOffset(w => w + 1)} aria-label="هفته بعد" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>→</button>
             <button onClick={() => setWeekOffset(0)} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 10px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>این هفته</button>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button onClick={() => setMonthOffset(m => m - 1)} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>←</button>
+            <button onClick={() => setMonthOffset(m => m - 1)} aria-label="ماه قبل" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>←</button>
             <span style={{ color: t.text, fontSize: '12px', fontWeight: '600', minWidth: '120px', textAlign: 'center' }}>{monthRange.label}</span>
-            <button onClick={() => setMonthOffset(m => m + 1)} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>→</button>
+            <button onClick={() => setMonthOffset(m => m + 1)} aria-label="ماه بعد" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>→</button>
             <button onClick={() => setMonthOffset(0)} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 10px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>این ماه</button>
           </div>
         )}

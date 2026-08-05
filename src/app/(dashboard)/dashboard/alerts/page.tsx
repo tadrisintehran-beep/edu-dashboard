@@ -8,6 +8,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { toJalali } from '@/lib/date'
 import { useAuthStore } from '@/stores/authStore'
+import { activateOnKey } from '@/lib/a11y'
 
 type AlertLevel = 'critical' | 'important' | 'warning' | 'info'
 
@@ -189,7 +190,10 @@ export default function AlertsPage() {
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '8px' }}>سطح هشدار</label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {(Object.keys(levelConfig) as AlertLevel[]).map(level => (
-                  <div key={level} onClick={() => setNewAlert(p => ({ ...p, level }))} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: newAlert.level === level ? levelConfig[level].bg : t.inner, border: `1px solid ${newAlert.level === level ? levelConfig[level].color + '55' : t.border}`, color: newAlert.level === level ? levelConfig[level].color : t.sub }}>
+                  <div key={level} onClick={() => setNewAlert(p => ({ ...p, level }))}
+                    role="button" tabIndex={0} aria-pressed={newAlert.level === level}
+                    onKeyDown={e => activateOnKey(e, () => setNewAlert(p => ({ ...p, level })))}
+                    style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: newAlert.level === level ? levelConfig[level].bg : t.inner, border: `1px solid ${newAlert.level === level ? levelConfig[level].color + '55' : t.border}`, color: newAlert.level === level ? levelConfig[level].color : t.sub }}>
                     {levelConfig[level].icon} {levelConfig[level].label}
                   </div>
                 ))}
@@ -205,7 +209,10 @@ export default function AlertsPage() {
 
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {filters.map(f => (
-          <div key={f.key} onClick={() => setFilter(f.key)} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: filter === f.key ? '#c9a84c22' : t.card, border: filter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: filter === f.key ? '#e8c96a' : t.sub, transition: 'all 0.2s' }}>
+          <div key={f.key} onClick={() => setFilter(f.key)}
+            role="button" tabIndex={0} aria-pressed={filter === f.key}
+            onKeyDown={e => activateOnKey(e, () => setFilter(f.key))}
+            style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: filter === f.key ? '#c9a84c22' : t.card, border: filter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: filter === f.key ? '#e8c96a' : t.sub, transition: 'all 0.2s' }}>
             {f.label}
           </div>
         ))}

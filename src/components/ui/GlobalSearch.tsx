@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
+import { activateOnKey } from '@/lib/a11y'
 
 interface SearchResult {
   id: string
@@ -119,6 +120,7 @@ export function GlobalSearch() {
     <div style={{ position: 'fixed', inset: 0, background: '#00000077', zIndex: 9999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '80px', direction: 'rtl', backdropFilter: 'blur(4px)' }}
       onClick={() => setOpen(false)}>
       <div
+        role="dialog" aria-modal="true" aria-label="جستجوی سراسری"
         style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', width: '100%', maxWidth: '520px', margin: '0 16px', boxShadow: '0 20px 60px #00000055', animation: 'fadeInUp 0.2s ease', overflow: 'hidden' }}
         onClick={e => e.stopPropagation()}
       >
@@ -133,10 +135,10 @@ export function GlobalSearch() {
             style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontSize: '14px', direction: 'rtl', fontFamily: 'inherit' }}
           />
           {query && (
-            <button onClick={() => { setQuery(''); setResults([]) }}
+            <button onClick={() => { setQuery(''); setResults([]) }} aria-label="پاک کردن جستجو"
               style={{ background: 'transparent', border: 'none', color: t.muted, cursor: 'pointer', fontSize: '16px' }}>✕</button>
           )}
-          <button onClick={() => setOpen(false)}
+          <button onClick={() => setOpen(false)} aria-label="بستن جستجو"
             style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '3px 8px', color: t.muted, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>Esc</button>
         </div>
 
@@ -177,6 +179,8 @@ export function GlobalSearch() {
                       <div
                         key={result.id}
                         onClick={() => handleSelect(result)}
+                        role="option" tabIndex={0} aria-selected={false} aria-label={`${cfg.label}: ${result.title}`}
+                        onKeyDown={e => activateOnKey(e, () => handleSelect(result))}
                         style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s' }}
                         onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = isDark ? '#ffffff0a' : '#00000008'}
                         onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}

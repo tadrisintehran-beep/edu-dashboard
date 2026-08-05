@@ -8,6 +8,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { useAuthStore } from '@/stores/authStore'
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker'
+import { activateOnKey } from '@/lib/a11y'
 
 function toJalali(dateStr: string): string {
   if (!dateStr) return ''
@@ -159,7 +160,10 @@ export default function TasksPage() {
           { key: 'done', label: 'انجام شده' },
           { key: 'cancelled', label: 'لغو شده' },
         ]).map(f => (
-          <div key={f.key} onClick={() => setFilterStatus(f.key)} style={{
+          <div key={f.key} onClick={() => setFilterStatus(f.key)}
+            role="button" tabIndex={0} aria-pressed={filterStatus === f.key}
+            onKeyDown={e => activateOnKey(e, () => setFilterStatus(f.key))}
+            style={{
             padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',
             background: filterStatus === f.key ? '#c9a84c22' : t.card,
             border: filterStatus === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`,
