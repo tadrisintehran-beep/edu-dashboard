@@ -10,6 +10,11 @@ import { useIsMobile } from '@/lib/useIsMobile'
 import { exportMeetingsToExcel } from '@/lib/exportData'
 import { PersianCalendar } from '@/components/ui/PersianCalendar'
 import { useAuthStore } from '@/stores/authStore'
+import { activateOnKey } from '@/lib/a11y'
+
+const VIEW_LABELS: Record<'weekly' | 'list' | 'calendar' | 'report', string> = {
+  weekly: 'نمای هفتگی', list: 'نمای لیست', calendar: 'نمای تقویم', report: 'نمای گزارش',
+}
 
 const DAYS = ['شنبه', 'یک‌شنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه']
 
@@ -314,9 +319,12 @@ export default function MeetingsPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', borderRadius: '8px', overflow: 'hidden', flex: 1, border: `1px solid ${t.border}`, background: t.inner }}>
+          <div role="tablist" aria-label="نمای نمایش جلسات" style={{ display: 'flex', borderRadius: '8px', overflow: 'hidden', flex: 1, border: `1px solid ${t.border}`, background: t.inner }}>
             {(['weekly', 'list', 'calendar', 'report'] as const).map((v, i) => (
-              <div key={v} onClick={() => setView(v)} style={{
+              <div key={v} onClick={() => setView(v)}
+                role="tab" tabIndex={0} aria-selected={view === v} aria-label={VIEW_LABELS[v]}
+                onKeyDown={e => activateOnKey(e, () => setView(v))}
+                style={{
                 flex: 1, padding: '9px 4px',
                 background: view === v ? '#c9a84c22' : 'transparent',
                 borderRight: i < 3 ? `1px solid ${t.border}` : 'none',
@@ -333,7 +341,7 @@ export default function MeetingsPage() {
             ))}
           </div>
 
-          <button onClick={() => exportMeetingsToExcel(meetings)} title="خروجی Excel"
+          <button onClick={() => exportMeetingsToExcel(meetings)} title="خروجی Excel" aria-label="خروجی اکسل"
             style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '9px 12px', color: '#3dbb82', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
             📊
           </button>
@@ -343,7 +351,7 @@ export default function MeetingsPage() {
           )}
 
           {typeof window !== 'undefined' && Notification.permission !== 'granted' && (
-            <button onClick={requestNotificationPermission} title="فعال کردن یادآور"
+            <button onClick={requestNotificationPermission} title="فعال کردن یادآور" aria-label="فعال کردن یادآور جلسات"
               style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '9px 12px', color: '#e8c96a', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
               🔔
             </button>
@@ -544,16 +552,16 @@ export default function MeetingsPage() {
                           </div>
                           <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
   {!isPastMeeting && can('meetings', 'update') && (
-    <button onClick={() => setEditMeeting(meeting)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
+    <button onClick={() => setEditMeeting(meeting)} aria-label="ویرایش جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
   )}
   {!isPastMeeting && (
-    <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '4px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
+    <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" aria-label="ثبت درخواست برای این جلسه" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '4px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
   )}
   {meeting.status === 'pending' && can('meetings', 'update') && (
-    <button onClick={() => handleApprove(meeting.id)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✓</button>
+    <button onClick={() => handleApprove(meeting.id)} aria-label="تأیید جلسه" style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✓</button>
   )}
   {can('meetings', 'delete') && (
-    <button onClick={() => handleDelete(meeting.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '4px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+    <button onClick={() => handleDelete(meeting.id)} aria-label="حذف جلسه" style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '4px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
   )}
 </div>
                         </div>
@@ -592,11 +600,11 @@ export default function MeetingsPage() {
                 {!isPastMeeting && (
                   <div style={{ display: 'flex', gap: '5px' }}>
                     {can('meetings', 'update') && (
-                      <button onClick={() => setEditMeeting(meeting)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
+                      <button onClick={() => setEditMeeting(meeting)} aria-label="ویرایش جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
                     )}
-                    <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
+                    <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" aria-label="ثبت درخواست برای این جلسه" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
                     {can('meetings', 'delete') && (
-                      <button onClick={() => handleDelete(meeting.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+                      <button onClick={() => handleDelete(meeting.id)} aria-label="حذف جلسه" style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
                     )}
                   </div>
                 )}
@@ -621,7 +629,10 @@ export default function MeetingsPage() {
               { key: '6months', label: 'شش ماه اخیر' },
               { key: 'year', label: 'یک سال اخیر' },
             ] as const).map(f => (
-              <div key={f.key} onClick={() => setReportFilter(f.key)} style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: reportFilter === f.key ? '#c9a84c22' : t.card, border: reportFilter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: reportFilter === f.key ? '#e8c96a' : t.sub }}>
+              <div key={f.key} onClick={() => setReportFilter(f.key)}
+                role="button" tabIndex={0} aria-pressed={reportFilter === f.key}
+                onKeyDown={e => activateOnKey(e, () => setReportFilter(f.key))}
+                style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: reportFilter === f.key ? '#c9a84c22' : t.card, border: reportFilter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: reportFilter === f.key ? '#e8c96a' : t.sub }}>
                 {f.label}
               </div>
             ))}

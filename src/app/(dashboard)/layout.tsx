@@ -7,6 +7,7 @@ import { useTheme } from '@/lib/ThemeContext'
 import { GlobalSearch } from '@/components/ui/GlobalSearch'
 import { supabase } from '@/lib/supabase'
 import { logAction } from '@/lib/logger'
+import { activateOnKey } from '@/lib/a11y'
 
 const menuItems = [
   { icon: '⊞', label: 'داشبورد', path: '/dashboard' },
@@ -23,13 +24,6 @@ const bottomItems = [
   { icon: '👤', label: 'کاربران', path: '/dashboard/users' },
   { icon: '⚙️', label: 'تنظیمات', path: '/dashboard/settings' },
 ]
-
-function activateOnKey(e: React.KeyboardEvent, handler: () => void) {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault()
-    handler()
-  }
-}
 
 function timeAgo(dateStr: string): string {
   const diffMs = Date.now() - new Date(dateStr).getTime()

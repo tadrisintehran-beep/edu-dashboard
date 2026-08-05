@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import jalaali from 'jalaali-js'
+import { activateOnKey } from '@/lib/a11y'
 
 const HOLIDAYS_1405: Record<string, string> = {
   '1/1': 'نوروز — عید سعید فطر',
@@ -148,7 +149,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
 
         {/* هدر */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <button onClick={prevMonth} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: t.sub, fontSize: '16px', transition: 'all 0.2s' }}
+          <button onClick={prevMonth} aria-label="ماه قبل" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: t.sub, fontSize: '16px', transition: 'all 0.2s' }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#c9a84c'; (e.currentTarget as HTMLButtonElement).style.color = '#c9a84c' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = t.border; (e.currentTarget as HTMLButtonElement).style.color = t.sub }}
           >←</button>
@@ -166,7 +167,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
             </div>
           </div>
 
-          <button onClick={nextMonth} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: t.sub, fontSize: '16px', transition: 'all 0.2s' }}
+          <button onClick={nextMonth} aria-label="ماه بعد" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: t.sub, fontSize: '16px', transition: 'all 0.2s' }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#c9a84c'; (e.currentTarget as HTMLButtonElement).style.color = '#c9a84c' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = t.border; (e.currentTarget as HTMLButtonElement).style.color = t.sub }}
           >→</button>
@@ -197,6 +198,9 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
               <div
                 key={i}
                 onClick={() => setSelectedDay(isSelected ? null : jd)}
+                role="button" tabIndex={0} aria-pressed={isSelected}
+                aria-label={`${jd} ${MONTH_NAMES[jMonth - 1]}${holiday ? ' — ' + holiday : ''}${dayMeetings.length ? ' — ' + dayMeetings.length + ' جلسه' : ''}`}
+                onKeyDown={e => activateOnKey(e, () => setSelectedDay(isSelected ? null : jd))}
                 style={{
                   minHeight: isMobile ? '44px' : '76px',
                   padding: isMobile ? '3px 2px' : '6px',
@@ -311,7 +315,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
                 return <div style={{ color: t.muted, fontSize: '11px', marginTop: '3px' }}>{g.gd}/{g.gm}/{g.gy}</div>
               })()}
             </div>
-            <button onClick={() => setSelectedDay(null)} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: t.muted, fontSize: '16px' }}>✕</button>
+            <button onClick={() => setSelectedDay(null)} aria-label="بستن" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: t.muted, fontSize: '16px' }}>✕</button>
           </div>
 
           {/* تعطیلی */}

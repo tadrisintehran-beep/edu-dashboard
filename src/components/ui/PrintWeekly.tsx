@@ -304,6 +304,7 @@ export function PrintWeekly({ weekStart, weekDates, meetingsByDay, days }: Print
       <button
         onClick={handlePrint}
         title="چاپ برنامه هفتگی"
+        aria-label="چاپ برنامه هفتگی"
         style={{
           background: '#1a1a2e22',
           border: '1px solid #1a1a2e44',
