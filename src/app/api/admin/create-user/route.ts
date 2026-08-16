@@ -24,12 +24,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 403 })
   }
 
-  const { email, password, name_fa, role } = await request.json()
+  const { email, password, name_fa, role, department_id } = await request.json()
   if (!email || !password || !name_fa || !role) {
     return NextResponse.json({ error: 'لطفاً همه فیلدها را پر کنید' }, { status: 400 })
   }
   if (password.length < 6) {
     return NextResponse.json({ error: 'رمز عبور باید حداقل ۶ کاراکتر باشد' }, { status: 400 })
+  }
+  if (role !== 'SUPER_ADMIN' && !department_id) {
+    return NextResponse.json({ error: 'انتخاب معاونت الزامی است' }, { status: 400 })
   }
 
   const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
@@ -46,6 +49,7 @@ export async function POST(request: NextRequest) {
     id: created.user.id,
     name_fa,
     role,
+    department_id: role === 'SUPER_ADMIN' ? null : department_id,
   }])
 
   if (profileError) {

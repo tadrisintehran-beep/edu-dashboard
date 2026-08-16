@@ -22,6 +22,7 @@ const menuItems = [
 
 const bottomItems = [
   { icon: '👤', label: 'کاربران', path: '/dashboard/users' },
+  { icon: '🏛️', label: 'معاونت‌ها', path: '/dashboard/departments' },
   { icon: '⚙️', label: 'تنظیمات', path: '/dashboard/settings' },
 ]
 
@@ -43,6 +44,7 @@ const pageTitle: Record<string, string> = {
   '/dashboard/phonebook': 'دفترچه تلفن',
   '/dashboard/alerts': 'سیستم هشدارها',
   '/dashboard/users': 'مدیریت کاربران',
+  '/dashboard/departments': 'مدیریت معاونت‌ها',
   '/dashboard/profile': 'پروفایل کاربری',
   '/dashboard/settings': 'تنظیمات',
   '/dashboard/documents': 'مدیریت اسناد',
@@ -218,7 +220,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         )}
         {!sidebarOpen && !isMobile && <div style={{ height: '12px' }} />}
-        {bottomItems.filter(item => item.path !== '/dashboard/users' || user?.role === 'SUPER_ADMIN').map(item => {
+        {bottomItems.filter(item => (item.path !== '/dashboard/users' && item.path !== '/dashboard/departments') || user?.role === 'SUPER_ADMIN').map(item => {
           const go = () => { router.push(item.path); if (isMobile) setMobileMenuOpen(false) }
           return (
           <div key={item.path} onClick={go}

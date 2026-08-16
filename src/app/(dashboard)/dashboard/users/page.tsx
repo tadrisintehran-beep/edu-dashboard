@@ -11,18 +11,16 @@ import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'next/navigation'
 
 const roleLabel: Record<string, string> = {
-  DEPUTY_MINISTER: 'معاون وزیر',
   SUPER_ADMIN: 'مدیر سیستم',
-  OFFICE_MANAGER: 'مدیر دفتر',
-  DATA_ENTRY: 'اپراتور',
+  DEPUTY_MINISTER: 'معاون وزیر',
+  SECRETARY: 'منشی',
   VIEWER: 'مشاهده‌گر',
 }
 
 const roleColor: Record<string, string> = {
-  DEPUTY_MINISTER: '#c9a84c',
   SUPER_ADMIN: '#e05555',
-  OFFICE_MANAGER: '#4a9eff',
-  DATA_ENTRY: '#3dbb82',
+  DEPUTY_MINISTER: '#c9a84c',
+  SECRETARY: '#4a9eff',
   VIEWER: '#8b90a8',
 }
 
@@ -33,12 +31,13 @@ export default function UsersPage() {
   const { user: currentUser } = useAuthStore()
   const router = useRouter()
   const [users, setUsers] = useState<any[]>([])
+  const [departments, setDepartments] = useState<{ id: string; name_fa: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [editUser, setEditUser] = useState<any | null>(null)
   const [newUser, setNewUser] = useState({
-    email: '', name_fa: '', password: '', role: 'VIEWER',
+    email: '', name_fa: '', password: '', role: 'VIEWER', department_id: '',
   })
   const [adding, setAdding] = useState(false)
 
@@ -49,16 +48,21 @@ export default function UsersPage() {
     }
   }, [currentUser, router])
 
-  useEffect(() => { fetchUsers() }, [])
+  useEffect(() => { fetchUsers(); fetchDepartments() }, [])
 
   const fetchUsers = async () => {
     setLoading(true)
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('*, departments(name_fa)')
       .order('created_at', { ascending: false })
     if (!error && data) setUsers(data)
     setLoading(false)
+  }
+
+  const fetchDepartments = async () => {
+    const { data, error } = await supabase.from('departments').select('id, name_fa').order('name_fa')
+    if (!error && data) setDepartments(data)
   }
 
   const handleAdd = async () => {
@@ -68,6 +72,10 @@ export default function UsersPage() {
     }
     if (newUser.password.length < 6) {
       showToast('رمز عبور باید حداقل ۶ کاراکتر باشد', 'error')
+      return
+    }
+    if (newUser.role !== 'SUPER_ADMIN' && !newUser.department_id) {
+      showToast('انتخاب معاونت الزامی است', 'error')
       return
     }
 
@@ -90,7 +98,7 @@ export default function UsersPage() {
       }
 
       showToast('کاربر با موفقیت اضافه شد', 'success')
-      setNewUser({ email: '', name_fa: '', password: '', role: 'VIEWER' })
+      setNewUser({ email: '', name_fa: '', password: '', role: 'VIEWER', department_id: '' })
       setShowForm(false)
       fetchUsers()
     } finally {
@@ -98,7 +106,11 @@ export default function UsersPage() {
     }
   }
 
-  const handleUpdateRole = async (id: string, role: string) => {
+  const handleUpdateRole = async (id: string, role: string, department_id: string | null) => {
+    if (role !== 'SUPER_ADMIN' && !department_id) {
+      showToast('انتخاب معاونت الزامی است', 'error')
+      return
+    }
     const { data: { session } } = await supabase.auth.getSession()
     const res = await fetch('/api/admin/update-role', {
       method: 'POST',
@@ -106,7 +118,7 @@ export default function UsersPage() {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session?.access_token}`,
       },
-      body: JSON.stringify({ userId: id, role }),
+      body: JSON.stringify({ userId: id, role, department_id }),
     })
     const body = await res.json()
 
@@ -196,6 +208,15 @@ export default function UsersPage() {
                 ))}
               </select>
             </div>
+            {newUser.role !== 'SUPER_ADMIN' && (
+              <div>
+                <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>معاونت</label>
+                <select style={inputStyle} value={newUser.department_id} onChange={e => setNewUser(p => ({ ...p, department_id: e.target.value }))}>
+                  <option value="">— انتخاب معاونت —</option>
+                  {departments.map(dep => <option key={dep.id} value={dep.id}>{dep.name_fa}</option>)}
+                </select>
+              </div>
+            )}
           </div>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button onClick={() => setShowForm(false)} style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 16px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>انصراف</button>
@@ -217,20 +238,32 @@ export default function UsersPage() {
             {/* اطلاعات */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ color: t.text, fontSize: '14px', fontWeight: '600', marginBottom: '3px' }}>{user.name_fa}</div>
-              <div style={{ color: t.muted, fontSize: '11px' }}>تاریخ عضویت: {toJalali(user.created_at)}</div>
+              <div style={{ color: t.muted, fontSize: '11px' }}>تاریخ عضویت: {toJalali(user.created_at)}{user.departments?.name_fa ? ` — ${user.departments.name_fa}` : ''}</div>
             </div>
 
-            {/* نقش */}
+            {/* نقش و معاونت */}
             {editUser?.id === user.id ? (
-              <select
-                style={{ ...inputStyle, width: 'auto', padding: '6px 10px' }}
-                value={editUser.role}
-                onChange={e => setEditUser({ ...editUser, role: e.target.value })}
-              >
-                {Object.entries(roleLabel).map(([key, val]) => (
-                  <option key={key} value={key}>{val}</option>
-                ))}
-              </select>
+              <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                <select
+                  style={{ ...inputStyle, width: 'auto', padding: '6px 10px' }}
+                  value={editUser.role}
+                  onChange={e => setEditUser({ ...editUser, role: e.target.value })}
+                >
+                  {Object.entries(roleLabel).map(([key, val]) => (
+                    <option key={key} value={key}>{val}</option>
+                  ))}
+                </select>
+                {editUser.role !== 'SUPER_ADMIN' && (
+                  <select
+                    style={{ ...inputStyle, width: 'auto', padding: '6px 10px' }}
+                    value={editUser.department_id || ''}
+                    onChange={e => setEditUser({ ...editUser, department_id: e.target.value })}
+                  >
+                    <option value="">— انتخاب معاونت —</option>
+                    {departments.map(dep => <option key={dep.id} value={dep.id}>{dep.name_fa}</option>)}
+                  </select>
+                )}
+              </div>
             ) : (
               <div style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: (roleColor[user.role] || '#555') + '22', color: roleColor[user.role] || t.sub, border: `1px solid ${(roleColor[user.role] || '#555')}44`, flexShrink: 0 }}>
                 {roleLabel[user.role] || user.role}
@@ -241,7 +274,7 @@ export default function UsersPage() {
             <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
               {editUser?.id === user.id ? (
                 <>
-                  <button onClick={() => handleUpdateRole(user.id, editUser.role)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '6px 12px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>ذخیره</button>
+                  <button onClick={() => handleUpdateRole(user.id, editUser.role, editUser.department_id || null)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '6px 12px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>ذخیره</button>
                   <button onClick={() => setEditUser(null)} style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 12px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>انصراف</button>
                 </>
               ) : (

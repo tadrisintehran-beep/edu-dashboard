@@ -10,6 +10,8 @@ interface User {
   role: string
   is_active: boolean
   sessionTimeoutMinutes: number
+  department_id: string | null
+  department_name: string | null
 }
 
 interface AuthState {
@@ -40,7 +42,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, departments(name_fa)')
         .eq('id', authUser.id)
         .single()
 
@@ -64,6 +66,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           role: profile.role || 'VIEWER',
           is_active: profile.is_active ?? true,
           sessionTimeoutMinutes: settings?.session_timeout_minutes || 30,
+          department_id: profile.department_id ?? null,
+          department_name: profile.departments?.name_fa ?? null,
         }
         set({ user, isChecking: false, isAuthenticated: true })
 

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'دسترسی غیرمجاز' }, { status: 403 })
   }
 
-  const { userId, role } = await request.json()
+  const { userId, role, department_id } = await request.json()
   if (!userId || !role) {
     return NextResponse.json({ error: 'اطلاعات ناقص است' }, { status: 400 })
   }
@@ -37,8 +37,13 @@ export async function POST(request: NextRequest) {
   if (userId === caller.id) {
     return NextResponse.json({ error: 'امکان تغییر نقش حساب خودتان وجود ندارد' }, { status: 400 })
   }
+  if (role !== 'SUPER_ADMIN' && !department_id) {
+    return NextResponse.json({ error: 'انتخاب معاونت الزامی است' }, { status: 400 })
+  }
 
-  const { error } = await supabaseAdmin.from('profiles').update({ role }).eq('id', userId)
+  const { error } = await supabaseAdmin.from('profiles')
+    .update({ role, department_id: role === 'SUPER_ADMIN' ? null : department_id })
+    .eq('id', userId)
   if (error) {
     return NextResponse.json({ error: 'خطا در بروزرسانی نقش' }, { status: 500 })
   }
