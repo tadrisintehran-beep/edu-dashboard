@@ -11,6 +11,8 @@ import { exportMeetingsToExcel } from '@/lib/exportData'
 import { PersianCalendar } from '@/components/ui/PersianCalendar'
 import { useAuthStore } from '@/stores/authStore'
 import { activateOnKey } from '@/lib/a11y'
+import { AttendeesModal } from '@/components/meetings/AttendeesModal'
+import { MinutesModal } from '@/components/meetings/MinutesModal'
 
 const VIEW_LABELS: Record<'weekly' | 'list' | 'calendar' | 'report', string> = {
   weekly: 'نمای هفتگی', list: 'نمای لیست', calendar: 'نمای تقویم', report: 'نمای گزارش',
@@ -115,6 +117,10 @@ export default function MeetingsPage() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [weekStart, setWeekStart] = useState<Date>(getCurrentWeekSaturday())
   const [reportFilter, setReportFilter] = useState<'month' | '3months' | '6months' | 'year'>('month')
+  const [attendeeCounts, setAttendeeCounts] = useState<Record<string, number>>({})
+  const [minutesMap, setMinutesMap] = useState<Record<string, { id: string; finalized: boolean }>>({})
+  const [attendeesMeeting, setAttendeesMeeting] = useState<any | null>(null)
+  const [minutesMeeting, setMinutesMeeting] = useState<any | null>(null)
   const [newMeeting, setNewMeeting] = useState({
     title: '', day: 'شنبه', time: '', end_time: '', location: '',
     letter_number: '', priority: 'med', meeting_type: 'جلسه',
@@ -132,18 +138,40 @@ export default function MeetingsPage() {
     setLoading(false)
   }, [])
 
+  const fetchAttendeeCounts = useCallback(async () => {
+    const { data } = await supabase.from('meeting_attendees').select('meeting_id')
+    if (data) {
+      const counts: Record<string, number> = {}
+      data.forEach((r: any) => { counts[r.meeting_id] = (counts[r.meeting_id] || 0) + 1 })
+      setAttendeeCounts(counts)
+    }
+  }, [])
+
+  const fetchMinutesMap = useCallback(async () => {
+    const { data } = await supabase.from('meeting_minutes').select('id, meeting_id, finalized')
+    if (data) {
+      const map: Record<string, { id: string; finalized: boolean }> = {}
+      data.forEach((r: any) => { map[r.meeting_id] = { id: r.id, finalized: r.finalized } })
+      setMinutesMap(map)
+    }
+  }, [])
+
   useEffect(() => {
     fetchMeetings()
+    fetchAttendeeCounts()
+    fetchMinutesMap()
     const channel = supabase
       .channel('meetings-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, fetchMeetings)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'meeting_attendees' }, fetchAttendeeCounts)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'meeting_minutes' }, fetchMinutesMap)
       .subscribe()
     const notifInterval = setInterval(checkUpcomingNotifications, 60 * 1000)
     return () => {
       supabase.removeChannel(channel)
       clearInterval(notifInterval)
     }
-  }, [fetchMeetings])
+  }, [fetchMeetings, fetchAttendeeCounts, fetchMinutesMap])
 
   const checkUpcomingNotifications = () => {
     if (!('Notification' in window)) return
@@ -551,6 +579,12 @@ export default function MeetingsPage() {
                             {statusLabel[meeting.status]}
                           </div>
                           <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
+  <button onClick={() => setAttendeesMeeting(meeting)} title="شرکت‌کنندگان" aria-label="شرکت‌کنندگان جلسه" style={{ background: '#8b90a822', border: '1px solid #8b90a844', borderRadius: '6px', padding: '4px 8px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+    👥{attendeeCounts[meeting.id] ? ` ${attendeeCounts[meeting.id]}` : ''}
+  </button>
+  <button onClick={() => setMinutesMeeting(meeting)} title="صورت‌جلسه" aria-label="صورت‌جلسه" style={{ background: minutesMap[meeting.id]?.finalized ? '#3dbb8222' : '#c9a84c22', border: `1px solid ${minutesMap[meeting.id]?.finalized ? '#3dbb8244' : '#c9a84c44'}`, borderRadius: '6px', padding: '4px 8px', color: minutesMap[meeting.id]?.finalized ? '#3dbb82' : '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+    📝{minutesMap[meeting.id]?.finalized ? ' ✓' : ''}
+  </button>
   {!isPastMeeting && can('meetings', 'update') && (
     <button onClick={() => setEditMeeting(meeting)} aria-label="ویرایش جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
   )}
@@ -597,17 +631,23 @@ export default function MeetingsPage() {
                 <div style={{ padding: '3px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: (statusColor[meeting.status] || '#555') + '22', color: statusColor[meeting.status] || '#555', flexShrink: 0 }}>
                   {statusLabel[meeting.status]}
                 </div>
-                {!isPastMeeting && (
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    {can('meetings', 'update') && (
-                      <button onClick={() => setEditMeeting(meeting)} aria-label="ویرایش جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
-                    )}
+                <div style={{ display: 'flex', gap: '5px' }}>
+                  <button onClick={() => setAttendeesMeeting(meeting)} title="شرکت‌کنندگان" aria-label="شرکت‌کنندگان جلسه" style={{ background: '#8b90a822', border: '1px solid #8b90a844', borderRadius: '6px', padding: '5px 8px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    👥{attendeeCounts[meeting.id] ? ` ${attendeeCounts[meeting.id]}` : ''}
+                  </button>
+                  <button onClick={() => setMinutesMeeting(meeting)} title="صورت‌جلسه" aria-label="صورت‌جلسه" style={{ background: minutesMap[meeting.id]?.finalized ? '#3dbb8222' : '#c9a84c22', border: `1px solid ${minutesMap[meeting.id]?.finalized ? '#3dbb8244' : '#c9a84c44'}`, borderRadius: '6px', padding: '5px 8px', color: minutesMap[meeting.id]?.finalized ? '#3dbb82' : '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    📝{minutesMap[meeting.id]?.finalized ? ' ✓' : ''}
+                  </button>
+                  {!isPastMeeting && can('meetings', 'update') && (
+                    <button onClick={() => setEditMeeting(meeting)} aria-label="ویرایش جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
+                  )}
+                  {!isPastMeeting && (
                     <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" aria-label="ثبت درخواست برای این جلسه" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
-                    {can('meetings', 'delete') && (
-                      <button onClick={() => handleDelete(meeting.id)} aria-label="حذف جلسه" style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
-                    )}
-                  </div>
-                )}
+                  )}
+                  {can('meetings', 'delete') && (
+                    <button onClick={() => handleDelete(meeting.id)} aria-label="حذف جلسه" style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+                  )}
+                </div>
               </div>
             )
           })}
@@ -712,6 +752,12 @@ export default function MeetingsPage() {
           onConfirm={confirmDeleteAction}
           onCancel={() => setConfirmDelete(null)}
         />
+      )}
+      {attendeesMeeting && (
+        <AttendeesModal meeting={attendeesMeeting} onClose={() => setAttendeesMeeting(null)} />
+      )}
+      {minutesMeeting && (
+        <MinutesModal meeting={minutesMeeting} onClose={() => setMinutesMeeting(null)} onChanged={fetchMinutesMap} />
       )}
       {ToastComponent}
     </div>
