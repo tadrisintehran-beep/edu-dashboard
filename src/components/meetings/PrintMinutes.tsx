@@ -5,6 +5,7 @@ interface PrintMinutesProps {
   minutes: any
   actionItems: any[]
   attendees: any[]
+  signatures?: any[]
 }
 
 function toJalali(dateStr: string): string {
@@ -30,7 +31,7 @@ const statusLabel: Record<string, string> = {
   pending: 'در انتظار', in_progress: 'در حال انجام', done: 'انجام شد', cancelled: 'لغو شد',
 }
 
-export function PrintMinutes({ meeting, minutes, actionItems, attendees }: PrintMinutesProps) {
+export function PrintMinutes({ meeting, minutes, actionItems, attendees, signatures = [] }: PrintMinutesProps) {
   const contentId = `print-minutes-content-${meeting.id}`
 
   const handlePrint = () => {
@@ -200,18 +201,44 @@ ${content.innerHTML}
           </div>
         )}
 
-        <div className="signature-grid">
-          {[
-            { title: 'تنظیم‌کننده صورت‌جلسه', name: 'مسئول دفتر معاونت' },
-            { title: 'تأییدکننده', name: 'معاون وزیر آموزش و پرورش' },
-          ].map((s, i) => (
-            <div key={i} className="signature-box">
-              <div style={{ fontSize: '10px', color: '#888', marginBottom: '32px' }}>{s.title}</div>
-              <div style={{ fontSize: '11px', fontWeight: 600 }}>{s.name}</div>
-              <p style={{ marginTop: '4px' }}>امضا و مهر</p>
-            </div>
-          ))}
-        </div>
+        {signatures.length > 0 ? (
+          <div className="section">
+            <div className="section-title">امضاها</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>نام</th>
+                  <th>سمت</th>
+                  <th>وضعیت</th>
+                  <th>تاریخ امضا</th>
+                </tr>
+              </thead>
+              <tbody>
+                {signatures.map((s, i) => (
+                  <tr key={i}>
+                    <td style={{ fontWeight: 600 }}>{s.user_name}</td>
+                    <td>{s.user_role || '—'}</td>
+                    <td>{s.is_signed ? '✓ امضا شده' : 'در انتظار امضا'}</td>
+                    <td>{s.signed_at ? toJalali(s.signed_at) : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="signature-grid">
+            {[
+              { title: 'تنظیم‌کننده صورت‌جلسه', name: 'مسئول دفتر معاونت' },
+              { title: 'تأییدکننده', name: 'معاون وزیر آموزش و پرورش' },
+            ].map((s, i) => (
+              <div key={i} className="signature-box">
+                <div style={{ fontSize: '10px', color: '#888', marginBottom: '32px' }}>{s.title}</div>
+                <div style={{ fontSize: '11px', fontWeight: 600 }}>{s.name}</div>
+                <p style={{ marginTop: '4px' }}>امضا و مهر</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="footer">
           <span>سامانه مدیریت معاونت آموزش متوسطه</span>

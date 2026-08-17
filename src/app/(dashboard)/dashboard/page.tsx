@@ -187,17 +187,69 @@ export default function DashboardPage() {
   const [trendData, setTrendData] = useState<{ months: string[], meetings: number[], reports: number[], alerts: number[], contacts: number[] }>({
     months: [], meetings: [], reports: [], alerts: [], contacts: [],
   })
+  const [actionStats, setActionStats] = useState({
+    totalThisMonth: 0, doneThisMonth: 0, overdue: 0,
+    topAssignees: [] as { name: string, count: number }[],
+  })
 
   useEffect(() => {
     fetchData()
+    fetchActionItemStats()
     const channel = supabase
       .channel('dashboard-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'meeting_action_items' }, () => fetchActionItemStats())
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [])
+
+  // اگر کاربر اجازه‌ی ثبت هشدار داره (SUPER_ADMIN/DEPUTY_MINISTER)، یادآورهای سررسیده رو
+  // یک‌بار در بارگذاری داشبورد بررسی کن، به alerts اضافه کن و sent=true بزن
+  useEffect(() => {
+    if (user?.role !== 'SUPER_ADMIN' && user?.role !== 'DEPUTY_MINISTER') return
+    checkActionItemReminders()
+  }, [user?.role])
+
+  const checkActionItemReminders = async () => {
+    const nowIso = new Date().toISOString()
+    const { data: due } = await supabase
+      .from('action_item_reminders')
+      .select('*, meeting_action_items(title, assigned_to_name, due_date)')
+      .eq('sent', false)
+      .lte('remind_at', nowIso)
+    if (!due || due.length === 0) return
+    for (const rem of due) {
+      const item = (rem as any).meeting_action_items
+      await supabase.from('alerts').insert([{
+        title: `یادآوری تکلیف: ${item?.title || ''}`,
+        body: `${item?.assigned_to_name ? `مسئول: ${item.assigned_to_name} — ` : ''}مهلت انجام: ${item?.due_date ? toJalali(item.due_date) : '—'}`,
+        level: 'warning', is_read: false, is_snoozed: false,
+      }])
+      await supabase.from('action_item_reminders').update({ sent: true, sent_at: nowIso }).eq('id', rem.id)
+    }
+  }
+
+  const fetchActionItemStats = async () => {
+    const today = new Date().toISOString().split('T')[0]
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+    const [totalRes, doneRes, overdueRes, pendingRes] = await Promise.all([
+      supabase.from('meeting_action_items').select('id', { count: 'exact', head: true }).gte('created_at', startOfMonth),
+      supabase.from('meeting_action_items').select('id', { count: 'exact', head: true }).gte('created_at', startOfMonth).eq('status', 'done'),
+      supabase.from('meeting_action_items').select('id', { count: 'exact', head: true }).in('status', ['pending', 'in_progress']).lt('due_date', today),
+      supabase.from('meeting_action_items').select('assigned_to_name').in('status', ['pending', 'in_progress']).not('assigned_to_name', 'is', null),
+    ])
+    const counts: Record<string, number> = {}
+    ;(pendingRes.data || []).forEach((r: any) => { if (r.assigned_to_name) counts[r.assigned_to_name] = (counts[r.assigned_to_name] || 0) + 1 })
+    const topAssignees = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([name, count]) => ({ name, count }))
+    setActionStats({
+      totalThisMonth: totalRes.count || 0,
+      doneThisMonth: doneRes.count || 0,
+      overdue: overdueRes.count || 0,
+      topAssignees,
+    })
+  }
 
   const fetchData = async () => {
     setLoading(true)
@@ -474,6 +526,48 @@ export default function DashboardPage() {
               <div style={{ color: t.muted, fontSize: '10px', marginTop: '3px' }}>{item.label}</div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* آمار تکالیف جلسات */}
+      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>🎯 تکالیف جلسات</div>
+          <a href="/dashboard/action-items" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>پیگیری تکالیف →</a>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 3fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+            <div style={{ background: t.inner, borderRadius: '10px', padding: '10px', textAlign: 'center', border: `1px solid ${t.border}` }}>
+              <div style={{ color: t.text, fontSize: '20px', fontWeight: '800' }}>{actionStats.totalThisMonth}</div>
+              <div style={{ color: t.muted, fontSize: '9px', marginTop: '3px' }}>تکلیف این ماه</div>
+            </div>
+            <div style={{ background: t.inner, borderRadius: '10px', padding: '10px', textAlign: 'center', border: `1px solid ${t.border}` }}>
+              <div style={{ color: '#3dbb82', fontSize: '20px', fontWeight: '800' }}>
+                {actionStats.totalThisMonth ? Math.round((actionStats.doneThisMonth / actionStats.totalThisMonth) * 100) : 0}%
+              </div>
+              <div style={{ color: t.muted, fontSize: '9px', marginTop: '3px' }}>نرخ انجام</div>
+            </div>
+            <div style={{ background: actionStats.overdue > 0 ? '#e0555511' : t.inner, borderRadius: '10px', padding: '10px', textAlign: 'center', border: `1px solid ${actionStats.overdue > 0 ? '#e0555544' : t.border}` }}>
+              <div style={{ color: '#e05555', fontSize: '20px', fontWeight: '800' }}>{actionStats.overdue}</div>
+              <div style={{ color: t.muted, fontSize: '9px', marginTop: '3px' }}>معوق</div>
+            </div>
+          </div>
+          <div>
+            <div style={{ color: t.muted, fontSize: '10px', marginBottom: '8px' }}>بیشترین تکالیف باز بر عهده</div>
+            {actionStats.topAssignees.length === 0 ? (
+              <div style={{ color: t.muted, fontSize: '11px', textAlign: 'center', padding: '10px' }}>موردی نیست</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {actionStats.topAssignees.map((a, i) => (
+                  <div key={a.name} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: t.muted, fontSize: '10px', width: '14px' }}>{i + 1}.</span>
+                    <span style={{ color: t.text, fontSize: '11px', flex: 1 }}>{a.name}</span>
+                    <span style={{ color: '#c9a84c', fontSize: '11px', fontWeight: '700' }}>{a.count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

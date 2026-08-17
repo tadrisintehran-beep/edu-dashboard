@@ -14,6 +14,7 @@ const menuItems = [
   { icon: '📅', label: 'جلسات', path: '/dashboard/meetings' },
   { icon: '✉️', label: 'نامه‌ها', path: '/dashboard/letters' },
   { icon: '📌', label: 'درخواست‌ها', path: '/dashboard/tasks' },
+  { icon: '🎯', label: 'پیگیری تکالیف', path: '/dashboard/action-items' },
   { icon: '📋', label: 'گزارش‌ها', path: '/dashboard/reports' },
   { icon: '📒', label: 'دفترچه تلفن', path: '/dashboard/phonebook' },
   { icon: '🔔', label: 'هشدارها', path: '/dashboard/alerts' },
@@ -52,6 +53,7 @@ const pageTitle: Record<string, string> = {
   '/dashboard/logs': 'لاگ دسترسی',
   '/dashboard/tasks': 'درخواست‌ها و تکالیف',
   '/dashboard/letters': 'گردش نامه',
+  '/dashboard/action-items': 'پیگیری تکالیف',
   '/dashboard/executive-report': 'گزارش اجرایی',
 }
 
@@ -111,11 +113,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const fetchBadges = async () => {
       const today = new Date().toISOString().split('T')[0]
-      const [meetings, reports, alerts, myReferrals, latestReport, nearestMeeting, latestAlert] = await Promise.all([
+      const [meetings, reports, alerts, myReferrals, overdueItems, latestReport, nearestMeeting, latestAlert] = await Promise.all([
         supabase.from('meetings').select('id').eq('status', 'pending').gte('date', today),
         supabase.from('reports').select('id').eq('seen', false),
         supabase.from('alerts').select('id').eq('is_read', false),
         user ? supabase.from('letter_referrals').select('id').eq('to_user_id', user.id).neq('status', 'done') : Promise.resolve({ data: [] as any[] }),
+        supabase.from('meeting_action_items').select('id').in('status', ['pending', 'in_progress']).lt('due_date', today),
         supabase.from('reports').select('id,title_fa,created_at').eq('seen', false).order('created_at', { ascending: false }).limit(1),
         supabase.from('meetings').select('id,title_fa,date,time').eq('status', 'pending').gte('date', today).order('date').order('time').limit(1),
         supabase.from('alerts').select('id,title,created_at').eq('is_read', false).order('created_at', { ascending: false }).limit(1),
@@ -125,6 +128,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         '/dashboard/reports': reports.data?.length || 0,
         '/dashboard/alerts': alerts.data?.length || 0,
         '/dashboard/letters': myReferrals.data?.length || 0,
+        '/dashboard/action-items': overdueItems.data?.length || 0,
       })
 
       const items: typeof notifItems = []

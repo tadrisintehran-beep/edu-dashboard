@@ -13,6 +13,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { activateOnKey } from '@/lib/a11y'
 import { AttendeesModal } from '@/components/meetings/AttendeesModal'
 import { MinutesModal } from '@/components/meetings/MinutesModal'
+import { AgendaModal } from '@/components/meetings/AgendaModal'
 
 const VIEW_LABELS: Record<'weekly' | 'list' | 'calendar' | 'report', string> = {
   weekly: 'نمای هفتگی', list: 'نمای لیست', calendar: 'نمای تقویم', report: 'نمای گزارش',
@@ -119,8 +120,13 @@ export default function MeetingsPage() {
   const [reportFilter, setReportFilter] = useState<'month' | '3months' | '6months' | 'year'>('month')
   const [attendeeCounts, setAttendeeCounts] = useState<Record<string, number>>({})
   const [minutesMap, setMinutesMap] = useState<Record<string, { id: string; finalized: boolean }>>({})
+  const [agendaCounts, setAgendaCounts] = useState<Record<string, number>>({})
   const [attendeesMeeting, setAttendeesMeeting] = useState<any | null>(null)
   const [minutesMeeting, setMinutesMeeting] = useState<any | null>(null)
+  const [agendaMeeting, setAgendaMeeting] = useState<any | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [searchMatches, setSearchMatches] = useState<Record<string, string> | null>(null)
   const [newMeeting, setNewMeeting] = useState({
     title: '', day: 'شنبه', time: '', end_time: '', location: '',
     letter_number: '', priority: 'med', meeting_type: 'جلسه',
@@ -168,23 +174,34 @@ export default function MeetingsPage() {
     if (data) setDepartments(data)
   }, [])
 
+  const fetchAgendaCounts = useCallback(async () => {
+    const { data } = await supabase.from('meeting_agenda_items').select('meeting_id')
+    if (data) {
+      const counts: Record<string, number> = {}
+      data.forEach((r: any) => { counts[r.meeting_id] = (counts[r.meeting_id] || 0) + 1 })
+      setAgendaCounts(counts)
+    }
+  }, [])
+
   useEffect(() => {
     fetchMeetings()
     fetchAttendeeCounts()
     fetchMinutesMap()
     fetchDepartments()
+    fetchAgendaCounts()
     const channel = supabase
       .channel('meetings-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, fetchMeetings)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meeting_attendees' }, fetchAttendeeCounts)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meeting_minutes' }, fetchMinutesMap)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'meeting_agenda_items' }, fetchAgendaCounts)
       .subscribe()
     const notifInterval = setInterval(checkUpcomingNotifications, 60 * 1000)
     return () => {
       supabase.removeChannel(channel)
       clearInterval(notifInterval)
     }
-  }, [fetchMeetings, fetchAttendeeCounts, fetchMinutesMap, fetchDepartments])
+  }, [fetchMeetings, fetchAttendeeCounts, fetchMinutesMap, fetchDepartments, fetchAgendaCounts])
 
   const checkUpcomingNotifications = () => {
     if (!('Notification' in window)) return
@@ -339,6 +356,36 @@ export default function MeetingsPage() {
     setConfirmDelete(null)
     fetchMeetings()
   }
+
+  // جستجوی پیشرفته در نمای لیست: عنوان جلسه، خلاصه/تصمیمات صورت‌جلسه، عنوان تکالیف
+  useEffect(() => {
+    if (view !== 'list' || searchQuery.trim().length < 2) { setSearchMatches(null); return }
+    const q = searchQuery.trim()
+    const timer = setTimeout(async () => {
+      setSearching(true)
+      const [minutesRes, itemsRes] = await Promise.all([
+        supabase.from('meeting_minutes').select('meeting_id, summary, decisions').or(`summary.ilike.%${q}%,decisions.ilike.%${q}%`),
+        supabase.from('meeting_action_items').select('meeting_id, title').ilike('title', `%${q}%`),
+      ])
+      const matches: Record<string, string> = {}
+      meetings.forEach(m => {
+        if (m.title_fa?.toLowerCase().includes(q.toLowerCase())) matches[m.id] = 'عنوان جلسه'
+      })
+      minutesRes.data?.forEach((row: any) => {
+        if (!matches[row.meeting_id]) {
+          matches[row.meeting_id] = row.summary?.toLowerCase().includes(q.toLowerCase()) ? 'خلاصه مذاکرات' : 'تصمیمات'
+        }
+      })
+      itemsRes.data?.forEach((row: any) => {
+        if (!matches[row.meeting_id]) matches[row.meeting_id] = `تکلیف: ${row.title}`
+      })
+      setSearchMatches(matches)
+      setSearching(false)
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [searchQuery, view, meetings])
+
+  const listMeetings = searchMatches ? meetings.filter(m => searchMatches[m.id]) : meetings
 
   const weekMeetings = meetings.filter(m => {
     if (!m.date) return false
@@ -728,6 +775,9 @@ export default function MeetingsPage() {
                             {statusLabel[meeting.status]}
                           </div>
                           <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
+  <button onClick={() => setAgendaMeeting(meeting)} title="دستور جلسه" aria-label="دستور جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+    📋{agendaCounts[meeting.id] ? ` ${agendaCounts[meeting.id]}` : ''}
+  </button>
   <button onClick={() => setAttendeesMeeting(meeting)} title="شرکت‌کنندگان" aria-label="شرکت‌کنندگان جلسه" style={{ background: '#8b90a822', border: '1px solid #8b90a844', borderRadius: '6px', padding: '4px 8px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
     👥{attendeeCounts[meeting.id] ? ` ${attendeeCounts[meeting.id]}` : ''}
   </button>
@@ -760,46 +810,70 @@ export default function MeetingsPage() {
 
       {/* نمای لیست */}
       {view === 'list' && (
-        <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {meetings.length === 0 ? (
-            <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>جلسه‌ای ثبت نشده</div>
-          ) : meetings.map(meeting => {
-            const timeStatus = getMeetingTimeStatus(meeting.date, meeting.time, meeting.end_time)
-            const isPastMeeting = timeStatus === 'past'
-            return (
-              <div key={meeting.id} style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px', display: 'flex', alignItems: 'center', gap: '10px', opacity: isPastMeeting ? 0.5 : 1 }}>
-                <div style={{ width: '4px', height: '40px', borderRadius: '2px', background: isPastMeeting ? t.border : (priorityColor[meeting.priority] || '#555'), flexShrink: 0 }}></div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '3px' }}>{meeting.title_fa}</div>
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <span style={{ color: '#e8c96a', fontSize: '12px' }}>{meeting.day_of_week} {toJalaliSimple(meeting.date)}</span>
-                    <span style={{ color: t.sub, fontSize: '11px' }}>⏰ {meeting.time}{meeting.end_time ? `—${meeting.end_time}` : ''}</span>
-                    {meeting.location && <span style={{ color: t.sub, fontSize: '11px' }}>📍 {meeting.location}</span>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ position: 'relative' }}>
+            <input
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="جستجو در عنوان جلسه، خلاصه مذاکرات، تصمیمات و تکالیف..."
+              style={{ ...inputStyle, padding: '10px 36px 10px 12px' }}
+            />
+            <span style={{ position: 'absolute', top: '50%', right: '12px', transform: 'translateY(-50%)', color: t.muted, fontSize: '13px' }}>
+              {searching ? '⏳' : '🔍'}
+            </span>
+          </div>
+
+          <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {listMeetings.length === 0 ? (
+              <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>
+                {searchMatches ? 'نتیجه‌ای برای جستجو یافت نشد' : 'جلسه‌ای ثبت نشده'}
+              </div>
+            ) : listMeetings.map(meeting => {
+              const timeStatus = getMeetingTimeStatus(meeting.date, meeting.time, meeting.end_time)
+              const isPastMeeting = timeStatus === 'past'
+              return (
+                <div key={meeting.id} style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', opacity: isPastMeeting ? 0.5 : 1 }}>
+                  <div style={{ width: '4px', height: '40px', borderRadius: '2px', background: isPastMeeting ? t.border : (priorityColor[meeting.priority] || '#555'), flexShrink: 0 }}></div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '3px' }}>{meeting.title_fa}</div>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      <span style={{ color: '#e8c96a', fontSize: '12px' }}>{meeting.day_of_week} {toJalaliSimple(meeting.date)}</span>
+                      <span style={{ color: t.sub, fontSize: '11px' }}>⏰ {meeting.time}{meeting.end_time ? `—${meeting.end_time}` : ''}</span>
+                      {meeting.location && <span style={{ color: t.sub, fontSize: '11px' }}>📍 {meeting.location}</span>}
+                      {searchMatches?.[meeting.id] && (
+                        <span style={{ color: '#4a9eff', fontSize: '11px', background: '#4a9eff11', border: '1px solid #4a9eff33', borderRadius: '6px', padding: '1px 7px' }}>
+                          🎯 {searchMatches[meeting.id]}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ padding: '3px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: (statusColor[meeting.status] || '#555') + '22', color: statusColor[meeting.status] || '#555', flexShrink: 0 }}>
+                    {statusLabel[meeting.status]}
+                  </div>
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                    <button onClick={() => setAgendaMeeting(meeting)} title="دستور جلسه" aria-label="دستور جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                      📋{agendaCounts[meeting.id] ? ` ${agendaCounts[meeting.id]}` : ''}
+                    </button>
+                    <button onClick={() => setAttendeesMeeting(meeting)} title="شرکت‌کنندگان" aria-label="شرکت‌کنندگان جلسه" style={{ background: '#8b90a822', border: '1px solid #8b90a844', borderRadius: '6px', padding: '5px 8px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                      👥{attendeeCounts[meeting.id] ? ` ${attendeeCounts[meeting.id]}` : ''}
+                    </button>
+                    <button onClick={() => setMinutesMeeting(meeting)} title="صورت‌جلسه" aria-label="صورت‌جلسه" style={{ background: minutesMap[meeting.id]?.finalized ? '#3dbb8222' : '#c9a84c22', border: `1px solid ${minutesMap[meeting.id]?.finalized ? '#3dbb8244' : '#c9a84c44'}`, borderRadius: '6px', padding: '5px 8px', color: minutesMap[meeting.id]?.finalized ? '#3dbb82' : '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                      📝{minutesMap[meeting.id]?.finalized ? ' ✓' : ''}
+                    </button>
+                    {!isPastMeeting && can('meetings', 'update') && (
+                      <button onClick={() => setEditMeeting(meeting)} aria-label="ویرایش جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
+                    )}
+                    {!isPastMeeting && (
+                      <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" aria-label="ثبت درخواست برای این جلسه" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
+                    )}
+                    {can('meetings', 'delete') && (
+                      <button onClick={() => handleDelete(meeting.id)} aria-label="حذف جلسه" style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+                    )}
                   </div>
                 </div>
-                <div style={{ padding: '3px 8px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: (statusColor[meeting.status] || '#555') + '22', color: statusColor[meeting.status] || '#555', flexShrink: 0 }}>
-                  {statusLabel[meeting.status]}
-                </div>
-                <div style={{ display: 'flex', gap: '5px' }}>
-                  <button onClick={() => setAttendeesMeeting(meeting)} title="شرکت‌کنندگان" aria-label="شرکت‌کنندگان جلسه" style={{ background: '#8b90a822', border: '1px solid #8b90a844', borderRadius: '6px', padding: '5px 8px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                    👥{attendeeCounts[meeting.id] ? ` ${attendeeCounts[meeting.id]}` : ''}
-                  </button>
-                  <button onClick={() => setMinutesMeeting(meeting)} title="صورت‌جلسه" aria-label="صورت‌جلسه" style={{ background: minutesMap[meeting.id]?.finalized ? '#3dbb8222' : '#c9a84c22', border: `1px solid ${minutesMap[meeting.id]?.finalized ? '#3dbb8244' : '#c9a84c44'}`, borderRadius: '6px', padding: '5px 8px', color: minutesMap[meeting.id]?.finalized ? '#3dbb82' : '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                    📝{minutesMap[meeting.id]?.finalized ? ' ✓' : ''}
-                  </button>
-                  {!isPastMeeting && can('meetings', 'update') && (
-                    <button onClick={() => setEditMeeting(meeting)} aria-label="ویرایش جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
-                  )}
-                  {!isPastMeeting && (
-                    <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" aria-label="ثبت درخواست برای این جلسه" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
-                  )}
-                  {can('meetings', 'delete') && (
-                    <button onClick={() => handleDelete(meeting.id)} aria-label="حذف جلسه" style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
-                  )}
-                </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
       )}
 
@@ -906,7 +980,17 @@ export default function MeetingsPage() {
         <AttendeesModal meeting={attendeesMeeting} onClose={() => setAttendeesMeeting(null)} />
       )}
       {minutesMeeting && (
-        <MinutesModal meeting={minutesMeeting} onClose={() => setMinutesMeeting(null)} onChanged={fetchMinutesMap} />
+        <MinutesModal
+          key={minutesMeeting.id}
+          meeting={minutesMeeting}
+          onClose={() => setMinutesMeeting(null)}
+          onChanged={fetchMinutesMap}
+          allMeetings={meetings}
+          onNavigate={m => setMinutesMeeting(m)}
+        />
+      )}
+      {agendaMeeting && (
+        <AgendaModal meeting={agendaMeeting} onClose={() => setAgendaMeeting(null)} onChanged={fetchAgendaCounts} />
       )}
       {ToastComponent}
     </div>
