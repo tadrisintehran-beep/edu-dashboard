@@ -32,6 +32,11 @@ create index if not exists minutes_signatures_minutes_id_idx on minutes_signatur
 create index if not exists action_item_reminders_action_item_id_idx on action_item_reminders(action_item_id);
 create index if not exists action_item_reminders_remind_at_idx on action_item_reminders(remind_at) where sent = false;
 
+-- ایندکس‌های زیر در بازبینی کد (اولویت پایین) پیشنهاد شدند و به‌صورت دستی در Supabase اعمال شدند؛
+-- این خط‌ها صرفاً برای هم‌گام بودن این migration با وضعیت واقعی دیتابیس اضافه شده‌اند (idempotent، بدون اثر روی داده).
+create index if not exists minutes_signatures_user_id_idx on minutes_signatures(user_id);
+create index if not exists meeting_action_items_assigned_to_user_id_idx on meeting_action_items(assigned_to_user_id);
+
 -- ===== ۱. meeting_agenda_items =====
 alter table meeting_agenda_items enable row level security;
 

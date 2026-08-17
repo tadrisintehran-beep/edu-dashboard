@@ -5,6 +5,7 @@ import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/ui/Toast'
 import { useAuthStore } from '@/stores/authStore'
+import { useIsMobile } from '@/lib/useIsMobile'
 import { toJalali } from '@/lib/date'
 import { escapeHtml } from '@/lib/html'
 
@@ -21,6 +22,7 @@ export function AgendaModal({ meeting, onClose, onChanged }: AgendaModalProps) {
   const { t } = useTheme()
   const { can } = useAuthStore()
   const { showToast, ToastComponent } = useToast()
+  const isMobile = useIsMobile()
   const canEdit = can('meetings', 'update')
 
   const [items, setItems] = useState<any[]>([])
@@ -156,7 +158,7 @@ ${content.innerHTML}
     }}>
       <div style={{
         background: t.card, border: `1px solid ${t.border}`, borderRadius: '16px',
-        width: '100%', maxWidth: '700px', maxHeight: '88vh', display: 'flex', flexDirection: 'column',
+        width: '100%', maxWidth: isMobile ? '100%' : '700px', maxHeight: '88vh', display: 'flex', flexDirection: 'column',
         animation: 'fadeInUp 0.2s ease', boxShadow: '0 20px 60px #00000055', color: t.text,
       }}>
         <div style={{ padding: '18px 20px', borderBottom: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexShrink: 0, gap: '10px', flexWrap: 'wrap' }}>
@@ -184,7 +186,7 @@ ${content.innerHTML}
                 {items.length === 0 ? (
                   <div style={{ color: t.muted, fontSize: '12px', padding: '20px', textAlign: 'center', background: t.inner, borderRadius: '8px' }}>بندی برای دستور جلسه ثبت نشده</div>
                 ) : items.map((item, i) => (
-                  <div key={item.id} style={{ background: t.inner, borderRadius: '10px', padding: '10px 12px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                  <div key={item.id} style={{ background: t.inner, borderRadius: '10px', padding: '10px 12px', display: 'flex', alignItems: 'flex-start', gap: '10px', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
                     {canEdit && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }}>
                         <button onClick={() => handleMove(i, -1)} disabled={i === 0} aria-label="جابه‌جایی به بالا" style={{ background: 'transparent', border: 'none', color: i === 0 ? t.muted : t.sub, cursor: i === 0 ? 'default' : 'pointer', fontSize: '12px', padding: '2px' }}>▲</button>
@@ -229,11 +231,11 @@ ${content.innerHTML}
                   <textarea style={{ ...inputStyle, minHeight: '50px', resize: 'vertical' as const }} placeholder="توضیحات (اختیاری)"
                     value={newItem.description} onChange={e => setNewItem(p => ({ ...p, description: e.target.value }))} />
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <input style={{ ...inputStyle, flex: 1, minWidth: '140px' }} placeholder="ارائه‌دهنده"
+                    <input style={{ ...inputStyle, flex: 1, minWidth: isMobile ? '100%' : '140px' }} placeholder="ارائه‌دهنده"
                       value={newItem.presenter_name} onChange={e => setNewItem(p => ({ ...p, presenter_name: e.target.value }))} />
-                    <input style={{ ...inputStyle, flex: '0 0 110px' }} type="number" min="0" placeholder="مدت (دقیقه)"
+                    <input style={{ ...inputStyle, flex: isMobile ? '1 1 100%' : '0 0 110px' }} type="number" min="0" placeholder="مدت (دقیقه)"
                       value={newItem.duration_minutes} onChange={e => setNewItem(p => ({ ...p, duration_minutes: e.target.value }))} />
-                    <button onClick={handleAdd} className="btn-gold" style={{ padding: '8px 18px', fontSize: '12px', flexShrink: 0 }}>+ افزودن</button>
+                    <button onClick={handleAdd} className="btn-gold" style={{ padding: '8px 18px', fontSize: '12px', flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>+ افزودن</button>
                   </div>
                 </div>
               )}

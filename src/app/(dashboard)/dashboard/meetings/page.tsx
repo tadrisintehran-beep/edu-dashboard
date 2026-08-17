@@ -19,6 +19,7 @@ import {
   PRIORITY_LABELS as priorityLabel, PRIORITY_COLORS as priorityColor,
   MEETING_STATUS_LABELS as statusLabel, MEETING_STATUS_COLORS as statusColor,
 } from '@/lib/constants'
+import { useDepartments } from '@/lib/hooks/useDepartments'
 
 const VIEW_LABELS: Record<'weekly' | 'list' | 'calendar' | 'report', string> = {
   weekly: 'نمای هفتگی', list: 'نمای لیست', calendar: 'نمای تقویم', report: 'نمای گزارش',
@@ -115,7 +116,7 @@ export default function MeetingsPage() {
   })
 
   // شرکت‌کنندگان جلسه در فرم «جلسه جدید» — داخلی: انتخاب معاونت (بدون نفر مشخص)، خارجی: متن آزاد
-  const [departments, setDepartments] = useState<{ id: string; name_fa: string }[]>([])
+  const { departments } = useDepartments()
   const [attendeeTab, setAttendeeTab] = useState<'internal' | 'external'>('internal')
   const [selectedDepts, setSelectedDepts] = useState<string[]>([])
   const [externalAttendees, setExternalAttendees] = useState<{ name: string; org: string; type: 'organization' | 'expert' }[]>([])
@@ -153,11 +154,6 @@ export default function MeetingsPage() {
     }
   }, [])
 
-  const fetchDepartments = useCallback(async () => {
-    const { data } = await supabase.from('departments').select('id, name_fa').order('name_fa')
-    if (data) setDepartments(data)
-  }, [])
-
   const fetchAgendaCounts = useCallback(async () => {
     const { data } = await supabase.from('meeting_agenda_items').select('meeting_id')
     if (data) {
@@ -171,7 +167,6 @@ export default function MeetingsPage() {
     fetchMeetings()
     fetchAttendeeCounts()
     fetchMinutesMap()
-    fetchDepartments()
     fetchAgendaCounts()
     const channel = supabase
       .channel('meetings-changes')
@@ -185,7 +180,7 @@ export default function MeetingsPage() {
       supabase.removeChannel(channel)
       clearInterval(notifInterval)
     }
-  }, [fetchMeetings, fetchAttendeeCounts, fetchMinutesMap, fetchDepartments, fetchAgendaCounts])
+  }, [fetchMeetings, fetchAttendeeCounts, fetchMinutesMap, fetchAgendaCounts])
 
   const checkUpcomingNotifications = () => {
     if (!('Notification' in window)) return

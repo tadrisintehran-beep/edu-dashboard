@@ -453,6 +453,9 @@ export function MinutesModal({ meeting, onClose, onChanged, allMeetings = [], on
                       {/* یادآورها */}
                       {(canEdit || (remindersByItem[ai.id]?.length ?? 0) > 0) && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '7px', paddingTop: '7px', borderTop: `1px solid ${t.border}` }}>
+                          {(remindersByItem[ai.id]?.length ?? 0) === 0 && (
+                            <span style={{ fontSize: '10px', color: t.muted }}>بدون یادآور</span>
+                          )}
                           {(remindersByItem[ai.id] || []).map(rem => (
                             <span key={rem.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '8px', fontSize: '10px', background: rem.sent ? t.card : '#c9a84c22', border: `1px solid ${rem.sent ? t.border : '#c9a84c44'}`, color: rem.sent ? t.muted : '#e8c96a' }}>
                               🔔 {toJalali(rem.remind_at)}{rem.sent ? ' ✓' : ''}

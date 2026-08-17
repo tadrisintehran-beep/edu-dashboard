@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { toJalali } from '@/lib/date'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'next/navigation'
+import { useDepartments } from '@/lib/hooks/useDepartments'
 
 const roleLabel: Record<string, string> = {
   SUPER_ADMIN: 'مدیر سیستم',
@@ -31,7 +32,7 @@ export default function UsersPage() {
   const { user: currentUser } = useAuthStore()
   const router = useRouter()
   const [users, setUsers] = useState<any[]>([])
-  const [departments, setDepartments] = useState<{ id: string; name_fa: string }[]>([])
+  const { departments } = useDepartments()
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
@@ -48,7 +49,7 @@ export default function UsersPage() {
     }
   }, [currentUser, router])
 
-  useEffect(() => { fetchUsers(); fetchDepartments() }, [])
+  useEffect(() => { fetchUsers() }, [])
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -58,11 +59,6 @@ export default function UsersPage() {
       .order('created_at', { ascending: false })
     if (!error && data) setUsers(data)
     setLoading(false)
-  }
-
-  const fetchDepartments = async () => {
-    const { data, error } = await supabase.from('departments').select('id, name_fa').order('name_fa')
-    if (!error && data) setDepartments(data)
   }
 
   const handleAdd = async () => {
