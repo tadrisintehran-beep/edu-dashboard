@@ -12,6 +12,7 @@ import { activateOnKey } from '@/lib/a11y'
 const menuItems = [
   { icon: '⊞', label: 'داشبورد', path: '/dashboard' },
   { icon: '📅', label: 'جلسات', path: '/dashboard/meetings' },
+  { icon: '✉️', label: 'نامه‌ها', path: '/dashboard/letters' },
   { icon: '📌', label: 'درخواست‌ها', path: '/dashboard/tasks' },
   { icon: '📋', label: 'گزارش‌ها', path: '/dashboard/reports' },
   { icon: '📒', label: 'دفترچه تلفن', path: '/dashboard/phonebook' },
@@ -50,6 +51,7 @@ const pageTitle: Record<string, string> = {
   '/dashboard/documents': 'مدیریت اسناد',
   '/dashboard/logs': 'لاگ دسترسی',
   '/dashboard/tasks': 'درخواست‌ها و تکالیف',
+  '/dashboard/letters': 'گردش نامه',
   '/dashboard/executive-report': 'گزارش اجرایی',
 }
 
@@ -109,10 +111,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const fetchBadges = async () => {
       const today = new Date().toISOString().split('T')[0]
-      const [meetings, reports, alerts, latestReport, nearestMeeting, latestAlert] = await Promise.all([
+      const [meetings, reports, alerts, myReferrals, latestReport, nearestMeeting, latestAlert] = await Promise.all([
         supabase.from('meetings').select('id').eq('status', 'pending').gte('date', today),
         supabase.from('reports').select('id').eq('seen', false),
         supabase.from('alerts').select('id').eq('is_read', false),
+        user ? supabase.from('letter_referrals').select('id').eq('to_user_id', user.id).neq('status', 'done') : Promise.resolve({ data: [] as any[] }),
         supabase.from('reports').select('id,title_fa,created_at').eq('seen', false).order('created_at', { ascending: false }).limit(1),
         supabase.from('meetings').select('id,title_fa,date,time').eq('status', 'pending').gte('date', today).order('date').order('time').limit(1),
         supabase.from('alerts').select('id,title,created_at').eq('is_read', false).order('created_at', { ascending: false }).limit(1),
@@ -121,6 +124,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         '/dashboard/meetings': meetings.data?.length || 0,
         '/dashboard/reports': reports.data?.length || 0,
         '/dashboard/alerts': alerts.data?.length || 0,
+        '/dashboard/letters': myReferrals.data?.length || 0,
       })
 
       const items: typeof notifItems = []
@@ -133,7 +137,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setNotifItems(items)
     }
     fetchBadges()
-  }, [pathname])
+  }, [pathname, user?.id])
 
   const handleLogout = async () => {
     await signOut()

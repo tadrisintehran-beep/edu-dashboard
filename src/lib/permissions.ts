@@ -5,7 +5,7 @@ export type UserRole = 'SUPER_ADMIN' | 'DEPUTY_MINISTER' | 'SECRETARY' | 'VIEWER
 export type Resource =
   | 'meetings' | 'reports' | 'documents'
   | 'contacts' | 'alerts' | 'users'
-  | 'settings' | 'logs' | 'profile' | 'tasks'
+  | 'settings' | 'logs' | 'profile' | 'tasks' | 'letters'
 
 // تعریف اقدامات
 export type Action = 'view' | 'create' | 'update' | 'delete'
@@ -19,6 +19,7 @@ const PERMISSIONS: Record<UserRole, Record<Resource, Action[]>> = {
     contacts:  ['view', 'create', 'update', 'delete'],
     alerts:    ['view', 'create', 'update', 'delete'],
     tasks:     ['view', 'create', 'update', 'delete'],
+    letters:   ['view', 'create', 'update', 'delete'],
     users:     ['view', 'create', 'update', 'delete'],
     settings:  ['view', 'update'],
     logs:      ['view'],
@@ -31,6 +32,7 @@ const PERMISSIONS: Record<UserRole, Record<Resource, Action[]>> = {
     contacts:  ['view', 'create', 'update', 'delete'],
     alerts:    ['view', 'create', 'update', 'delete'],
     tasks:     ['view', 'create', 'update', 'delete'],
+    letters:   ['view', 'create', 'update', 'delete'],
     users:     [],
     settings:  ['view', 'update'],
     logs:      [],
@@ -43,6 +45,7 @@ const PERMISSIONS: Record<UserRole, Record<Resource, Action[]>> = {
     contacts:  ['view', 'create', 'update'],
     alerts:    ['view'],
     tasks:     ['view', 'create', 'update', 'delete'],
+    letters:   ['view', 'create', 'update', 'delete'],
     users:     [],
     settings:  [],
     logs:      [],
@@ -55,6 +58,7 @@ const PERMISSIONS: Record<UserRole, Record<Resource, Action[]>> = {
     contacts:  ['view'],
     alerts:    [],
     tasks:     ['view'],
+    letters:   ['view'],
     users:     [],
     settings:  [],
     logs:      [],
