@@ -54,26 +54,24 @@ export async function POST(request: NextRequest) {
     .eq('meeting_id', meeting.id)
 
   const now = new Date().toISOString()
-  const logRows: { minutes_id: string; sent_to_name: string; sent_to_email: string | null; sent_via: string; sent_at: string }[] = []
 
-  for (const a of attendees || []) {
+  const logRows = await Promise.all((attendees || []).map(async a => {
     if (a.is_external) {
-      logRows.push({ minutes_id: minutesId, sent_to_name: a.external_name, sent_to_email: null, sent_via: 'log', sent_at: now })
-      continue
+      return { minutes_id: minutesId, sent_to_name: a.external_name, sent_to_email: null, sent_via: 'log', sent_at: now }
     }
     let email: string | null = null
     if (a.user_id) {
       const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(a.user_id)
       email = authUser?.user?.email || null
     }
-    logRows.push({
+    return {
       minutes_id: minutesId,
       sent_to_name: a.user_name,
       sent_to_email: email,
       sent_via: email ? 'email' : 'log',
       sent_at: now,
-    })
-  }
+    }
+  }))
 
   if (logRows.length > 0) {
     const { error: logError } = await supabaseAdmin.from('minutes_send_log').insert(logRows)

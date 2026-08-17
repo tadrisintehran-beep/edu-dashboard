@@ -8,11 +8,10 @@ import { useIsMobile } from '@/lib/useIsMobile'
 import { useAuthStore } from '@/stores/authStore'
 import { toJalali } from '@/lib/date'
 import { activateOnKey } from '@/lib/a11y'
-
-const priorityLabel: Record<string, string> = { low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری' }
-const priorityColor: Record<string, string> = { low: '#4a9eff', med: '#c9a84c', high: '#e09444', critical: '#e05555' }
-const statusLabel: Record<string, string> = { pending: 'در انتظار', in_progress: 'در حال انجام', done: 'انجام شد', cancelled: 'لغو شد' }
-const statusColor: Record<string, string> = { pending: '#c9a84c', in_progress: '#4a9eff', done: '#3dbb82', cancelled: '#e05555' }
+import {
+  PRIORITY_LABELS as priorityLabel, PRIORITY_COLORS as priorityColor,
+  TASK_STATUS_LABELS as statusLabel, TASK_STATUS_COLORS as statusColor,
+} from '@/lib/constants'
 
 function daysDiff(dueDate: string): number {
   const today = new Date(); today.setHours(0, 0, 0, 0)

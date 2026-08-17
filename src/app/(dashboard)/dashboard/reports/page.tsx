@@ -10,13 +10,7 @@ import { toJalali } from '@/lib/date'
 import { exportReportsToExcel } from '@/lib/exportData'
 import { useAuthStore } from '@/stores/authStore'
 import { activateOnKey } from '@/lib/a11y'
-
-const statusLabel: Record<string, string> = {
-  submitted: 'ارسال شده', reviewing: 'در حال بررسی', approved: 'تأیید شده', rejected: 'رد شده',
-}
-const statusColor: Record<string, string> = {
-  submitted: '#4a9eff', reviewing: '#c9a84c', approved: '#3dbb82', rejected: '#e05555',
-}
+import { REPORT_STATUS_LABELS as statusLabel, REPORT_STATUS_COLORS as statusColor } from '@/lib/constants'
 
 const fileTypeIcon: Record<string, string> = {
   'application/pdf': '📄',

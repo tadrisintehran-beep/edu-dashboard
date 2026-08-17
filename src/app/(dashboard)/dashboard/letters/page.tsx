@@ -11,16 +11,10 @@ import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker'
 import { toJalali } from '@/lib/date'
 import { activateOnKey } from '@/lib/a11y'
 import { ALLOWED_UPLOAD_EXT, validateUploadFile } from '@/lib/fileValidation'
+import { PRIORITY_LABELS as priorityLabel, PRIORITY_COLORS as priorityColor } from '@/lib/constants'
 
 const typeLabel: Record<string, string> = { incoming: 'وارده', outgoing: 'صادره' }
 const typeColor: Record<string, string> = { incoming: '#4a9eff', outgoing: '#3dbb82' }
-
-const priorityColor: Record<string, string> = {
-  low: '#4a9eff', med: '#c9a84c', high: '#e09444', critical: '#e05555',
-}
-const priorityLabel: Record<string, string> = {
-  low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری',
-}
 
 const statusColor: Record<string, string> = {
   open: '#c9a84c', referred: '#4a9eff', in_progress: '#4a9eff', done: '#3dbb82', archived: '#8a8a8a',

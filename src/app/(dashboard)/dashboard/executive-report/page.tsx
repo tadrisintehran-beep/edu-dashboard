@@ -5,18 +5,13 @@ import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { activateOnKey } from '@/lib/a11y'
+import { toJalali } from '@/lib/date'
+import {
+  PRIORITY_LABELS as priorityLabel, MEETING_STATUS_LABELS as statusLabelM,
+  REPORT_STATUS_LABELS as statusLabelR, TASK_STATUS_LABELS as statusLabelT,
+} from '@/lib/constants'
 
 const JALALI_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
-
-function toJalali(dateStr: string): string {
-  if (!dateStr) return ''
-  try {
-    const jalaali = require('jalaali-js')
-    const d = new Date(dateStr)
-    const j = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate())
-    return `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`
-  } catch { return dateStr }
-}
 
 function toJalaliWithDay(dateStr: string): { jy: number, jm: number, jd: number } {
   try {
@@ -71,10 +66,6 @@ function getMonthRange(monthOffset = 0): { start: Date, end: Date, label: string
   }
 }
 
-const priorityLabel: Record<string, string> = { low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری' }
-const statusLabelM: Record<string, string> = { pending: 'در انتظار', approved: 'تأیید شده', cancelled: 'لغو شده' }
-const statusLabelR: Record<string, string> = { submitted: 'ارسال شده', reviewing: 'در بررسی', approved: 'تأیید شده', rejected: 'رد شده' }
-const statusLabelT: Record<string, string> = { pending: 'در انتظار', in_progress: 'در حال انجام', done: 'انجام شد', cancelled: 'لغو شد' }
 
 export default function ExecutiveReportPage() {
   const { t, isDark } = useTheme()

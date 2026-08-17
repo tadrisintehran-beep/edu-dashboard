@@ -6,6 +6,7 @@ import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { todayJalaliFull, toJalali } from '@/lib/date'
 import { useIsMobile } from '@/lib/useIsMobile'
+import { PRIORITY_COLORS, REPORT_STATUS_LABELS, REPORT_STATUS_COLORS } from '@/lib/constants'
 
 function Sparkline({ data, color, width = 100, height = 28 }: { data: number[], color: string, width?: number, height?: number }) {
   const max = Math.max(...data, 1)
@@ -343,15 +344,9 @@ export default function DashboardPage() {
     }
   }
 
-  const priorityColor: Record<string, string> = {
-    high: '#e05555', med: '#c9a84c', low: '#4a9eff', critical: '#e05555',
-  }
-  const statusColor: Record<string, string> = {
-    submitted: '#4a9eff', reviewing: '#c9a84c', approved: '#3dbb82', rejected: '#e05555',
-  }
-  const statusLabel: Record<string, string> = {
-    submitted: 'ارسال شده', reviewing: 'در بررسی', approved: 'تأیید شده', rejected: 'رد شده',
-  }
+  const priorityColor = PRIORITY_COLORS
+  const statusColor = REPORT_STATUS_COLORS
+  const statusLabel = REPORT_STATUS_LABELS
 
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

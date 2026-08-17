@@ -9,29 +9,11 @@ import { useIsMobile } from '@/lib/useIsMobile'
 import { useAuthStore } from '@/stores/authStore'
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker'
 import { activateOnKey } from '@/lib/a11y'
-
-function toJalali(dateStr: string): string {
-  if (!dateStr) return ''
-  try {
-    const jalaali = require('jalaali-js')
-    const d = new Date(dateStr)
-    const j = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate())
-    return `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`
-  } catch { return dateStr }
-}
-
-const priorityColor: Record<string, string> = {
-  low: '#4a9eff', med: '#c9a84c', high: '#e09444', critical: '#e05555',
-}
-const priorityLabel: Record<string, string> = {
-  low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری',
-}
-const statusColor: Record<string, string> = {
-  pending: '#c9a84c', in_progress: '#4a9eff', done: '#3dbb82', cancelled: '#e05555',
-}
-const statusLabel: Record<string, string> = {
-  pending: 'در انتظار', in_progress: 'در حال انجام', done: 'انجام شد', cancelled: 'لغو شد',
-}
+import { toJalali } from '@/lib/date'
+import {
+  PRIORITY_LABELS as priorityLabel, PRIORITY_COLORS as priorityColor,
+  TASK_STATUS_LABELS as statusLabel, TASK_STATUS_COLORS as statusColor,
+} from '@/lib/constants'
 
 export default function TasksPage() {
   const { t } = useTheme()

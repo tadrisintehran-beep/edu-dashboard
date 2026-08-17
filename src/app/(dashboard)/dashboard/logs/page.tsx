@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { useRouter } from 'next/navigation'
 import { activateOnKey } from '@/lib/a11y'
+import { toJalaliDateTime as toJalali } from '@/lib/date'
 
 const ACTION_LABELS: Record<string, string> = {
   login: 'ورود', logout: 'خروج', view: 'مشاهده',
@@ -19,17 +20,10 @@ const ACTION_COLORS: Record<string, string> = {
 const RESOURCE_LABELS: Record<string, string> = {
   meetings: 'جلسات', reports: 'گزارش‌ها', documents: 'اسناد',
   contacts: 'دفترچه تلفن', alerts: 'هشدارها', users: 'کاربران',
-  settings: 'تنظیمات', profile: 'پروفایل',
-}
-
-function toJalali(dateStr: string): string {
-  try {
-    const jalaali = require('jalaali-js')
-    const d = new Date(dateStr)
-    const j = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate())
-    const time = d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })
-    return `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')} — ${time}`
-  } catch { return dateStr }
+  settings: 'تنظیمات', profile: 'پروفایل', tasks: 'درخواست‌ها',
+  letters: 'نامه‌ها', letter_referrals: 'ارجاعات نامه',
+  meeting_attendees: 'شرکت‌کنندگان جلسه', meeting_minutes: 'صورت‌جلسه',
+  meeting_action_items: 'تکالیف جلسه', meeting_agenda_items: 'دستور جلسه',
 }
 
 export default function LogsPage() {

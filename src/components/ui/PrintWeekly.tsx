@@ -1,5 +1,8 @@
 'use client'
 
+import { toJalali } from '@/lib/date'
+import { PRIORITY_LABELS, MEETING_STATUS_LABELS as STATUS_LABELS } from '@/lib/constants'
+
 interface PrintWeeklyProps {
   weekStart: Date
   weekDates: Date[]
@@ -7,25 +10,8 @@ interface PrintWeeklyProps {
   days: string[]
 }
 
-function toJalali(dateStr: string): string {
-  try {
-    const jalaali = require('jalaali-js')
-    const d = new Date(dateStr)
-    const j = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate())
-    return `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`
-  } catch { return dateStr }
-}
-
 function dateToString(d: Date): string {
   return d.toISOString().split('T')[0]
-}
-
-const PRIORITY_LABELS: Record<string, string> = {
-  low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری',
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'در انتظار', approved: 'تأیید شده', cancelled: 'لغو شده',
 }
 
 export function PrintWeekly({ weekStart, weekDates, meetingsByDay, days }: PrintWeeklyProps) {

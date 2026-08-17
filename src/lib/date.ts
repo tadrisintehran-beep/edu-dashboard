@@ -20,6 +20,12 @@ export function toJalaliFull(date: Date | string): string {
   return `${dayName}، ${jd} ${months[jm - 1]} ${jy}`
 }
 
+export function toJalaliDateTime(date: Date | string): string {
+  const d = new Date(date)
+  const time = d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })
+  return `${toJalali(d)} — ${time}`
+}
+
 export function todayJalali(): string {
   return toJalali(new Date())
 }

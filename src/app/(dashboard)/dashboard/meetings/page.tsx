@@ -14,25 +14,17 @@ import { activateOnKey } from '@/lib/a11y'
 import { AttendeesModal } from '@/components/meetings/AttendeesModal'
 import { MinutesModal } from '@/components/meetings/MinutesModal'
 import { AgendaModal } from '@/components/meetings/AgendaModal'
+import { toJalali as toJalaliSimple } from '@/lib/date'
+import {
+  PRIORITY_LABELS as priorityLabel, PRIORITY_COLORS as priorityColor,
+  MEETING_STATUS_LABELS as statusLabel, MEETING_STATUS_COLORS as statusColor,
+} from '@/lib/constants'
 
 const VIEW_LABELS: Record<'weekly' | 'list' | 'calendar' | 'report', string> = {
   weekly: 'نمای هفتگی', list: 'نمای لیست', calendar: 'نمای تقویم', report: 'نمای گزارش',
 }
 
 const DAYS = ['شنبه', 'یک‌شنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه']
-
-const priorityColor: Record<string, string> = {
-  low: '#4a9eff', med: '#c9a84c', high: '#e09444', critical: '#e05555',
-}
-const priorityLabel: Record<string, string> = {
-  low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری',
-}
-const statusLabel: Record<string, string> = {
-  pending: 'در انتظار', approved: 'تأیید شده', cancelled: 'لغو شده',
-}
-const statusColor: Record<string, string> = {
-  pending: '#c9a84c', approved: '#3dbb82', cancelled: '#e05555',
-}
 
 function generateTimeOptions(): string[] {
   const times: string[] = []
@@ -44,16 +36,6 @@ function generateTimeOptions(): string[] {
   return times
 }
 const TIME_OPTIONS = generateTimeOptions()
-
-function toJalaliSimple(dateStr: string): string {
-  if (!dateStr) return ''
-  try {
-    const jalaali = require('jalaali-js')
-    const d = new Date(dateStr)
-    const j = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate())
-    return `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`
-  } catch { return dateStr }
-}
 
 function getNextWeekSaturday(): Date {
   const today = new Date()

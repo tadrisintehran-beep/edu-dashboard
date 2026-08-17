@@ -1,6 +1,8 @@
 'use client'
 
 import { escapeHtml } from '@/lib/html'
+import { toJalali } from '@/lib/date'
+import { PRIORITY_LABELS as priorityLabel, TASK_STATUS_LABELS as statusLabel } from '@/lib/constants'
 
 interface PrintMinutesProps {
   meeting: any
@@ -10,27 +12,11 @@ interface PrintMinutesProps {
   signatures?: any[]
 }
 
-function toJalali(dateStr: string): string {
-  if (!dateStr) return ''
-  try {
-    const jalaali = require('jalaali-js')
-    const d = new Date(dateStr)
-    const j = jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate())
-    return `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`
-  } catch { return dateStr }
-}
-
 const roleLabel: Record<string, string> = {
   decision_maker: 'تصمیم‌گیر', participant: 'شرکت‌کننده', observer: 'ناظر',
 }
 const externalTypeLabel: Record<string, string> = {
   organization: 'سازمان/نهاد خارجی', expert: 'کارشناس مدعو',
-}
-const priorityLabel: Record<string, string> = {
-  low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری',
-}
-const statusLabel: Record<string, string> = {
-  pending: 'در انتظار', in_progress: 'در حال انجام', done: 'انجام شد', cancelled: 'لغو شد',
 }
 
 export function PrintMinutes({ meeting, minutes, actionItems, attendees, signatures = [] }: PrintMinutesProps) {

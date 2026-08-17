@@ -9,6 +9,10 @@ import { useAuthStore } from '@/stores/authStore'
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker'
 import { toJalali } from '@/lib/date'
 import { activateOnKey } from '@/lib/a11y'
+import {
+  PRIORITY_LABELS as priorityLabel, PRIORITY_COLORS as priorityColor,
+  TASK_STATUS_LABELS as statusLabel, TASK_STATUS_COLORS as statusColor,
+} from '@/lib/constants'
 import { PrintMinutes } from './PrintMinutes'
 
 interface MinutesModalProps {
@@ -19,10 +23,6 @@ interface MinutesModalProps {
   onNavigate?: (meeting: any) => void
 }
 
-const priorityLabel: Record<string, string> = { low: 'عادی', med: 'متوسط', high: 'مهم', critical: 'فوری' }
-const priorityColor: Record<string, string> = { low: '#4a9eff', med: '#c9a84c', high: '#e09444', critical: '#e05555' }
-const statusLabel: Record<string, string> = { pending: 'در انتظار', in_progress: 'در حال انجام', done: 'انجام شد', cancelled: 'لغو شد' }
-const statusColor: Record<string, string> = { pending: '#c9a84c', in_progress: '#4a9eff', done: '#3dbb82', cancelled: '#e05555' }
 const relationTypeLabel: Record<string, string> = { followup: 'پیگیری', related: 'مرتبط', continuation: 'ادامه' }
 const attendeeRoleLabel: Record<string, string> = { decision_maker: 'تصمیم‌گیر', participant: 'شرکت‌کننده', observer: 'ناظر' }
 const reminderOptions: { key: string; label: string; days: number }[] = [
