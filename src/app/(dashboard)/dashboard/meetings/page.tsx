@@ -126,6 +126,13 @@ export default function MeetingsPage() {
     letter_number: '', priority: 'med', meeting_type: 'جلسه',
   })
 
+  // شرکت‌کنندگان جلسه در فرم «جلسه جدید» — داخلی: انتخاب معاونت (بدون نفر مشخص)، خارجی: متن آزاد
+  const [departments, setDepartments] = useState<{ id: string; name_fa: string }[]>([])
+  const [attendeeTab, setAttendeeTab] = useState<'internal' | 'external'>('internal')
+  const [selectedDepts, setSelectedDepts] = useState<string[]>([])
+  const [externalAttendees, setExternalAttendees] = useState<{ name: string; org: string; type: 'organization' | 'expert' }[]>([])
+  const [externalDraft, setExternalDraft] = useState({ name: '', org: '', type: 'organization' as 'organization' | 'expert' })
+
   const weekDates = getWeekDates(weekStart)
 
   const fetchMeetings = useCallback(async () => {
@@ -156,10 +163,16 @@ export default function MeetingsPage() {
     }
   }, [])
 
+  const fetchDepartments = useCallback(async () => {
+    const { data } = await supabase.from('departments').select('id, name_fa').order('name_fa')
+    if (data) setDepartments(data)
+  }, [])
+
   useEffect(() => {
     fetchMeetings()
     fetchAttendeeCounts()
     fetchMinutesMap()
+    fetchDepartments()
     const channel = supabase
       .channel('meetings-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, fetchMeetings)
@@ -171,7 +184,7 @@ export default function MeetingsPage() {
       supabase.removeChannel(channel)
       clearInterval(notifInterval)
     }
-  }, [fetchMeetings, fetchAttendeeCounts, fetchMinutesMap])
+  }, [fetchMeetings, fetchAttendeeCounts, fetchMinutesMap, fetchDepartments])
 
   const checkUpcomingNotifications = () => {
     if (!('Notification' in window)) return
@@ -203,6 +216,30 @@ export default function MeetingsPage() {
     else showToast('اجازه نوتیفیکیشن داده نشد', 'error')
   }
 
+  const resetAttendeeForm = () => {
+    setAttendeeTab('internal')
+    setSelectedDepts([])
+    setExternalAttendees([])
+    setExternalDraft({ name: '', org: '', type: 'organization' })
+  }
+
+  const toggleDept = (id: string) => {
+    setSelectedDepts(prev => prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id])
+  }
+
+  const addExternalAttendee = () => {
+    if (!externalDraft.name.trim()) {
+      showToast('لطفاً نام را وارد کنید', 'error')
+      return
+    }
+    setExternalAttendees(prev => [...prev, { ...externalDraft, name: externalDraft.name.trim(), org: externalDraft.org.trim() }])
+    setExternalDraft({ name: '', org: '', type: 'organization' })
+  }
+
+  const removeExternalAttendee = (index: number) => {
+    setExternalAttendees(prev => prev.filter((_, i) => i !== index))
+  }
+
   const handleAdd = async () => {
     if (!newMeeting.title || !newMeeting.time) {
       showToast('لطفاً عنوان و ساعت را وارد کنید', 'error')
@@ -210,7 +247,7 @@ export default function MeetingsPage() {
     }
     const dayIndex = DAYS.indexOf(newMeeting.day)
     const meetingDate = weekDates[dayIndex]
-    const { error } = await (supabase.from('meetings') as any).insert([{
+    const { data: created, error } = await (supabase.from('meetings') as any).insert([{
       title_fa: newMeeting.title,
       date: dateToString(meetingDate),
       time: newMeeting.time,
@@ -223,15 +260,47 @@ export default function MeetingsPage() {
       day_of_week: newMeeting.day,
       week_start: dateToString(weekStart),
       meeting_type: newMeeting.meeting_type,
-    }])
-    if (!error) {
-      showToast('جلسه با موفقیت ثبت شد', 'success')
-      fetchMeetings()
-      setNewMeeting({ title: '', day: 'شنبه', time: '', end_time: '', location: '', letter_number: '', priority: 'med', meeting_type: 'جلسه' })
-      setShowForm(false)
-    } else {
+    }]).select().single()
+
+    if (error || !created) {
       showToast('خطا در ثبت جلسه', 'error')
+      return
     }
+
+    const attendeeRows = [
+      ...selectedDepts.map(deptId => {
+        const dept = departments.find(d => d.id === deptId)
+        return {
+          meeting_id: created.id,
+          user_name: dept?.name_fa || '',
+          department_name: dept?.name_fa || '',
+          role_in_meeting: 'participant',
+          is_external: false,
+          attended: false,
+        }
+      }),
+      ...externalAttendees.map(ext => ({
+        meeting_id: created.id,
+        external_name: ext.name,
+        external_org: ext.org || null,
+        external_type: ext.type,
+        role_in_meeting: 'participant',
+        is_external: true,
+        attended: false,
+      })),
+    ]
+
+    if (attendeeRows.length > 0) {
+      const { error: attendeesError } = await supabase.from('meeting_attendees').insert(attendeeRows)
+      if (attendeesError) showToast('جلسه ثبت شد ولی خطا در ثبت شرکت‌کنندگان رخ داد', 'error')
+    }
+
+    showToast('جلسه با موفقیت ثبت شد', 'success')
+    fetchMeetings()
+    fetchAttendeeCounts()
+    setNewMeeting({ title: '', day: 'شنبه', time: '', end_time: '', location: '', letter_number: '', priority: 'med', meeting_type: 'جلسه' })
+    resetAttendeeForm()
+    setShowForm(false)
   }
 
   const handleUpdate = async () => {
@@ -460,8 +529,88 @@ export default function MeetingsPage() {
               </select>
             </div>
           </div>
+
+          {/* شرکت‌کنندگان جلسه */}
+          <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: '14px', marginBottom: '14px' }}>
+            <div style={{ color: t.text, fontSize: '12px', fontWeight: '600', marginBottom: '10px' }}>شرکت‌کنندگان جلسه</div>
+
+            <div role="tablist" aria-label="نوع شرکت‌کننده" style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+              {([
+                { key: 'internal', label: 'داخلی' },
+                { key: 'external', label: 'خارجی' },
+              ] as const).map(tb => (
+                <div key={tb.key} onClick={() => setAttendeeTab(tb.key)}
+                  role="tab" tabIndex={0} aria-selected={attendeeTab === tb.key}
+                  onKeyDown={e => activateOnKey(e, () => setAttendeeTab(tb.key))}
+                  style={{
+                    padding: '6px 14px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer',
+                    background: attendeeTab === tb.key ? '#c9a84c22' : t.inner,
+                    border: attendeeTab === tb.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`,
+                    color: attendeeTab === tb.key ? '#e8c96a' : t.sub,
+                  }}>
+                  {tb.label}
+                  {tb.key === 'internal' && selectedDepts.length > 0 && ` (${selectedDepts.length})`}
+                  {tb.key === 'external' && externalAttendees.length > 0 && ` (${externalAttendees.length})`}
+                </div>
+              ))}
+            </div>
+
+            {attendeeTab === 'internal' ? (
+              departments.length === 0 ? (
+                <div style={{ color: t.muted, fontSize: '11px' }}>معاونتی ثبت نشده</div>
+              ) : (
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {departments.map(dep => {
+                    const selected = selectedDepts.includes(dep.id)
+                    return (
+                      <div key={dep.id} onClick={() => toggleDept(dep.id)}
+                        role="checkbox" tabIndex={0} aria-checked={selected}
+                        onKeyDown={e => activateOnKey(e, () => toggleDept(dep.id))}
+                        style={{
+                          padding: '6px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer',
+                          background: selected ? '#c9a84c22' : t.inner,
+                          border: selected ? '1px solid #c9a84c44' : `1px solid ${t.border}`,
+                          color: selected ? '#e8c96a' : t.sub,
+                        }}>
+                        {selected ? '✓ ' : ''}{dep.name_fa}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            ) : (
+              <div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: isMobile ? 'wrap' : 'nowrap', marginBottom: '8px' }}>
+                  <input style={inputStyle} placeholder="نام"
+                    value={externalDraft.name} onChange={e => setExternalDraft(p => ({ ...p, name: e.target.value }))} />
+                  <input style={inputStyle} placeholder="سازمان/عنوان"
+                    value={externalDraft.org} onChange={e => setExternalDraft(p => ({ ...p, org: e.target.value }))} />
+                  <select style={{ ...inputStyle, maxWidth: isMobile ? '100%' : '140px', flexShrink: 0 }}
+                    value={externalDraft.type} onChange={e => setExternalDraft(p => ({ ...p, type: e.target.value as 'organization' | 'expert' }))}>
+                    <option value="organization">سازمان</option>
+                    <option value="expert">کارشناس</option>
+                  </select>
+                  <button onClick={addExternalAttendee} className="btn-gold" style={{ padding: '8px 16px', fontSize: '12px', flexShrink: 0 }}>+ افزودن</button>
+                </div>
+                {externalAttendees.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    {externalAttendees.map((ext, i) => (
+                      <div key={i} style={{ background: t.inner, borderRadius: '8px', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ flex: 1, fontSize: '11px', color: t.text }}>
+                          {ext.name}{ext.org ? ` — ${ext.org}` : ''}
+                          <span style={{ color: t.muted }}> ({ext.type === 'organization' ? 'سازمان' : 'کارشناس'})</span>
+                        </div>
+                        <button onClick={() => removeExternalAttendee(i)} aria-label="حذف" style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '3px 8px', color: '#e05555', fontSize: '10px', cursor: 'pointer', fontFamily: 'inherit' }}>✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-            <button onClick={() => setShowForm(false)} style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 16px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>انصراف</button>
+            <button onClick={() => { setShowForm(false); resetAttendeeForm() }} style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 16px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>انصراف</button>
             <button onClick={handleAdd} className="btn-gold" style={{ padding: '8px 20px', fontSize: '12px' }}>ثبت جلسه</button>
           </div>
         </div>
