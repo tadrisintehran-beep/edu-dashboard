@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/ui/Toast'
 import { useAuthStore } from '@/stores/authStore'
 import { toJalali } from '@/lib/date'
+import { escapeHtml } from '@/lib/html'
 
 interface AgendaModalProps {
   meeting: any
@@ -82,10 +83,13 @@ export function AgendaModal({ meeting, onClose, onChanged }: AgendaModalProps) {
     if (target < 0 || target >= items.length) return
     const a = items[index]
     const b = items[target]
-    await Promise.all([
+    const [resA, resB] = await Promise.all([
       supabase.from('meeting_agenda_items').update({ order_num: b.order_num }).eq('id', a.id),
       supabase.from('meeting_agenda_items').update({ order_num: a.order_num }).eq('id', b.id),
     ])
+    if (resA.error || resB.error) {
+      showToast('خطا در جابه‌جایی — ترتیب ممکن است ناهماهنگ شده باشد', 'error')
+    }
     fetchItems()
   }
 
@@ -98,7 +102,7 @@ export function AgendaModal({ meeting, onClose, onChanged }: AgendaModalProps) {
 <html dir="rtl" lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>دستور جلسه — ${meeting.title_fa}</title>
+<title>دستور جلسه — ${escapeHtml(meeting.title_fa)}</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; color: #1a1a2e; background: #fff; font-size: 11px; line-height: 1.7; padding: 24px; }

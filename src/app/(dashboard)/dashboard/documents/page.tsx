@@ -107,6 +107,7 @@ export default function DocumentsPage() {
       .order('updated_at', { ascending: false })
       .range(0, PAGE_SIZE - 1)
     if (!error && data) setDocuments(data)
+    else if (error) showToast('خطا در دریافت اسناد', 'error')
     setTotalDocuments(count || 0)
     setLoading(false)
   }

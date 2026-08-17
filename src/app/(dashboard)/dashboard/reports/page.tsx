@@ -83,6 +83,7 @@ export default function ReportsPage() {
     if (filter !== 'all') query = query.eq('status', filter)
     const { data, error, count } = await query.range(0, PAGE_SIZE - 1)
     if (!error && data) setReports(data)
+    else if (error) showToast('خطا در دریافت گزارش‌ها', 'error')
     setTotalReports(count || 0)
     setLoading(false)
   }

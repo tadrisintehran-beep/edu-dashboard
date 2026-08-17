@@ -148,7 +148,9 @@ export default function MeetingsPage() {
     const { data, error } = await supabase
       .from('meetings').select('*').order('date', { ascending: true }).order('time', { ascending: true }).limit(5000)
     if (!error && data) setMeetings(data)
+    else if (error) showToast('خطا در دریافت جلسات', 'error')
     setLoading(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchAttendeeCounts = useCallback(async () => {

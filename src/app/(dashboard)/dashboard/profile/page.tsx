@@ -6,6 +6,7 @@ import { useTheme } from '@/lib/ThemeContext'
 import { useToast } from '@/components/ui/Toast'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { supabase } from '@/lib/supabase'
+import { ROLE_LABELS, ROLE_COLORS } from '@/lib/permissions'
 
 export default function ProfilePage() {
   const { user } = useAuthStore()
@@ -39,22 +40,6 @@ export default function ProfilePage() {
       showToast('خطا در تغییر رمز عبور', 'error')
     }
     setLoading(false)
-  }
-
-  const roleLabel: Record<string, string> = {
-    DEPUTY_MINISTER: 'معاون وزیر',
-    SUPER_ADMIN: 'مدیر سیستم',
-    OFFICE_MANAGER: 'مدیر دفتر',
-    DATA_ENTRY: 'اپراتور',
-    VIEWER: 'مشاهده‌گر',
-  }
-
-  const roleColor: Record<string, string> = {
-    DEPUTY_MINISTER: '#c9a84c',
-    SUPER_ADMIN: '#e05555',
-    OFFICE_MANAGER: '#4a9eff',
-    DATA_ENTRY: '#3dbb82',
-    VIEWER: '#8b90a8',
   }
 
   const inputStyle = {
@@ -93,11 +78,11 @@ export default function ProfilePage() {
             </div>
             <div style={{
               display: 'inline-block', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600',
-              background: (roleColor[user?.role || ''] || '#555') + '22',
-              color: roleColor[user?.role || ''] || t.sub,
-              border: `1px solid ${(roleColor[user?.role || ''] || '#555')}44`,
+              background: (ROLE_COLORS[user?.role || ''] || '#555') + '22',
+              color: ROLE_COLORS[user?.role || ''] || t.sub,
+              border: `1px solid ${(ROLE_COLORS[user?.role || ''] || '#555')}44`,
             }}>
-              {roleLabel[user?.role || ''] || user?.role}
+              {ROLE_LABELS[user?.role || ''] || user?.role}
             </div>
           </div>
         </div>
@@ -112,7 +97,7 @@ export default function ProfilePage() {
           {[
             { label: 'نام کامل', value: user?.name, icon: '👤' },
             { label: 'ایمیل', value: user?.email, icon: '📧' },
-            { label: 'نقش', value: roleLabel[user?.role || ''] || user?.role, icon: '🎖' },
+            { label: 'نقش', value: ROLE_LABELS[user?.role || ''] || user?.role, icon: '🎖' },
           ].map((item, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: t.inner, borderRadius: '8px' }}>
               <span style={{ fontSize: '16px', flexShrink: 0 }}>{item.icon}</span>

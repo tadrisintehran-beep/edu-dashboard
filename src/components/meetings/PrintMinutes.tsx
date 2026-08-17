@@ -1,5 +1,7 @@
 'use client'
 
+import { escapeHtml } from '@/lib/html'
+
 interface PrintMinutesProps {
   meeting: any
   minutes: any
@@ -43,7 +45,7 @@ export function PrintMinutes({ meeting, minutes, actionItems, attendees, signatu
 <html dir="rtl" lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>صورت‌جلسه — ${meeting.title_fa}</title>
+<title>صورت‌جلسه — ${escapeHtml(meeting.title_fa)}</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; color: #1a1a2e; background: #fff; font-size: 11px; line-height: 1.7; padding: 24px; }

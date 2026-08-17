@@ -10,6 +10,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker'
 import { toJalali } from '@/lib/date'
 import { activateOnKey } from '@/lib/a11y'
+import { ALLOWED_UPLOAD_EXT, validateUploadFile } from '@/lib/fileValidation'
 
 const typeLabel: Record<string, string> = { incoming: 'وارده', outgoing: 'صادره' }
 const typeColor: Record<string, string> = { incoming: '#4a9eff', outgoing: '#3dbb82' }
@@ -34,8 +35,6 @@ const referralStatusColor: Record<string, string> = {
 const referralStatusLabel: Record<string, string> = {
   pending: 'در انتظار', in_progress: 'در حال انجام', done: 'انجام شد',
 }
-
-const MAX_FILE_SIZE = 20 * 1024 * 1024
 
 export default function LettersPage() {
   const { t } = useTheme()
@@ -73,7 +72,9 @@ export default function LettersPage() {
       .select('*')
       .order('created_at', { ascending: false })
     if (!error && data) setLetters(data)
+    else if (error) showToast('خطا در دریافت نامه‌ها', 'error')
     setLoading(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchDeptUsers = useCallback(async (departmentId: string) => {
@@ -115,8 +116,9 @@ export default function LettersPage() {
   }
 
   const validateFile = (file: File): boolean => {
-    if (file.size > MAX_FILE_SIZE) {
-      showToast('حجم فایل نباید بیشتر از ۲۰ مگابایت باشد', 'error')
+    const error = validateUploadFile(file)
+    if (error) {
+      showToast(error, 'error')
       return false
     }
     return true
@@ -361,7 +363,7 @@ export default function LettersPage() {
             </div>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>پیوست (اختیاری)</label>
-              <input ref={fileInputRef} type="file" style={inputStyle}
+              <input ref={fileInputRef} type="file" accept={ALLOWED_UPLOAD_EXT} style={inputStyle}
                 onChange={e => {
                   const f = e.target.files?.[0]
                   if (f && validateFile(f)) setAttachFile(f)
