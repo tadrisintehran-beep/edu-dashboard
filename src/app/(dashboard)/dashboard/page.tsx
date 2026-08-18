@@ -400,7 +400,7 @@ export default function DashboardPage() {
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: `linear-gradient(135deg, ${kpi.color}08, transparent)`, pointerEvents: 'none' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
               <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: kpi.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{kpi.icon}</div>
-              <div style={{ fontSize: '10px', color: kpi.trend === 'up' ? '#3dbb82' : '#e05555' }}>{kpi.trend === 'up' ? '↑' : '↓'}</div>
+              <div style={{ fontSize: '10px', color: kpi.trend === 'up' ? t.greenText : t.redText }}>{kpi.trend === 'up' ? '↑' : '↓'}</div>
             </div>
             <div style={{ color: t.text, fontSize: isMobile ? '22px' : '26px', fontWeight: '800', lineHeight: 1, marginBottom: '4px' }}>{kpi.value}</div>
             <div style={{ color: t.sub, fontSize: '10px', marginBottom: '8px' }}>{kpi.label}</div>
@@ -417,7 +417,7 @@ export default function DashboardPage() {
         <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px', minHeight: isMobile ? '360px' : '480px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>📅 جلسات پیش رو</div>
-            <a href="/dashboard/meetings" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>
+            <a href="/dashboard/meetings" style={{ color: t.goldText, fontSize: '11px', textDecoration: 'none' }}>
               همه ({totalUpcoming}) →
             </a>
           </div>
@@ -431,9 +431,9 @@ export default function DashboardPage() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px', flexWrap: 'wrap' }}>
                   {meeting.day_of_week && (
-                    <span style={{ padding: '1px 6px', borderRadius: '6px', fontSize: '9px', background: '#c9a84c22', color: '#e8c96a', border: '1px solid #c9a84c33' }}>{meeting.day_of_week}</span>
+                    <span style={{ padding: '1px 6px', borderRadius: '6px', fontSize: '9px', background: '#c9a84c22', color: t.goldText, border: '1px solid #c9a84c33' }}>{meeting.day_of_week}</span>
                   )}
-                  <span style={{ color: '#e8c96a', fontSize: '11px', fontWeight: '700' }}>{meeting.time}</span>
+                  <span style={{ color: t.goldText, fontSize: '11px', fontWeight: '700' }}>{meeting.time}</span>
                   {meeting.end_time && <span style={{ color: t.muted, fontSize: '10px' }}>— {meeting.end_time}</span>}
                   <span style={{ color: t.muted, fontSize: '10px', marginRight: 'auto' }}>{toJalali(meeting.date)}</span>
                 </div>
@@ -451,7 +451,7 @@ export default function DashboardPage() {
         <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>📋 آخرین گزارش‌ها</div>
-            <a href="/dashboard/reports" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>همه →</a>
+            <a href="/dashboard/reports" style={{ color: t.goldText, fontSize: '11px', textDecoration: 'none' }}>همه →</a>
           </div>
           <div>
             {recentReports.length === 0 ? (
@@ -510,10 +510,10 @@ export default function DashboardPage() {
         <div style={{ color: t.text, fontSize: '12px', fontWeight: '600', marginBottom: '12px' }}>آمار کلی سامانه</div>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '8px' }}>
           {[
-            { value: kpis.totalMeetings, label: 'کل جلسات', color: '#c9a84c', icon: '📅' },
-            { value: kpis.totalReports, label: 'کل گزارش‌ها', color: '#4a9eff', icon: '📋' },
-            { value: kpis.totalAlerts, label: 'هشدار فعال', color: '#e05555', icon: '🔔' },
-            { value: kpis.totalContacts, label: 'مخاطبین', color: '#3dbb82', icon: '👥' },
+            { value: kpis.totalMeetings, label: 'کل جلسات', color: t.goldText, icon: '📅' },
+            { value: kpis.totalReports, label: 'کل گزارش‌ها', color: t.blueText, icon: '📋' },
+            { value: kpis.totalAlerts, label: 'هشدار فعال', color: t.redText, icon: '🔔' },
+            { value: kpis.totalContacts, label: 'مخاطبین', color: t.greenText, icon: '👥' },
           ].map((item, i) => (
             <div key={i} style={{ background: t.inner, borderRadius: '10px', padding: '12px', textAlign: 'center', border: `1px solid ${t.border}` }}>
               <div style={{ fontSize: '18px', marginBottom: '5px' }}>{item.icon}</div>
@@ -528,7 +528,7 @@ export default function DashboardPage() {
       <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>🎯 تکالیف جلسات</div>
-          <a href="/dashboard/action-items" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>پیگیری تکالیف →</a>
+          <a href="/dashboard/action-items" style={{ color: t.goldText, fontSize: '11px', textDecoration: 'none' }}>پیگیری تکالیف →</a>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 3fr', gap: '12px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
@@ -537,13 +537,13 @@ export default function DashboardPage() {
               <div style={{ color: t.muted, fontSize: '9px', marginTop: '3px' }}>تکلیف این ماه</div>
             </div>
             <div style={{ background: t.inner, borderRadius: '10px', padding: '10px', textAlign: 'center', border: `1px solid ${t.border}` }}>
-              <div style={{ color: '#3dbb82', fontSize: '20px', fontWeight: '800' }}>
+              <div style={{ color: t.greenText, fontSize: '20px', fontWeight: '800' }}>
                 {actionStats.totalThisMonth ? Math.round((actionStats.doneThisMonth / actionStats.totalThisMonth) * 100) : 0}%
               </div>
               <div style={{ color: t.muted, fontSize: '9px', marginTop: '3px' }}>نرخ انجام</div>
             </div>
             <div style={{ background: actionStats.overdue > 0 ? '#e0555511' : t.inner, borderRadius: '10px', padding: '10px', textAlign: 'center', border: `1px solid ${actionStats.overdue > 0 ? '#e0555544' : t.border}` }}>
-              <div style={{ color: '#e05555', fontSize: '20px', fontWeight: '800' }}>{actionStats.overdue}</div>
+              <div style={{ color: t.redText, fontSize: '20px', fontWeight: '800' }}>{actionStats.overdue}</div>
               <div style={{ color: t.muted, fontSize: '9px', marginTop: '3px' }}>معوق</div>
             </div>
           </div>
@@ -557,7 +557,7 @@ export default function DashboardPage() {
                   <div key={a.name} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ color: t.muted, fontSize: '10px', width: '14px' }}>{i + 1}.</span>
                     <span style={{ color: t.text, fontSize: '11px', flex: 1 }}>{a.name}</span>
-                    <span style={{ color: '#c9a84c', fontSize: '11px', fontWeight: '700' }}>{a.count}</span>
+                    <span style={{ color: t.goldText, fontSize: '11px', fontWeight: '700' }}>{a.count}</span>
                   </div>
                 ))}
               </div>

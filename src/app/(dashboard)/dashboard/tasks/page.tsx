@@ -149,7 +149,7 @@ export default function TasksPage() {
             padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',
             background: filterStatus === f.key ? '#c9a84c22' : t.card,
             border: filterStatus === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`,
-            color: filterStatus === f.key ? '#e8c96a' : t.sub,
+            color: filterStatus === f.key ? t.goldText : t.sub,
           }}>
             {f.label}
             {f.key === 'pending' && pendingCount > 0 && (
@@ -164,7 +164,7 @@ export default function TasksPage() {
       {/* فرم درخواست جدید */}
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>
+          <div style={{ color: t.goldText, fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>
             📋 ثبت درخواست جدید
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
@@ -257,12 +257,12 @@ export default function TasksPage() {
                     <span style={{ color: t.muted, fontSize: '11px' }}>👤 {task.assigned_to}</span>
                   )}
                   {task.due_date && (
-                    <span style={{ color: new Date(task.due_date) < new Date() && task.status !== 'done' ? '#e05555' : t.muted, fontSize: '11px' }}>
+                    <span style={{ color: new Date(task.due_date) < new Date() && task.status !== 'done' ? t.redText : t.muted, fontSize: '11px' }}>
                       📅 مهلت: {toJalali(task.due_date)}
                     </span>
                   )}
                   {task.meetings && (
-                    <span style={{ color: '#c9a84c', fontSize: '11px' }}>
+                    <span style={{ color: t.goldText, fontSize: '11px' }}>
                       🗓 {task.meetings.day_of_week} {toJalali(task.meetings.date)} — {task.meetings.title_fa}
                     </span>
                   )}
@@ -300,7 +300,7 @@ export default function TasksPage() {
                 )}
 
                 {can('tasks', 'delete') && (
-                  <button onClick={() => setConfirmDelete(task.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  <button onClick={() => setConfirmDelete(task.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 10px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
                     🗑 حذف
                   </button>
                 )}

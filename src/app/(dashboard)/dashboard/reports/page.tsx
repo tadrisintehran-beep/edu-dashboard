@@ -252,7 +252,7 @@ export default function ReportsPage() {
           <p style={{ color: t.muted, fontSize: '12px', marginTop: '4px' }}>{unreadCount} گزارش خوانده نشده — {totalReports} کل</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={handleExport} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px 16px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={handleExport} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px 16px', color: t.greenText, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
             📊 Excel
           </button>
           {can('reports', 'create') && (
@@ -263,7 +263,7 @@ export default function ReportsPage() {
 
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ارسال گزارش جدید</div>
+          <div style={{ color: t.goldText, fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ارسال گزارش جدید</div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             {[
               { label: 'عنوان گزارش', key: 'title', placeholder: 'عنوان گزارش' },
@@ -300,11 +300,11 @@ export default function ReportsPage() {
               {selectedFile ? (
                 <div>
                   <div style={{ fontSize: '28px', marginBottom: '6px' }}>{fileTypeIcon[selectedFile.type] || '📁'}</div>
-                  <div style={{ color: '#c9a84c', fontSize: '13px', fontWeight: '600' }}>{selectedFile.name}</div>
+                  <div style={{ color: t.goldText, fontSize: '13px', fontWeight: '600' }}>{selectedFile.name}</div>
                   <div style={{ color: t.muted, fontSize: '11px', marginTop: '4px' }}>{formatSize(selectedFile.size)}</div>
                   <button
                     onClick={e => { e.stopPropagation(); setSelectedFile(null) }}
-                    style={{ marginTop: '8px', background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '4px 12px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}
+                    style={{ marginTop: '8px', background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '4px 12px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}
                   >حذف فایل</button>
                 </div>
               ) : (
@@ -335,7 +335,7 @@ export default function ReportsPage() {
           <div key={f.key} onClick={() => setFilter(f.key)}
             role="button" tabIndex={0} aria-pressed={filter === f.key}
             onKeyDown={e => activateOnKey(e, () => setFilter(f.key))}
-            style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: filter === f.key ? '#c9a84c22' : t.card, border: filter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: filter === f.key ? '#e8c96a' : t.sub, transition: 'all 0.2s' }}>
+            style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: filter === f.key ? '#c9a84c22' : t.card, border: filter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: filter === f.key ? t.goldText : t.sub, transition: 'all 0.2s' }}>
             {f.label}
           </div>
         ))}
@@ -355,7 +355,7 @@ export default function ReportsPage() {
                   <span style={{ color: t.sub, fontSize: '11px' }}>👤 {report.author}</span>
                   {!isMobile && <span style={{ color: t.sub, fontSize: '11px' }}>📍 {report.province}</span>}
                   <span style={{ color: t.sub, fontSize: '11px' }}>🗓 {toJalali(report.created_at)}</span>
-                  {report.file_name && <span style={{ color: '#c9a84c', fontSize: '11px' }}>{fileTypeIcon[report.file_type] || '📁'} {report.file_name}</span>}
+                  {report.file_name && <span style={{ color: t.goldText, fontSize: '11px' }}>{fileTypeIcon[report.file_type] || '📁'} {report.file_name}</span>}
                 </div>
               </div>
               <div style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', background: statusColor[report.status] + '22', color: statusColor[report.status], flexShrink: 0 }}>
@@ -409,7 +409,7 @@ export default function ReportsPage() {
                 </div>
                 <button
                   onClick={() => handleDownload(selected.file_path, selected.file_name)}
-                  style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '6px 12px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
+                  style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '6px 12px', color: t.greenText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
                 >⬇️ دانلود</button>
               </div>
             )}
@@ -420,13 +420,13 @@ export default function ReportsPage() {
 
             {can('reports', 'update') && (selected.status === 'submitted' || selected.status === 'reviewing') && (
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={() => handleApprove(selected.id)} style={{ flex: 1, background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px', color: '#3dbb82', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>✓ تأیید</button>
-                <button onClick={() => handleReject(selected.id)} style={{ flex: 1, background: '#e0555522', border: '1px solid #e0555544', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>✕ رد</button>
+                <button onClick={() => handleApprove(selected.id)} style={{ flex: 1, background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px', color: t.greenText, fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>✓ تأیید</button>
+                <button onClick={() => handleReject(selected.id)} style={{ flex: 1, background: '#e0555522', border: '1px solid #e0555544', borderRadius: '8px', padding: '10px', color: t.redText, fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>✕ رد</button>
               </div>
             )}
 
             {can('reports', 'delete') && (
-              <button onClick={() => handleDelete(selected.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button onClick={() => handleDelete(selected.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '8px', padding: '10px', color: t.redText, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
                 🗑 حذف گزارش
               </button>
             )}

@@ -451,7 +451,7 @@ export default function MeetingsPage() {
                 flex: 1, padding: '9px 4px',
                 background: view === v ? '#c9a84c22' : 'transparent',
                 borderRight: i < 3 ? `1px solid ${t.border}` : 'none',
-                color: view === v ? '#e8c96a' : t.sub,
+                color: view === v ? t.goldText : t.sub,
                 fontSize: isMobile ? '10px' : '12px',
                 cursor: 'pointer', fontFamily: 'inherit',
                 whiteSpace: 'nowrap' as const,
@@ -465,7 +465,7 @@ export default function MeetingsPage() {
           </div>
 
           <button onClick={() => exportMeetingsToExcel(meetings)} title="خروجی Excel" aria-label="خروجی اکسل"
-            style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '9px 12px', color: '#3dbb82', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+            style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '9px 12px', color: t.greenText, fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
             📊
           </button>
 
@@ -475,7 +475,7 @@ export default function MeetingsPage() {
 
           {typeof window !== 'undefined' && Notification.permission !== 'granted' && (
             <button onClick={requestNotificationPermission} title="فعال کردن یادآور" aria-label="فعال کردن یادآور جلسات"
-              style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '9px 12px', color: '#e8c96a', fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+              style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '9px 12px', color: t.goldText, fontSize: '14px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
               🔔
             </button>
           )}
@@ -494,7 +494,7 @@ export default function MeetingsPage() {
           </div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <button onClick={() => setWeekStart(getCurrentWeekSaturday())} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 8px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>این هفته</button>
-            <button onClick={() => setWeekStart(getNextWeekSaturday())} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '6px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>هفته آینده</button>
+            <button onClick={() => setWeekStart(getNextWeekSaturday())} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '6px 8px', color: t.goldText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>هفته آینده</button>
             <button onClick={nextWeek} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 14px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>بعدی ←</button>
           </div>
         </div>
@@ -503,7 +503,7 @@ export default function MeetingsPage() {
       {/* فرم جلسه جدید */}
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ثبت جلسه جدید — هفته {toJalaliSimple(dateToString(weekStart))}</div>
+          <div style={{ color: t.goldText, fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ثبت جلسه جدید — هفته {toJalaliSimple(dateToString(weekStart))}</div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>عنوان جلسه</label>
@@ -572,7 +572,7 @@ export default function MeetingsPage() {
                     padding: '6px 14px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer',
                     background: attendeeTab === tb.key ? '#c9a84c22' : t.inner,
                     border: attendeeTab === tb.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`,
-                    color: attendeeTab === tb.key ? '#e8c96a' : t.sub,
+                    color: attendeeTab === tb.key ? t.goldText : t.sub,
                   }}>
                   {tb.label}
                   {tb.key === 'internal' && selectedDepts.length > 0 && ` (${selectedDepts.length})`}
@@ -596,7 +596,7 @@ export default function MeetingsPage() {
                           padding: '6px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer',
                           background: selected ? '#c9a84c22' : t.inner,
                           border: selected ? '1px solid #c9a84c44' : `1px solid ${t.border}`,
-                          color: selected ? '#e8c96a' : t.sub,
+                          color: selected ? t.goldText : t.sub,
                         }}>
                         {selected ? '✓ ' : ''}{dep.name_fa}
                       </div>
@@ -626,7 +626,7 @@ export default function MeetingsPage() {
                           {ext.name}{ext.org ? ` — ${ext.org}` : ''}
                           <span style={{ color: t.muted }}> ({ext.type === 'organization' ? 'سازمان' : 'کارشناس'})</span>
                         </div>
-                        <button onClick={() => removeExternalAttendee(i)} aria-label="حذف" style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '3px 8px', color: '#e05555', fontSize: '10px', cursor: 'pointer', fontFamily: 'inherit' }}>✕</button>
+                        <button onClick={() => removeExternalAttendee(i)} aria-label="حذف" style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '3px 8px', color: t.redText, fontSize: '10px', cursor: 'pointer', fontFamily: 'inherit' }}>✕</button>
                       </div>
                     ))}
                   </div>
@@ -645,7 +645,7 @@ export default function MeetingsPage() {
       {/* فرم ویرایش */}
       {editMeeting && (
         <div style={{ background: t.card, border: '1px solid #4a9eff33', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#4a9eff', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ویرایش جلسه</div>
+          <div style={{ color: t.blueText, fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ویرایش جلسه</div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>عنوان</label>
@@ -687,7 +687,7 @@ export default function MeetingsPage() {
           </div>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button onClick={() => setEditMeeting(null)} style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '8px', padding: '8px 16px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>انصراف</button>
-            <button onClick={handleUpdate} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '8px', padding: '8px 20px', color: '#4a9eff', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>ذخیره تغییرات</button>
+            <button onClick={handleUpdate} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '8px', padding: '8px 20px', color: t.blueText, fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>ذخیره تغییرات</button>
           </div>
         </div>
       )}
@@ -705,10 +705,10 @@ export default function MeetingsPage() {
               <div key={day} style={{ background: isWeekend ? t.inner : t.card, border: `1px solid ${isToday ? '#c9a84c55' : t.border}`, borderRadius: '12px', overflow: 'hidden', opacity: isWeekend ? 0.5 : 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderBottom: dayMeetings.length > 0 ? `1px solid ${t.border}` : 'none', background: isToday ? '#c9a84c11' : isPast ? t.inner : 'transparent' }}>
                   <div style={{ textAlign: 'center', minWidth: '90px' }}>
-                    <div style={{ color: isToday ? '#e8c96a' : isPast ? t.muted : t.text, fontSize: '14px', fontWeight: '700' }}>{day}</div>
+                    <div style={{ color: isToday ? t.goldText : isPast ? t.muted : t.text, fontSize: '14px', fontWeight: '700' }}>{day}</div>
                     <div style={{ color: t.muted, fontSize: '11px', marginTop: '2px' }}>{toJalaliSimple(dateToString(weekDates[i]))}</div>
                   </div>
-                  {isToday && <div style={{ padding: '2px 8px', borderRadius: '10px', background: '#c9a84c22', border: '1px solid #c9a84c44', color: '#e8c96a', fontSize: '10px', fontWeight: '600' }}>امروز</div>}
+                  {isToday && <div style={{ padding: '2px 8px', borderRadius: '10px', background: '#c9a84c22', border: '1px solid #c9a84c44', color: t.goldText, fontSize: '10px', fontWeight: '600' }}>امروز</div>}
                   {isPast && !isToday && <div style={{ padding: '2px 8px', borderRadius: '10px', background: t.inner, border: `1px solid ${t.border}`, color: t.muted, fontSize: '10px' }}>گذشته</div>}
                   {dayMeetings.length === 0 && <div style={{ color: t.muted, fontSize: '12px' }}>جلسه‌ای ثبت نشده</div>}
                   <div style={{ flex: 1 }}></div>
@@ -733,17 +733,17 @@ export default function MeetingsPage() {
                           transition: 'all 0.2s',
                         }}>
                           <div style={{ textAlign: 'center', minWidth: '60px', flexShrink: 0 }}>
-                            <div style={{ color: isPastMeeting ? t.muted : '#e8c96a', fontSize: '13px', fontWeight: '700' }}>{meeting.time}</div>
+                            <div style={{ color: isPastMeeting ? t.muted : t.goldText, fontSize: '13px', fontWeight: '700' }}>{meeting.time}</div>
                             {meeting.end_time && <div style={{ color: t.muted, fontSize: '10px' }}>{meeting.end_time}</div>}
                           </div>
                           <div style={{ width: '1px', height: '36px', background: t.border, flexShrink: 0 }}></div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
                               <span style={{ color: isPastMeeting ? t.muted : t.text, fontSize: '13px', fontWeight: '600' }}>{meeting.title_fa}</span>
-                              {isOngoing && <span style={{ padding: '1px 7px', borderRadius: '8px', fontSize: '10px', background: '#3dbb8222', color: '#3dbb82', border: '1px solid #3dbb8244' }}>● در حال برگزاری</span>}
-                              {isSoon && <span style={{ padding: '1px 7px', borderRadius: '8px', fontSize: '10px', background: '#c9a84c22', color: '#e8c96a', border: '1px solid #c9a84c44' }}>⚡ به زودی</span>}
+                              {isOngoing && <span style={{ padding: '1px 7px', borderRadius: '8px', fontSize: '10px', background: '#3dbb8222', color: t.greenText, border: '1px solid #3dbb8244' }}>● در حال برگزاری</span>}
+                              {isSoon && <span style={{ padding: '1px 7px', borderRadius: '8px', fontSize: '10px', background: '#c9a84c22', color: t.goldText, border: '1px solid #c9a84c44' }}>⚡ به زودی</span>}
                               {isPastMeeting && <span style={{ padding: '1px 7px', borderRadius: '8px', fontSize: '10px', background: t.inner, color: t.muted, border: `1px solid ${t.border}` }}>برگزار شده</span>}
-                              {meeting.meeting_type && <span style={{ padding: '1px 7px', borderRadius: '8px', fontSize: '10px', background: '#4a9eff22', color: '#4a9eff', border: '1px solid #4a9eff33' }}>{meeting.meeting_type}</span>}
+                              {meeting.meeting_type && <span style={{ padding: '1px 7px', borderRadius: '8px', fontSize: '10px', background: '#4a9eff22', color: t.blueText, border: '1px solid #4a9eff33' }}>{meeting.meeting_type}</span>}
                             </div>
                             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                               {meeting.location && <span style={{ color: t.sub, fontSize: '11px' }}>📍 {meeting.location}</span>}
@@ -754,26 +754,26 @@ export default function MeetingsPage() {
                             {statusLabel[meeting.status]}
                           </div>
                           <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
-  <button onClick={() => setAgendaMeeting(meeting)} title="دستور جلسه" aria-label="دستور جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+  <button onClick={() => setAgendaMeeting(meeting)} title="دستور جلسه" aria-label="دستور جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: t.blueText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
     📋{agendaCounts[meeting.id] ? ` ${agendaCounts[meeting.id]}` : ''}
   </button>
   <button onClick={() => setAttendeesMeeting(meeting)} title="شرکت‌کنندگان" aria-label="شرکت‌کنندگان جلسه" style={{ background: '#8b90a822', border: '1px solid #8b90a844', borderRadius: '6px', padding: '4px 8px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
     👥{attendeeCounts[meeting.id] ? ` ${attendeeCounts[meeting.id]}` : ''}
   </button>
-  <button onClick={() => setMinutesMeeting(meeting)} title="صورت‌جلسه" aria-label="صورت‌جلسه" style={{ background: minutesMap[meeting.id]?.finalized ? '#3dbb8222' : '#c9a84c22', border: `1px solid ${minutesMap[meeting.id]?.finalized ? '#3dbb8244' : '#c9a84c44'}`, borderRadius: '6px', padding: '4px 8px', color: minutesMap[meeting.id]?.finalized ? '#3dbb82' : '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+  <button onClick={() => setMinutesMeeting(meeting)} title="صورت‌جلسه" aria-label="صورت‌جلسه" style={{ background: minutesMap[meeting.id]?.finalized ? '#3dbb8222' : '#c9a84c22', border: `1px solid ${minutesMap[meeting.id]?.finalized ? '#3dbb8244' : '#c9a84c44'}`, borderRadius: '6px', padding: '4px 8px', color: minutesMap[meeting.id]?.finalized ? t.greenText : t.goldText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
     📝{minutesMap[meeting.id]?.finalized ? ' ✓' : ''}
   </button>
   {!isPastMeeting && can('meetings', 'update') && (
-    <button onClick={() => setEditMeeting(meeting)} aria-label="ویرایش جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
+    <button onClick={() => setEditMeeting(meeting)} aria-label="ویرایش جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '4px 8px', color: t.blueText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
   )}
   {!isPastMeeting && (
-    <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" aria-label="ثبت درخواست برای این جلسه" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '4px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
+    <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" aria-label="ثبت درخواست برای این جلسه" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '4px 8px', color: t.goldText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
   )}
   {meeting.status === 'pending' && can('meetings', 'update') && (
-    <button onClick={() => handleApprove(meeting.id)} aria-label="تأیید جلسه" style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✓</button>
+    <button onClick={() => handleApprove(meeting.id)} aria-label="تأیید جلسه" style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: t.greenText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✓</button>
   )}
   {can('meetings', 'delete') && (
-    <button onClick={() => handleDelete(meeting.id)} aria-label="حذف جلسه" style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '4px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+    <button onClick={() => handleDelete(meeting.id)} aria-label="حذف جلسه" style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '4px 8px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
   )}
 </div>
                         </div>
@@ -816,11 +816,11 @@ export default function MeetingsPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '3px' }}>{meeting.title_fa}</div>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                      <span style={{ color: '#e8c96a', fontSize: '12px' }}>{meeting.day_of_week} {toJalaliSimple(meeting.date)}</span>
+                      <span style={{ color: t.goldText, fontSize: '12px' }}>{meeting.day_of_week} {toJalaliSimple(meeting.date)}</span>
                       <span style={{ color: t.sub, fontSize: '11px' }}>⏰ {meeting.time}{meeting.end_time ? `—${meeting.end_time}` : ''}</span>
                       {meeting.location && <span style={{ color: t.sub, fontSize: '11px' }}>📍 {meeting.location}</span>}
                       {searchMatches?.[meeting.id] && (
-                        <span style={{ color: '#4a9eff', fontSize: '11px', background: '#4a9eff11', border: '1px solid #4a9eff33', borderRadius: '6px', padding: '1px 7px' }}>
+                        <span style={{ color: t.blueText, fontSize: '11px', background: '#4a9eff11', border: '1px solid #4a9eff33', borderRadius: '6px', padding: '1px 7px' }}>
                           🎯 {searchMatches[meeting.id]}
                         </span>
                       )}
@@ -830,23 +830,23 @@ export default function MeetingsPage() {
                     {statusLabel[meeting.status]}
                   </div>
                   <div style={{ display: 'flex', gap: '5px' }}>
-                    <button onClick={() => setAgendaMeeting(meeting)} title="دستور جلسه" aria-label="دستور جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <button onClick={() => setAgendaMeeting(meeting)} title="دستور جلسه" aria-label="دستور جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: t.blueText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
                       📋{agendaCounts[meeting.id] ? ` ${agendaCounts[meeting.id]}` : ''}
                     </button>
                     <button onClick={() => setAttendeesMeeting(meeting)} title="شرکت‌کنندگان" aria-label="شرکت‌کنندگان جلسه" style={{ background: '#8b90a822', border: '1px solid #8b90a844', borderRadius: '6px', padding: '5px 8px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
                       👥{attendeeCounts[meeting.id] ? ` ${attendeeCounts[meeting.id]}` : ''}
                     </button>
-                    <button onClick={() => setMinutesMeeting(meeting)} title="صورت‌جلسه" aria-label="صورت‌جلسه" style={{ background: minutesMap[meeting.id]?.finalized ? '#3dbb8222' : '#c9a84c22', border: `1px solid ${minutesMap[meeting.id]?.finalized ? '#3dbb8244' : '#c9a84c44'}`, borderRadius: '6px', padding: '5px 8px', color: minutesMap[meeting.id]?.finalized ? '#3dbb82' : '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <button onClick={() => setMinutesMeeting(meeting)} title="صورت‌جلسه" aria-label="صورت‌جلسه" style={{ background: minutesMap[meeting.id]?.finalized ? '#3dbb8222' : '#c9a84c22', border: `1px solid ${minutesMap[meeting.id]?.finalized ? '#3dbb8244' : '#c9a84c44'}`, borderRadius: '6px', padding: '5px 8px', color: minutesMap[meeting.id]?.finalized ? t.greenText : t.goldText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
                       📝{minutesMap[meeting.id]?.finalized ? ' ✓' : ''}
                     </button>
                     {!isPastMeeting && can('meetings', 'update') && (
-                      <button onClick={() => setEditMeeting(meeting)} aria-label="ویرایش جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
+                      <button onClick={() => setEditMeeting(meeting)} aria-label="ویرایش جلسه" style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '5px 8px', color: t.blueText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>✏️</button>
                     )}
                     {!isPastMeeting && (
-                      <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" aria-label="ثبت درخواست برای این جلسه" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 8px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
+                      <button onClick={() => window.location.href = `/dashboard/tasks?meeting=${meeting.id}`} title="ثبت درخواست" aria-label="ثبت درخواست برای این جلسه" style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 8px', color: t.goldText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>📌</button>
                     )}
                     {can('meetings', 'delete') && (
-                      <button onClick={() => handleDelete(meeting.id)} aria-label="حذف جلسه" style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+                      <button onClick={() => handleDelete(meeting.id)} aria-label="حذف جلسه" style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 8px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
                     )}
                   </div>
                 </div>
@@ -874,21 +874,21 @@ export default function MeetingsPage() {
               <div key={f.key} onClick={() => setReportFilter(f.key)}
                 role="button" tabIndex={0} aria-pressed={reportFilter === f.key}
                 onKeyDown={e => activateOnKey(e, () => setReportFilter(f.key))}
-                style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: reportFilter === f.key ? '#c9a84c22' : t.card, border: reportFilter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: reportFilter === f.key ? '#e8c96a' : t.sub }}>
+                style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: reportFilter === f.key ? '#c9a84c22' : t.card, border: reportFilter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: reportFilter === f.key ? t.goldText : t.sub }}>
                 {f.label}
               </div>
             ))}
-            <button onClick={() => exportMeetingsToExcel(reportMeetings)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '6px 14px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', marginRight: 'auto' }}>
+            <button onClick={() => exportMeetingsToExcel(reportMeetings)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '6px 14px', color: t.greenText, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', marginRight: 'auto' }}>
               📊 خروجی Excel
             </button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: '10px' }}>
             {[
-              { label: 'کل جلسات', value: reportStats.total, color: '#c9a84c', icon: '📅' },
-              { label: 'تأیید شده', value: reportStats.approved, color: '#3dbb82', icon: '✅' },
-              { label: 'در انتظار', value: reportStats.pending, color: '#4a9eff', icon: '⏳' },
-              { label: 'لغو شده', value: reportStats.cancelled, color: '#e05555', icon: '❌' },
+              { label: 'کل جلسات', value: reportStats.total, color: t.goldText, icon: '📅' },
+              { label: 'تأیید شده', value: reportStats.approved, color: t.greenText, icon: '✅' },
+              { label: 'در انتظار', value: reportStats.pending, color: t.blueText, icon: '⏳' },
+              { label: 'لغو شده', value: reportStats.cancelled, color: t.redText, icon: '❌' },
             ].map((item, i) => (
               <div key={i} style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
                 <div style={{ fontSize: '24px', marginBottom: '8px' }}>{item.icon}</div>
@@ -932,7 +932,7 @@ export default function MeetingsPage() {
                 <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '20px' }}>جلسه‌ای در این بازه یافت نشد</div>
               ) : reportMeetings.map(meeting => (
                 <div key={meeting.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: t.inner, borderRadius: '8px' }}>
-                  <div style={{ color: '#e8c96a', fontSize: '11px', minWidth: '110px', flexShrink: 0 }}>{meeting.day_of_week} {toJalaliSimple(meeting.date)}</div>
+                  <div style={{ color: t.goldText, fontSize: '11px', minWidth: '110px', flexShrink: 0 }}>{meeting.day_of_week} {toJalaliSimple(meeting.date)}</div>
                   <div style={{ color: t.text, fontSize: '12px', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meeting.title_fa}</div>
                   <div style={{ color: t.sub, fontSize: '11px', flexShrink: 0 }}>{meeting.time}</div>
                   <div style={{ padding: '2px 8px', borderRadius: '6px', fontSize: '10px', background: (statusColor[meeting.status] || '#555') + '22', color: statusColor[meeting.status] || '#555', flexShrink: 0 }}>
