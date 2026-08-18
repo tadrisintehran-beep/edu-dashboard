@@ -41,7 +41,7 @@ function TrendChart({ meetingData, reportData, months, isDark, t }: {
   const svgRef = useRef<SVGSVGElement>(null)
 
   const W = 600
-  const H = 140
+  const H = 110
   const PAD = { top: 20, right: 20, bottom: 40, left: 40 }
   const chartW = W - PAD.left - PAD.right
   const chartH = H - PAD.top - PAD.bottom
@@ -273,7 +273,7 @@ export default function DashboardPage() {
       supabase.from('alerts').select('id', { count: 'exact', head: true }).eq('level', 'critical').eq('is_read', false),
       supabase.from('contacts').select('id', { count: 'exact', head: true }),
       supabase.from('reports').select('*').order('created_at', { ascending: false }).limit(5),
-      supabase.from('meetings').select('*').gte('date', today).order('date', { ascending: true }).order('time', { ascending: true }).limit(5),
+      supabase.from('meetings').select('*').gte('date', today).order('date', { ascending: true }).order('time', { ascending: true }).limit(7),
       supabase.from('meetings').select('id', { count: 'exact', head: true }).gte('date', today),
       supabase.from('meetings').select('date').gte('date', sixMonthsAgoDate),
       supabase.from('reports').select('created_at').gte('created_at', sixMonthsAgoDate),
@@ -414,7 +414,7 @@ export default function DashboardPage() {
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '300px 1fr', gap: '10px' }}>
 
         {/* جلسات پیش رو */}
-        <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px' }}>
+        <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px', minHeight: isMobile ? '360px' : '480px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>📅 جلسات پیش رو</div>
             <a href="/dashboard/meetings" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>
@@ -473,8 +473,8 @@ export default function DashboardPage() {
       </div>
 
       {/* نمودار روند */}
-      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: isMobile ? '14px' : '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: isMobile ? '10px' : '14px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div>
             <div style={{ color: t.text, fontSize: '13px', fontWeight: '700' }}>روند ۶ ماه اخیر</div>
             <div style={{ color: t.muted, fontSize: '11px', marginTop: '3px' }}>جلسات و گزارش‌های دریافتی</div>

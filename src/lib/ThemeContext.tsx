@@ -15,6 +15,10 @@ interface ThemeContextType {
     sub: string
     muted: string
     input: string
+    goldText: string
+    blueText: string
+    greenText: string
+    redText: string
   }
 }
 
@@ -45,6 +49,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     sub:     '#8b90a8',
     muted:   '#555c78',
     input:   '#1a1e2c',
+    // در حالت تیره، رنگ‌های اصلی روی پس‌زمینه‌ی خیلی تیره کنتراست بالایی دارند — نیازی به رنگ جایگزین نیست
+    goldText:  '#e8c96a',
+    blueText:  '#4a9eff',
+    greenText: '#3dbb82',
+    redText:   '#e05555',
   } : {
     bg:      '#f0f2f8',
     card:    '#ffffff',
@@ -55,6 +64,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     sub:     '#555c78',
     muted:   '#8b90a8',
     input:   '#eef0f8',
+    // نسخه‌ی تیره‌تر رنگ‌های اصلی، مخصوص متن روی پس‌زمینه‌ی روشن — کنتراست WCAG AA (≥4.5:1) روی سفید
+    goldText:  '#8a6a1a',
+    blueText:  '#1f5fa8',
+    greenText: '#1f7a52',
+    redText:   '#b8362f',
   }
 
   return (

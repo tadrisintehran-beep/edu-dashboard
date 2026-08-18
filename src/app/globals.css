@@ -8,6 +8,12 @@
   --color-dark-800: #131620;
   --color-dark-700: #1a1e2c;
   --color-dark-600: #1f2438;
+
+  /* رنگ‌های تیره‌تر (ink) برای متن روی پس‌زمینه‌ی روشن — کنتراست WCAG AA روی سفید */
+  --color-gold-ink: #8a6a1a;
+  --color-blue-ink: #1f5fa8;
+  --color-green-ink: #1f7a52;
+  --color-red-ink: #b8362f;
 }
 
 * { box-sizing: border-box; }
