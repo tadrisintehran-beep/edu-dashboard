@@ -373,10 +373,10 @@ export default function DashboardPage() {
       {/* سلام */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ color: t.text, fontSize: isMobile ? '15px' : '18px', fontWeight: '700' }}>
-            سلام، {user?.name} 👋
+          <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '20px', fontWeight: '700' }}>
+            سلام 👋
           </h1>
-          <p style={{ color: t.muted, fontSize: '11px', marginTop: '3px' }}>
+          <p style={{ color: t.muted, fontSize: isMobile ? '12px' : '13px', marginTop: '3px' }}>
             {todayJalaliFull()} — دفتر تهران
           </p>
         </div>
