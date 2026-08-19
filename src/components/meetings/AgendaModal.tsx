@@ -193,7 +193,7 @@ ${content.innerHTML}
                         <button onClick={() => handleMove(i, 1)} disabled={i === items.length - 1} aria-label="جابه‌جایی به پایین" style={{ background: 'transparent', border: 'none', color: i === items.length - 1 ? t.muted : t.sub, cursor: i === items.length - 1 ? 'default' : 'pointer', fontSize: '12px', padding: '2px' }}>▼</button>
                       </div>
                     )}
-                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#c9a84c22', color: '#e8c96a', fontSize: '11px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>{i + 1}</div>
+                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#c9a84c22', color: t.goldText, fontSize: '11px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>{i + 1}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>{item.title}</div>
                       {item.description && <div style={{ color: t.sub, fontSize: '11px', marginTop: '3px', lineHeight: '1.6' }}>{item.description}</div>}
@@ -215,7 +215,7 @@ ${content.innerHTML}
                       </span>
                     )}
                     {canEdit && (
-                      <button onClick={() => handleDelete(item.id)} aria-label="حذف بند" style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>🗑</button>
+                      <button onClick={() => handleDelete(item.id)} aria-label="حذف بند" style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 8px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>🗑</button>
                     )}
                   </div>
                 ))}

@@ -245,7 +245,7 @@ export default function SettingsPage() {
           <span style={{ color: t.muted, fontSize: '12px' }}>معاونت آموزش متوسطه</span>
         </Row>
         <Row label="پشتیبانی">
-          <a href="mailto:support@edu.ir" style={{ color: '#c9a84c', fontSize: '12px', textDecoration: 'none' }}>support@edu.ir</a>
+          <a href="mailto:support@edu.ir" style={{ color: t.goldText, fontSize: '12px', textDecoration: 'none' }}>support@edu.ir</a>
         </Row>
       </Section>
 
@@ -254,13 +254,13 @@ export default function SettingsPage() {
         <Row label="پاکسازی cache" desc="حذف داده‌های موقت ذخیره‌شده در مرورگر شما">
           <button
             onClick={handleClearCache}
-            style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '8px', padding: '6px 14px', color: '#4a9eff', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}
+            style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '8px', padding: '6px 14px', color: t.blueText, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}
           >پاکسازی</button>
         </Row>
         <Row label="خروج از همه دستگاه‌ها" desc="پایان دادن به نشست‌های فعال روی سایر دستگاه‌ها">
           <button
             onClick={handleLogoutAllDevices}
-            style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '8px', padding: '6px 14px', color: '#e05555', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}
+            style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '8px', padding: '6px 14px', color: t.redText, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}
           >خروج همه</button>
         </Row>
       </Section>

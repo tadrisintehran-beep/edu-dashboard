@@ -236,7 +236,7 @@ ${content.innerHTML}
               <div key={v} onClick={activate}
                 role="tab" tabIndex={0} aria-selected={reportType === v}
                 onKeyDown={e => activateOnKey(e, activate)}
-                style={{ padding: '7px 16px', background: reportType === v ? '#c9a84c22' : 'transparent', borderRight: i === 0 ? `1px solid ${t.border}` : 'none', color: reportType === v ? '#e8c96a' : t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', userSelect: 'none' as const }}>
+                style={{ padding: '7px 16px', background: reportType === v ? '#c9a84c22' : 'transparent', borderRight: i === 0 ? `1px solid ${t.border}` : 'none', color: reportType === v ? t.goldText : t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', userSelect: 'none' as const }}>
                 {v === 'weekly' ? '📅 هفتگی' : '📆 ماهانه'}
               </div>
             )
@@ -249,14 +249,14 @@ ${content.innerHTML}
             <button onClick={() => setWeekOffset(w => w - 1)} aria-label="هفته قبل" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>←</button>
             <span style={{ color: t.text, fontSize: '12px', fontWeight: '600', minWidth: '160px', textAlign: 'center' }}>{weekRange.label}</span>
             <button onClick={() => setWeekOffset(w => w + 1)} aria-label="هفته بعد" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>→</button>
-            <button onClick={() => setWeekOffset(0)} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 10px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>این هفته</button>
+            <button onClick={() => setWeekOffset(0)} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 10px', color: t.goldText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>این هفته</button>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button onClick={() => setMonthOffset(m => m - 1)} aria-label="ماه قبل" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>←</button>
             <span style={{ color: t.text, fontSize: '12px', fontWeight: '600', minWidth: '120px', textAlign: 'center' }}>{monthRange.label}</span>
             <button onClick={() => setMonthOffset(m => m + 1)} aria-label="ماه بعد" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>→</button>
-            <button onClick={() => setMonthOffset(0)} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 10px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>این ماه</button>
+            <button onClick={() => setMonthOffset(0)} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '5px 10px', color: t.goldText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>این ماه</button>
           </div>
         )}
       </div>
@@ -266,7 +266,7 @@ ${content.innerHTML}
 
         {/* هدر پیش‌نمایش */}
         <div style={{ background: t.inner, borderBottom: `1px solid ${t.border}`, padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-  <div style={{ color: '#c9a84c', fontSize: '12px', fontWeight: '600' }}>👁 پیش‌نمایش گزارش</div>
+  <div style={{ color: t.goldText, fontSize: '12px', fontWeight: '600' }}>👁 پیش‌نمایش گزارش</div>
   <div style={{ color: t.muted, fontSize: '11px' }}>A4 — RTL — فارسی رسمی</div>
 </div>
 

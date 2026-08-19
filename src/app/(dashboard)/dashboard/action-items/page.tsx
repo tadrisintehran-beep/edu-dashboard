@@ -48,12 +48,12 @@ function ItemCard({ item, t, isMobile, canEdit, currentUserId, onStatusChange, o
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             {item.assigned_to_name && <span style={{ color: t.sub, fontSize: '11px' }}>👤 {item.assigned_to_name}</span>}
             {item.meetings && (
-              <a href="/dashboard/meetings" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }}>
+              <a href="/dashboard/meetings" style={{ color: t.goldText, fontSize: '11px', textDecoration: 'none' }}>
                 🗓 {item.meetings.day_of_week} {toJalali(item.meetings.date)} — {item.meetings.title_fa}
               </a>
             )}
             {item.due_date && (
-              <span style={{ color: diff !== null && diff < 0 ? '#e05555' : diff !== null && diff <= 2 ? '#e09444' : t.muted, fontSize: '11px', fontWeight: diff !== null && diff < 0 ? '700' : '400' }}>
+              <span style={{ color: diff !== null && diff < 0 ? t.redText : diff !== null && diff <= 2 ? '#e09444' : t.muted, fontSize: '11px', fontWeight: diff !== null && diff < 0 ? '700' : '400' }}>
                 📅 {toJalali(item.due_date)}
                 {diff !== null && (diff < 0 ? ` — ${Math.abs(diff)} روز گذشته` : diff === 0 ? ' — امروز' : ` — ${diff} روز مانده`)}
               </span>
@@ -207,7 +207,7 @@ export default function ActionItemsPage() {
           <div key={f.key} onClick={() => setStatusFilter(f.key)}
             role="button" tabIndex={0} aria-pressed={statusFilter === f.key}
             onKeyDown={e => activateOnKey(e, () => setStatusFilter(f.key))}
-            style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: statusFilter === f.key ? '#c9a84c22' : t.card, border: statusFilter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: statusFilter === f.key ? '#e8c96a' : t.sub }}>
+            style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: statusFilter === f.key ? '#c9a84c22' : t.card, border: statusFilter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: statusFilter === f.key ? t.goldText : t.sub }}>
             {f.label}
           </div>
         ))}

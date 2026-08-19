@@ -179,7 +179,7 @@ export default function UsersPage() {
       {/* فرم کاربر جدید */}
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>افزودن کاربر جدید</div>
+          <div style={{ color: t.goldText, fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>افزودن کاربر جدید</div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>نام فارسی</label>
@@ -270,13 +270,13 @@ export default function UsersPage() {
             <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
               {editUser?.id === user.id ? (
                 <>
-                  <button onClick={() => handleUpdateRole(user.id, editUser.role, editUser.department_id || null)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '6px 12px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>ذخیره</button>
+                  <button onClick={() => handleUpdateRole(user.id, editUser.role, editUser.department_id || null)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '6px 12px', color: t.greenText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>ذخیره</button>
                   <button onClick={() => setEditUser(null)} style={{ background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 12px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>انصراف</button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => setEditUser(user)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '6px 12px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>ویرایش نقش</button>
-                  <button onClick={() => handleDelete(user.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '6px 12px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>حذف</button>
+                  <button onClick={() => setEditUser(user)} style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '6px', padding: '6px 12px', color: t.blueText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>ویرایش نقش</button>
+                  <button onClick={() => handleDelete(user.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '6px 12px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>حذف</button>
                 </>
               )}
             </div>

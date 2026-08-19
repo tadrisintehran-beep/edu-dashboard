@@ -358,7 +358,7 @@ export function MinutesModal({ meeting, onClose, onChanged, allMeetings = [], on
             <div id="minutes-modal-title" style={{ color: t.text, fontSize: '14px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               📝 صورت‌جلسه
               {minutes && (
-                <span style={{ padding: '2px 9px', borderRadius: '10px', fontSize: '10px', fontWeight: '600', background: minutes.finalized ? '#3dbb8222' : '#c9a84c22', color: minutes.finalized ? '#3dbb82' : '#e8c96a', border: `1px solid ${minutes.finalized ? '#3dbb8244' : '#c9a84c44'}` }}>
+                <span style={{ padding: '2px 9px', borderRadius: '10px', fontSize: '10px', fontWeight: '600', background: minutes.finalized ? '#3dbb8222' : '#c9a84c22', color: minutes.finalized ? t.greenText : t.goldText, border: `1px solid ${minutes.finalized ? '#3dbb8244' : '#c9a84c44'}` }}>
                   {minutes.finalized ? '✓ نهایی‌شده' : 'پیش‌نویس'}
                 </span>
               )}
@@ -381,7 +381,7 @@ export function MinutesModal({ meeting, onClose, onChanged, allMeetings = [], on
                 padding: '7px 14px', borderRadius: '8px 8px 0 0', fontSize: '12px', cursor: 'pointer',
                 background: modalTab === tb.key ? t.inner : 'transparent',
                 borderBottom: modalTab === tb.key ? '2px solid #c9a84c' : '2px solid transparent',
-                color: modalTab === tb.key ? '#e8c96a' : t.sub, fontWeight: modalTab === tb.key ? '600' : '400',
+                color: modalTab === tb.key ? t.goldText : t.sub, fontWeight: modalTab === tb.key ? '600' : '400',
               }}>
               {tb.label}
             </div>
@@ -446,7 +446,7 @@ export function MinutesModal({ meeting, onClose, onChanged, allMeetings = [], on
                           </span>
                         )}
                         {canEdit && !minutes?.finalized && (
-                          <button onClick={() => handleDeleteItem(ai.id)} aria-label="حذف تکلیف" style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+                          <button onClick={() => handleDeleteItem(ai.id)} aria-label="حذف تکلیف" style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 8px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
                         )}
                       </div>
 
@@ -457,7 +457,7 @@ export function MinutesModal({ meeting, onClose, onChanged, allMeetings = [], on
                             <span style={{ fontSize: '10px', color: t.muted }}>بدون یادآور</span>
                           )}
                           {(remindersByItem[ai.id] || []).map(rem => (
-                            <span key={rem.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '8px', fontSize: '10px', background: rem.sent ? t.card : '#c9a84c22', border: `1px solid ${rem.sent ? t.border : '#c9a84c44'}`, color: rem.sent ? t.muted : '#e8c96a' }}>
+                            <span key={rem.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '8px', fontSize: '10px', background: rem.sent ? t.card : '#c9a84c22', border: `1px solid ${rem.sent ? t.border : '#c9a84c44'}`, color: rem.sent ? t.muted : t.goldText }}>
                               🔔 {toJalali(rem.remind_at)}{rem.sent ? ' ✓' : ''}
                               {canEdit && (
                                 <span onClick={() => handleDeleteReminder(rem.id)} role="button" tabIndex={0}
@@ -535,7 +535,7 @@ export function MinutesModal({ meeting, onClose, onChanged, allMeetings = [], on
                       onClick={() => setShowSendLog(v => !v)}
                       role="button" tabIndex={0}
                       onKeyDown={e => activateOnKey(e, () => setShowSendLog(v => !v))}
-                      style={{ color: '#c9a84c', fontSize: '11px', cursor: 'pointer' }}>
+                      style={{ color: t.goldText, fontSize: '11px', cursor: 'pointer' }}>
                       {showSendLog ? '▲ بستن تاریخچه ارسال' : `▼ تاریخچه ارسال (${sendLog.length})`}
                     </div>
                     {canEdit && minutes.finalized && (
@@ -569,7 +569,7 @@ export function MinutesModal({ meeting, onClose, onChanged, allMeetings = [], on
                   const other = allMeetings.find(m => m.id === otherId)
                   return (
                     <div key={rel.id} style={{ background: t.inner, borderRadius: '10px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                      <span style={{ padding: '2px 9px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: '#4a9eff22', color: '#4a9eff', border: '1px solid #4a9eff44', flexShrink: 0 }}>
+                      <span style={{ padding: '2px 9px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: '#4a9eff22', color: t.blueText, border: '1px solid #4a9eff44', flexShrink: 0 }}>
                         {relationTypeLabel[rel.relation_type] || rel.relation_type}
                       </span>
                       <div
@@ -577,12 +577,12 @@ export function MinutesModal({ meeting, onClose, onChanged, allMeetings = [], on
                         role="button" tabIndex={0}
                         onKeyDown={e => activateOnKey(e, () => handleNavigateRelation(otherId))}
                         style={{ flex: 1, minWidth: 0, cursor: other ? 'pointer' : 'default' }}>
-                        <div style={{ color: other ? '#e8c96a' : t.muted, fontSize: '12px', fontWeight: '600' }}>{other ? other.title_fa : 'جلسه دیگر'}</div>
+                        <div style={{ color: other ? t.goldText : t.muted, fontSize: '12px', fontWeight: '600' }}>{other ? other.title_fa : 'جلسه دیگر'}</div>
                         {other && <div style={{ color: t.muted, fontSize: '11px', marginTop: '2px' }}>{other.day_of_week} {toJalali(other.date)}</div>}
                         {rel.note && <div style={{ color: t.sub, fontSize: '11px', marginTop: '2px' }}>{rel.note}</div>}
                       </div>
                       {canEdit && (
-                        <button onClick={() => handleDeleteRelation(rel.id)} aria-label="حذف ارتباط" style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>🗑</button>
+                        <button onClick={() => handleDeleteRelation(rel.id)} aria-label="حذف ارتباط" style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 8px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>🗑</button>
                       )}
                     </div>
                   )
@@ -639,7 +639,7 @@ export function MinutesModal({ meeting, onClose, onChanged, allMeetings = [], on
                           <div style={{ color: t.muted, fontSize: '11px', marginTop: '2px' }}>{sig.user_role}</div>
                         </div>
                         {sig.is_signed ? (
-                          <span style={{ padding: '2px 9px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: '#3dbb8222', color: '#3dbb82', border: '1px solid #3dbb8244' }}>
+                          <span style={{ padding: '2px 9px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: '#3dbb8222', color: t.greenText, border: '1px solid #3dbb8244' }}>
                             ✓ امضا شد — {toJalali(sig.signed_at)}
                           </span>
                         ) : sig.user_id === user?.id ? (
@@ -647,7 +647,7 @@ export function MinutesModal({ meeting, onClose, onChanged, allMeetings = [], on
                             {signing === sig.id ? 'در حال ثبت...' : '✍️ امضای من'}
                           </button>
                         ) : (
-                          <span style={{ padding: '2px 9px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: '#c9a84c22', color: '#e8c96a', border: '1px solid #c9a84c44' }}>
+                          <span style={{ padding: '2px 9px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', background: '#c9a84c22', color: t.goldText, border: '1px solid #c9a84c44' }}>
                             ⏳ در انتظار امضا
                           </span>
                         )}

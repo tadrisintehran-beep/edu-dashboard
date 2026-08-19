@@ -298,7 +298,7 @@ export default function DocumentsPage() {
       {/* فرم آپلود */}
       {showUpload && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>آپلود سند جدید</div>
+          <div style={{ color: t.goldText, fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>آپلود سند جدید</div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>عنوان سند</label>
@@ -320,7 +320,7 @@ export default function DocumentsPage() {
               style={{ border: `2px dashed ${selectedFile ? '#c9a84c' : t.border}`, borderRadius: '10px', padding: '24px', textAlign: 'center', cursor: 'pointer', background: selectedFile ? '#c9a84c11' : t.inner, transition: 'all 0.2s' }}
             >
               <div style={{ fontSize: '32px', marginBottom: '8px' }}>{selectedFile ? '✅' : '📁'}</div>
-              <div style={{ color: selectedFile ? '#c9a84c' : t.muted, fontSize: '13px' }}>
+              <div style={{ color: selectedFile ? t.goldText : t.muted, fontSize: '13px' }}>
                 {selectedFile ? selectedFile.name : 'برای انتخاب فایل کلیک کنید'}
               </div>
               {selectedFile && <div style={{ color: t.muted, fontSize: '11px', marginTop: '4px' }}>{formatSize(selectedFile.size)}</div>}
@@ -369,20 +369,20 @@ export default function DocumentsPage() {
                 </div>
               </div>
 
-              <div style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: '#4a9eff22', color: '#4a9eff', flexShrink: 0 }}>
+              <div style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: '#4a9eff22', color: t.blueText, flexShrink: 0 }}>
                 v{doc.version}
               </div>
 
               <button
                 onClick={e => { e.stopPropagation(); handleDownload(doc.file_path, doc.file_name) }}
-                style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '5px 10px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+                style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '5px 10px', color: t.greenText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
                 ⬇️ دانلود
               </button>
 
               {can('documents', 'delete') && (
                 <button
                   onClick={e => { e.stopPropagation(); setConfirmDelete(doc.id) }}
-                  style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+                  style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
                   حذف
                 </button>
               )}
@@ -425,7 +425,7 @@ export default function DocumentsPage() {
             {can('documents', 'update') && (
               <button
                 onClick={() => setShowVersionUpload(!showVersionUpload)}
-                style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '8px', padding: '8px', color: '#4a9eff', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ background: '#4a9eff22', border: '1px solid #4a9eff44', borderRadius: '8px', padding: '8px', color: t.blueText, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
                 📤 آپلود نسخه جدید
               </button>
             )}
@@ -435,7 +435,7 @@ export default function DocumentsPage() {
                 <div onClick={() => versionInputRef.current?.click()}
                   role="button" tabIndex={0} aria-label={versionFile ? `فایل انتخاب‌شده: ${versionFile.name}` : 'انتخاب فایل نسخه جدید'}
                   onKeyDown={e => activateOnKey(e, () => versionInputRef.current?.click())}
-                  style={{ border: `2px dashed ${versionFile ? '#4a9eff' : t.border}`, borderRadius: '8px', padding: '12px', textAlign: 'center', cursor: 'pointer', fontSize: '12px', color: versionFile ? '#4a9eff' : t.muted }}>
+                  style={{ border: `2px dashed ${versionFile ? '#4a9eff' : t.border}`, borderRadius: '8px', padding: '12px', textAlign: 'center', cursor: 'pointer', fontSize: '12px', color: versionFile ? t.blueText : t.muted }}>
                   {versionFile ? versionFile.name : '📁 انتخاب فایل'}
                 </div>
                 <input ref={versionInputRef} type="file" style={{ display: 'none' }} accept={ALLOWED_EXT}
@@ -457,7 +457,7 @@ export default function DocumentsPage() {
                 <div key={tab.key} onClick={() => setActiveTab(tab.key as any)}
                   role="tab" tabIndex={0} aria-selected={activeTab === tab.key}
                   onKeyDown={e => activateOnKey(e, () => setActiveTab(tab.key as any))}
-                  style={{ padding: '5px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: activeTab === tab.key ? '#c9a84c22' : 'transparent', color: activeTab === tab.key ? '#e8c96a' : t.sub, border: activeTab === tab.key ? '1px solid #c9a84c44' : '1px solid transparent' }}>
+                  style={{ padding: '5px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: activeTab === tab.key ? '#c9a84c22' : 'transparent', color: activeTab === tab.key ? t.goldText : t.sub, border: activeTab === tab.key ? '1px solid #c9a84c44' : '1px solid transparent' }}>
                   {tab.label}
                 </div>
               ))}
@@ -472,7 +472,7 @@ export default function DocumentsPage() {
                   ) : comments.map(comment => (
                     <div key={comment.id} style={{ background: t.inner, borderRadius: '8px', padding: '10px 12px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span style={{ color: '#c9a84c', fontSize: '11px', fontWeight: '600' }}>{comment.author}</span>
+                        <span style={{ color: t.goldText, fontSize: '11px', fontWeight: '600' }}>{comment.author}</span>
                         <span style={{ color: t.muted, fontSize: '10px' }}>{toJalali(comment.created_at)}</span>
                       </div>
                       <div style={{ color: t.text, fontSize: '12px', lineHeight: '1.6' }}>{comment.body}</div>
@@ -484,7 +484,7 @@ export default function DocumentsPage() {
                     value={newComment} onChange={e => setNewComment(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleAddComment()} />
                   <button onClick={handleAddComment}
-                    style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '8px 12px', color: '#e8c96a', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>ارسال</button>
+                    style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '8px', padding: '8px 12px', color: t.goldText, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>ارسال</button>
                 </div>
               </div>
             )}
@@ -494,7 +494,7 @@ export default function DocumentsPage() {
               <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px' }}>
                 {versions.map(version => (
                   <div key={version.id} style={{ background: t.inner, borderRadius: '8px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#4a9eff22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: '#4a9eff', flexShrink: 0 }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#4a9eff22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: t.blueText, flexShrink: 0 }}>
                       v{version.version}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -507,7 +507,7 @@ export default function DocumentsPage() {
                     <button
                       onClick={() => handleDownload(version.file_path, version.file_name)}
                       aria-label={`دانلود نسخه ${version.version}`}
-                      style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: '#3dbb82', fontSize: '10px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+                      style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '4px 8px', color: t.greenText, fontSize: '10px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
                       ⬇️
                     </button>
                   </div>

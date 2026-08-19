@@ -176,7 +176,7 @@ export default function AlertsPage() {
 
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ایجاد هشدار جدید</div>
+          <div style={{ color: t.goldText, fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>ایجاد هشدار جدید</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
             <div>
               <label style={{ color: t.sub, fontSize: '11px', display: 'block', marginBottom: '5px' }}>عنوان هشدار</label>
@@ -212,7 +212,7 @@ export default function AlertsPage() {
           <div key={f.key} onClick={() => setFilter(f.key)}
             role="button" tabIndex={0} aria-pressed={filter === f.key}
             onKeyDown={e => activateOnKey(e, () => setFilter(f.key))}
-            style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: filter === f.key ? '#c9a84c22' : t.card, border: filter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: filter === f.key ? '#e8c96a' : t.sub, transition: 'all 0.2s' }}>
+            style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', background: filter === f.key ? '#c9a84c22' : t.card, border: filter === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: filter === f.key ? t.goldText : t.sub, transition: 'all 0.2s' }}>
             {f.label}
           </div>
         ))}
@@ -239,13 +239,13 @@ export default function AlertsPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flexShrink: 0 }}>
                   {!alert.is_read && (
-                    <button onClick={() => markRead(alert.id)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '5px 10px', color: '#3dbb82', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>خواندم</button>
+                    <button onClick={() => markRead(alert.id)} style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '6px', padding: '5px 10px', color: t.greenText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>خواندم</button>
                   )}
                   <button onClick={() => snooze(alert.id, alert.is_snoozed)} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '6px', padding: '5px 10px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
                     {alert.is_snoozed ? 'بازگردانی' : 'تعویق'}
                   </button>
                   {can('alerts', 'delete') && (
-                    <button onClick={() => dismiss(alert.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>بستن</button>
+                    <button onClick={() => dismiss(alert.id)} style={{ background: '#e0555522', border: '1px solid #e0555544', borderRadius: '6px', padding: '5px 10px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>بستن</button>
                   )}
                 </div>
               </div>

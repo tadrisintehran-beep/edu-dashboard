@@ -130,9 +130,9 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
       {/* آمار ماه */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
         {[
-          { label: 'کل جلسات', value: monthMeetings.length, color: '#c9a84c', icon: '📅' },
-          { label: 'تأیید شده', value: monthMeetings.filter(m => m.status === 'approved').length, color: '#3dbb82', icon: '✅' },
-          { label: 'در انتظار', value: monthMeetings.filter(m => m.status === 'pending').length, color: '#4a9eff', icon: '⏳' },
+          { label: 'کل جلسات', value: monthMeetings.length, color: t.goldText, icon: '📅' },
+          { label: 'تأیید شده', value: monthMeetings.filter(m => m.status === 'approved').length, color: t.greenText, icon: '✅' },
+          { label: 'در انتظار', value: monthMeetings.filter(m => m.status === 'pending').length, color: t.blueText, icon: '⏳' },
         ].map((item, i) => (
           <div key={i} style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '10px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '18px' }}>{item.icon}</span>
@@ -150,17 +150,17 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
         {/* هدر */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <button onClick={prevMonth} aria-label="ماه قبل" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: t.sub, fontSize: '16px', transition: 'all 0.2s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#c9a84c'; (e.currentTarget as HTMLButtonElement).style.color = '#c9a84c' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#c9a84c'; (e.currentTarget as HTMLButtonElement).style.color = t.goldText }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = t.border; (e.currentTarget as HTMLButtonElement).style.color = t.sub }}
           >←</button>
 
           <div style={{ textAlign: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', justifyContent: 'center' }}>
               <span style={{ color: t.text, fontSize: isMobile ? '18px' : '22px', fontWeight: '800' }}>{MONTH_NAMES[jMonth - 1]}</span>
-              <span style={{ color: '#c9a84c', fontSize: isMobile ? '15px' : '18px', fontWeight: '700' }}>{jYear}</span>
+              <span style={{ color: t.goldText, fontSize: isMobile ? '15px' : '18px', fontWeight: '700' }}>{jYear}</span>
             </div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '6px' }}>
-              <button onClick={goToday} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '3px 10px', color: '#e8c96a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button onClick={goToday} style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '3px 10px', color: t.goldText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
                 امروز
               </button>
               <span style={{ color: t.muted, fontSize: '11px', lineHeight: '22px' }}>{monthMeetings.length} جلسه</span>
@@ -168,7 +168,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
           </div>
 
           <button onClick={nextMonth} aria-label="ماه بعد" style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: t.sub, fontSize: '16px', transition: 'all 0.2s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#c9a84c'; (e.currentTarget as HTMLButtonElement).style.color = '#c9a84c' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#c9a84c'; (e.currentTarget as HTMLButtonElement).style.color = t.goldText }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = t.border; (e.currentTarget as HTMLButtonElement).style.color = t.sub }}
           >→</button>
         </div>
@@ -176,7 +176,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
         {/* روزهای هفته */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '6px' }}>
           {DAY_NAMES_SHORT.map((d, i) => (
-            <div key={i} style={{ textAlign: 'center', padding: '6px 0', color: i === 6 ? '#e05555' : t.muted, fontSize: '12px', fontWeight: '700', borderBottom: `2px solid ${i === 6 ? '#e0555533' : t.border}` }}>{d}</div>
+            <div key={i} style={{ textAlign: 'center', padding: '6px 0', color: i === 6 ? t.redText : t.muted, fontSize: '12px', fontWeight: '700', borderBottom: `2px solid ${i === 6 ? '#e0555533' : t.border}` }}>{d}</div>
           ))}
         </div>
 
@@ -227,7 +227,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
                     width: isMobile ? '20px' : '26px', height: isMobile ? '20px' : '26px',
                     borderRadius: '50%',
                     background: isToday ? '#c9a84c' : 'transparent',
-                    color: isToday ? '#1a1200' : holiday || isJumua ? '#e05555' : t.text,
+                    color: isToday ? '#1a1200' : holiday || isJumua ? t.redText : t.text,
                     fontSize: isMobile ? '10px' : '13px',
                     fontWeight: isToday ? '800' : isPast ? '400' : '600',
                   }}>{jd}</span>
@@ -247,7 +247,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
                       <div key={mi} style={{ width: '5px', height: '5px', borderRadius: '50%', background: PRIORITY_COLORS[m.priority] || '#555' }} />
                     ))}
                     {dayMeetings.length > 3 && (
-                      <div style={{ color: '#c9a84c', fontSize: '7px', fontWeight: '700' }}>+</div>
+                      <div style={{ color: t.goldText, fontSize: '7px', fontWeight: '700' }}>+</div>
                     )}
                   </div>
                 ) : (
@@ -268,7 +268,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
                       </div>
                     ))}
                     {dayMeetings.length > 2 && (
-                      <div style={{ color: '#c9a84c', fontSize: '9px', textAlign: 'center', fontWeight: '600' }}>
+                      <div style={{ color: t.goldText, fontSize: '9px', textAlign: 'center', fontWeight: '600' }}>
                         +{dayMeetings.length - 2}
                       </div>
                     )}
@@ -323,7 +323,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
             <div style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '10px', padding: '10px 14px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#e0555522', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🔴</div>
               <div>
-                <div style={{ color: '#e05555', fontSize: '11px', fontWeight: '700', marginBottom: '2px' }}>روز تعطیل رسمی</div>
+                <div style={{ color: t.redText, fontSize: '11px', fontWeight: '700', marginBottom: '2px' }}>روز تعطیل رسمی</div>
                 <div style={{ color: t.text, fontSize: '13px', fontWeight: '500' }}>{selectedHoliday}</div>
               </div>
             </div>
@@ -346,7 +346,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
                   .map(meeting => (
                     <div key={meeting.id} style={{ padding: '12px', borderRadius: '10px', borderRight: `4px solid ${PRIORITY_COLORS[meeting.priority] || '#555'}`, background: t.inner, display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                       <div style={{ textAlign: 'center', minWidth: '56px', flexShrink: 0 }}>
-                        <div style={{ color: '#e8c96a', fontSize: '14px', fontWeight: '700' }}>{meeting.time}</div>
+                        <div style={{ color: t.goldText, fontSize: '14px', fontWeight: '700' }}>{meeting.time}</div>
                         {meeting.end_time && <div style={{ color: t.muted, fontSize: '10px' }}>{meeting.end_time}</div>}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -354,7 +354,7 @@ export function PersianCalendar({ meetings, isMobile, t }: PersianCalendarProps)
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                           {meeting.location && <span style={{ color: t.sub, fontSize: '11px' }}>📍 {meeting.location}</span>}
                           {meeting.participants && <span style={{ color: t.sub, fontSize: '11px' }}>👥 {meeting.participants} نفر</span>}
-                          {meeting.meeting_type && <span style={{ color: '#4a9eff', fontSize: '11px' }}>🏷 {meeting.meeting_type}</span>}
+                          {meeting.meeting_type && <span style={{ color: t.blueText, fontSize: '11px' }}>🏷 {meeting.meeting_type}</span>}
                         </div>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end', flexShrink: 0 }}>

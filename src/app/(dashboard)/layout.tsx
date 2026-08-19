@@ -184,7 +184,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <span style={{ fontSize: '16px', flexShrink: 0 }}>{item.icon}</span>
         {(sidebarOpen || isMobile) && (
           <>
-            <span style={{ fontSize: '12px', fontWeight: isActive ? '600' : '400', color: isActive ? '#e8c96a' : t.sub, flex: 1 }}>
+            <span style={{ fontSize: '12px', fontWeight: isActive ? '600' : '400', color: isActive ? t.goldText : t.sub, flex: 1 }}>
               {item.label}
             </span>
             {badges[item.path] > 0 && (
@@ -207,7 +207,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         {(sidebarOpen || isMobile) && (
           <div>
-            <div style={{ color: '#e8c96a', fontSize: '11px', fontWeight: '700', lineHeight: '1.3' }}>وزارت آموزش</div>
+            <div style={{ color: t.goldText, fontSize: '11px', fontWeight: '700', lineHeight: '1.3' }}>وزارت آموزش</div>
             <div style={{ color: t.muted, fontSize: '10px' }}>معاونت متوسطه</div>
           </div>
         )}
@@ -245,7 +245,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <span style={{ fontSize: '16px', flexShrink: 0 }}>{item.icon}</span>
             {(sidebarOpen || isMobile) && (
-              <span style={{ fontSize: '12px', color: pathname === item.path ? '#e8c96a' : t.sub }}>{item.label}</span>
+              <span style={{ fontSize: '12px', color: pathname === item.path ? t.goldText : t.sub }}>{item.label}</span>
             )}
           </div>
           )
@@ -268,7 +268,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <span style={{ fontSize: '16px', flexShrink: 0 }}>🔐</span>
             {(sidebarOpen || isMobile) && (
-              <span style={{ fontSize: '12px', color: pathname === '/dashboard/logs' ? '#e05555' : t.sub }}>لاگ دسترسی</span>
+              <span style={{ fontSize: '12px', color: pathname === '/dashboard/logs' ? t.redText : t.sub }}>لاگ دسترسی</span>
             )}
           </div>
         )}
@@ -293,7 +293,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         >
           <span style={{ fontSize: '16px', flexShrink: 0 }}>🪪</span>
           {(sidebarOpen || isMobile) && (
-            <span style={{ fontSize: '12px', color: pathname === '/dashboard/profile' ? '#e8c96a' : t.sub }}>پروفایل</span>
+            <span style={{ fontSize: '12px', color: pathname === '/dashboard/profile' ? t.goldText : t.sub }}>پروفایل</span>
           )}
         </div>
 
@@ -325,7 +325,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {(sidebarOpen || isMobile) && (
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '11px', color: t.text, fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name}</div>
-              <div style={{ fontSize: '10px', color: '#e05555' }}>خروج از سامانه</div>
+              <div style={{ fontSize: '10px', color: t.redText }}>خروج از سامانه</div>
             </div>
           )}
         </div>
@@ -377,7 +377,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {!isMobile && <GlobalSearch />}
 
           {/* اتصال زنده */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#3dbb8222', border: '1px solid #3dbb8244', padding: '5px 12px', borderRadius: '20px', fontSize: '11px', color: '#3dbb82', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#3dbb8222', border: '1px solid #3dbb8244', padding: '5px 12px', borderRadius: '20px', fontSize: '11px', color: t.greenText, flexShrink: 0 }}>
             <div className="pulse-dot"></div>
             {!isMobile && <span>اتصال زنده</span>}
           </div>
@@ -419,7 +419,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                   ))}
                   <div style={{ padding: '10px 14px', textAlign: 'center' }}>
-                    <a href="/dashboard/alerts" style={{ color: '#c9a84c', fontSize: '11px', textDecoration: 'none' }} onClick={() => setShowNotif(false)}>مشاهده همه ←</a>
+                    <a href="/dashboard/alerts" style={{ color: t.goldText, fontSize: '11px', textDecoration: 'none' }} onClick={() => setShowNotif(false)}>مشاهده همه ←</a>
                   </div>
                 </div>
               </>

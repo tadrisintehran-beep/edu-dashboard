@@ -174,7 +174,7 @@ export function AttendeesModal({ meeting, onClose }: AttendeesModalProps) {
                         padding: '6px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer',
                         background: mode === mt.key ? '#c9a84c22' : t.card,
                         border: mode === mt.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`,
-                        color: mode === mt.key ? '#e8c96a' : t.sub,
+                        color: mode === mt.key ? t.goldText : t.sub,
                       }}>
                       {mt.label}
                     </div>
@@ -238,11 +238,11 @@ export function AttendeesModal({ meeting, onClose }: AttendeesModalProps) {
                       style={{
                         padding: '4px 10px', borderRadius: '8px', fontSize: '10px', fontWeight: '600', cursor: 'pointer',
                         background: a.attended ? '#3dbb8222' : t.card, border: `1px solid ${a.attended ? '#3dbb8244' : t.border}`,
-                        color: a.attended ? '#3dbb82' : t.muted,
+                        color: a.attended ? t.greenText : t.muted,
                       }}>
                       {a.attended ? '✓ حاضر' : 'حضور؟'}
                     </div>
-                    <button onClick={() => setConfirmDelete(a.id)} aria-label="حذف شرکت‌کننده" style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 8px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
+                    <button onClick={() => setConfirmDelete(a.id)} aria-label="حذف شرکت‌کننده" style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 8px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>🗑</button>
                   </div>
                 ))}
               </div>
@@ -257,7 +257,7 @@ export function AttendeesModal({ meeting, onClose }: AttendeesModalProps) {
             <div style={{ color: t.text, fontSize: '13px', marginBottom: '16px' }}>حذف این شرکت‌کننده؟</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, background: 'transparent', border: `1px solid ${t.border}`, borderRadius: '8px', padding: '9px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>انصراف</button>
-              <button onClick={confirmDeleteAction} style={{ flex: 1, background: '#e0555522', border: '1px solid #e0555544', borderRadius: '8px', padding: '9px', color: '#e05555', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>حذف</button>
+              <button onClick={confirmDeleteAction} style={{ flex: 1, background: '#e0555522', border: '1px solid #e0555544', borderRadius: '8px', padding: '9px', color: t.redText, fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>حذف</button>
             </div>
           </div>
         </div>

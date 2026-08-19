@@ -278,7 +278,7 @@ export default function LettersPage() {
               padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',
               background: filterType === f.key ? '#c9a84c22' : t.card,
               border: filterType === f.key ? '1px solid #c9a84c44' : `1px solid ${t.border}`,
-              color: filterType === f.key ? '#e8c96a' : t.sub,
+              color: filterType === f.key ? t.goldText : t.sub,
             }}>
             {f.label}
           </div>
@@ -299,7 +299,7 @@ export default function LettersPage() {
               padding: '6px 14px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer',
               background: filterStatus === f.key ? '#4a9eff22' : t.card,
               border: filterStatus === f.key ? '1px solid #4a9eff44' : `1px solid ${t.border}`,
-              color: filterStatus === f.key ? '#4a9eff' : t.sub,
+              color: filterStatus === f.key ? t.blueText : t.sub,
             }}>
             {f.label}
           </div>
@@ -309,7 +309,7 @@ export default function LettersPage() {
       {/* فرم نامه جدید */}
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>
+          <div style={{ color: t.goldText, fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>
             ✉️ ثبت نامه جدید
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
@@ -409,7 +409,7 @@ export default function LettersPage() {
                     <span onClick={() => handleDownload(letter.attachment_path, letter.attachment_name)}
                       role="button" tabIndex={0}
                       onKeyDown={e => activateOnKey(e, () => handleDownload(letter.attachment_path, letter.attachment_name))}
-                      style={{ color: '#4a9eff', fontSize: '11px', cursor: 'pointer' }}>
+                      style={{ color: t.blueText, fontSize: '11px', cursor: 'pointer' }}>
                       📎 {letter.attachment_name}
                     </span>
                   )}
@@ -419,7 +419,7 @@ export default function LettersPage() {
                   onClick={() => toggleExpand(letter.id)}
                   role="button" tabIndex={0}
                   onKeyDown={e => activateOnKey(e, () => toggleExpand(letter.id))}
-                  style={{ color: '#c9a84c', fontSize: '11px', marginTop: '8px', cursor: 'pointer' }}
+                  style={{ color: t.goldText, fontSize: '11px', marginTop: '8px', cursor: 'pointer' }}
                 >
                   {expanded === letter.id ? '▲ بستن ارجاعات' : `▼ ارجاعات (${referrals[letter.id]?.length ?? '…'})`}
                 </div>
@@ -481,7 +481,7 @@ export default function LettersPage() {
                         </div>
                       ) : (
                         <button onClick={() => openReferralForm(letter.id, letter.department_id)}
-                          style={{ alignSelf: 'flex-start', background: '#4a9eff11', border: '1px solid #4a9eff33', borderRadius: '6px', padding: '5px 12px', color: '#4a9eff', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                          style={{ alignSelf: 'flex-start', background: '#4a9eff11', border: '1px solid #4a9eff33', borderRadius: '6px', padding: '5px 12px', color: t.blueText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
                           ↪ ارجاع نامه
                         </button>
                       )
@@ -518,7 +518,7 @@ export default function LettersPage() {
                 )}
 
                 {can('letters', 'delete') && (
-                  <button onClick={() => setConfirmDelete(letter.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 10px', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  <button onClick={() => setConfirmDelete(letter.id)} style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '6px', padding: '4px 10px', color: t.redText, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' }}>
                     🗑 حذف
                   </button>
                 )}

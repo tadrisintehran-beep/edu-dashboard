@@ -119,7 +119,7 @@ export default function ProfilePage() {
           </div>
           <button
             onClick={() => setIsChangingPassword(!isChangingPassword)}
-            style={{ background: isChangingPassword ? t.inner : '#c9a84c22', border: `1px solid ${isChangingPassword ? t.border : '#c9a84c44'}`, borderRadius: '8px', padding: '8px 16px', color: isChangingPassword ? t.sub : '#e8c96a', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}
+            style={{ background: isChangingPassword ? t.inner : '#c9a84c22', border: `1px solid ${isChangingPassword ? t.border : '#c9a84c44'}`, borderRadius: '8px', padding: '8px 16px', color: isChangingPassword ? t.sub : t.goldText, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}
           >
             {isChangingPassword ? 'انصراف' : 'تغییر رمز'}
           </button>

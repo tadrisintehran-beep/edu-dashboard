@@ -123,7 +123,7 @@ export function JalaliDatePicker({ value, onChange, placeholder = 'انتخاب 
               <button onClick={prevMonth} aria-label="ماه قبل" style={{ background: '#f5f5f5', border: 'none', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', fontSize: '14px' }}>←</button>
               <div style={{ textAlign: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: '700', color: '#1a1a2e' }}>{MONTH_NAMES[jMonth - 1]}</span>
-                <span style={{ fontSize: '12px', color: '#c9a84c', marginRight: '6px', fontWeight: '600' }}>{jYear}</span>
+                <span style={{ fontSize: '12px', color: '#8a6a1a', marginRight: '6px', fontWeight: '600' }}>{jYear}</span>
               </div>
               <button onClick={nextMonth} aria-label="ماه بعد" style={{ background: '#f5f5f5', border: 'none', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', fontSize: '14px' }}>→</button>
             </div>
@@ -131,7 +131,7 @@ export function JalaliDatePicker({ value, onChange, placeholder = 'انتخاب 
             {/* روزهای هفته */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: '6px' }}>
               {DAY_NAMES.map((d, i) => (
-                <div key={i} style={{ textAlign: 'center', fontSize: '11px', fontWeight: '700', color: i === 6 ? '#e05555' : '#999', padding: '4px 0' }}>{d}</div>
+                <div key={i} style={{ textAlign: 'center', fontSize: '11px', fontWeight: '700', color: i === 6 ? '#b8362f' : '#999', padding: '4px 0' }}>{d}</div>
               ))}
             </div>
 
@@ -153,7 +153,7 @@ export function JalaliDatePicker({ value, onChange, placeholder = 'انتخاب 
                       textAlign: 'center', padding: '5px 2px',
                       borderRadius: '6px', cursor: 'pointer', fontSize: '12px',
                       background: isSelected ? '#c9a84c' : isToday ? '#c9a84c22' : 'transparent',
-                      color: isSelected ? '#fff' : isToday ? '#c9a84c' : isJumua ? '#e05555' : '#1a1a2e',
+                      color: isSelected ? '#fff' : isToday ? '#8a6a1a' : isJumua ? '#b8362f' : '#1a1a2e',
                       fontWeight: isSelected || isToday ? '700' : '400',
                       transition: 'all 0.1s',
                     }}
@@ -170,14 +170,14 @@ export function JalaliDatePicker({ value, onChange, placeholder = 'انتخاب 
             <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #f0f0f0', textAlign: 'center' }}>
               <button
                 onClick={() => handleSelect(jToday.jd)}
-                style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '4px 16px', color: '#c9a84c', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: '600' }}
+                style={{ background: '#c9a84c22', border: '1px solid #c9a84c44', borderRadius: '6px', padding: '4px 16px', color: '#8a6a1a', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: '600' }}
               >
                 امروز
               </button>
               {value && (
                 <button
                   onClick={() => { onChange('', ''); setOpen(false) }}
-                  style={{ background: 'transparent', border: 'none', color: '#e05555', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', marginRight: '8px' }}
+                  style={{ background: 'transparent', border: 'none', color: '#b8362f', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', marginRight: '8px' }}
                 >
                   پاک کردن
                 </button>

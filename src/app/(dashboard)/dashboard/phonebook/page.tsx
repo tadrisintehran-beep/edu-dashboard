@@ -148,7 +148,7 @@ export default function PhonebookPage() {
   <div style={{ display: 'flex', gap: '8px' }}>
     <button
       onClick={handleExport}
-      style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px 16px', color: '#3dbb82', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px' }}
+      style={{ background: '#3dbb8222', border: '1px solid #3dbb8244', borderRadius: '8px', padding: '10px 16px', color: t.greenText, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px' }}
     >
       📊 خروجی Excel
     </button>
@@ -160,7 +160,7 @@ export default function PhonebookPage() {
 
       {showForm && (
         <div style={{ background: t.card, border: '1px solid #c9a84c33', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ color: '#e8c96a', fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>افزودن مخاطب جدید</div>
+          <div style={{ color: t.goldText, fontSize: '13px', fontWeight: '600', marginBottom: '16px' }}>افزودن مخاطب جدید</div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             {[
               { label: 'نام و نام خانوادگی', key: 'name', placeholder: 'نام کامل' },
@@ -202,7 +202,7 @@ export default function PhonebookPage() {
         <div onClick={() => setShowFavorites(!showFavorites)}
           role="button" tabIndex={0} aria-pressed={showFavorites} aria-label="فیلتر موردعلاقه‌ها"
           onKeyDown={e => activateOnKey(e, () => setShowFavorites(!showFavorites))}
-          style={{ padding: '8px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', background: showFavorites ? '#c9a84c22' : t.card, border: showFavorites ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: showFavorites ? '#e8c96a' : t.sub }}>
+          style={{ padding: '8px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', background: showFavorites ? '#c9a84c22' : t.card, border: showFavorites ? '1px solid #c9a84c44' : `1px solid ${t.border}`, color: showFavorites ? t.goldText : t.sub }}>
           ⭐ {!isMobile && 'موردعلاقه‌ها'}
         </div>
       </div>
@@ -263,7 +263,7 @@ export default function PhonebookPage() {
               <button onClick={() => setSelected(null)} aria-label="بستن" style={{ background: 'transparent', border: 'none', color: t.muted, fontSize: '18px', cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ textAlign: 'center', padding: '10px 0' }}>
-              <div style={{ width: '64px', height: '64px', borderRadius: '50%', margin: '0 auto 10px', background: '#c9a84c33', border: '2px solid #c9a84c55', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', color: '#c9a84c' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', margin: '0 auto 10px', background: '#c9a84c33', border: '2px solid #c9a84c55', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', color: t.goldText }}>
                 {selected.avatar}
               </div>
               <div style={{ color: t.text, fontSize: '15px', fontWeight: '700' }}>{selected.name}</div>
@@ -286,12 +286,12 @@ export default function PhonebookPage() {
               ))}
             </div>
             <button onClick={() => toggleFavorite(selected.id, selected.favorite)}
-              style={{ background: selected.favorite ? '#c9a84c22' : t.inner, border: `1px solid ${selected.favorite ? '#c9a84c44' : t.border}`, borderRadius: '8px', padding: '10px', color: selected.favorite ? '#e8c96a' : t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ background: selected.favorite ? '#c9a84c22' : t.inner, border: `1px solid ${selected.favorite ? '#c9a84c44' : t.border}`, borderRadius: '8px', padding: '10px', color: selected.favorite ? t.goldText : t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
               {selected.favorite ? '⭐ حذف از موردعلاقه‌ها' : '☆ افزودن به موردعلاقه‌ها'}
             </button>
             {can('contacts', 'delete') && (
               <button onClick={() => handleDelete(selected.id)}
-                style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '8px', padding: '10px', color: '#e05555', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ background: '#e0555511', border: '1px solid #e0555533', borderRadius: '8px', padding: '10px', color: t.redText, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}>
                 🗑 حذف مخاطب
               </button>
             )}
