@@ -12,6 +12,7 @@ import {
   PRIORITY_LABELS as priorityLabel, PRIORITY_COLORS as priorityColor,
   TASK_STATUS_LABELS as statusLabel, TASK_STATUS_COLORS as statusColor,
 } from '@/lib/constants'
+import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
 
 function daysDiff(dueDate: string): number {
   const today = new Date(); today.setHours(0, 0, 0, 0)
@@ -184,8 +185,22 @@ export default function ActionItemsPage() {
   const sectionProps = { t, isMobile, canEdit, currentUserId: user?.id, onStatusChange: handleStatus, onCarryOver: handleCarryOver }
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: t.sub, fontSize: '13px' }}>
-      ⏳ در حال بارگذاری...
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', direction: 'rtl' }}>
+      <div>
+        <Skeleton width="120px" height="18px" />
+        <Skeleton width="160px" height="12px" style={{ marginTop: '8px' }} />
+      </div>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <Skeleton width="80px" height="30px" borderRadius="8px" />
+        <Skeleton width="90px" height="30px" borderRadius="8px" />
+        <Skeleton width="100px" height="30px" borderRadius="8px" />
+      </div>
+      {[1, 2, 3].map(i => (
+        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <Skeleton width="90px" height="13px" />
+          <SkeletonList rows={2} stripe lines={2} />
+        </div>
+      ))}
     </div>
   )
 

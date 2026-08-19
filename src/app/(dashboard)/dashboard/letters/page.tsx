@@ -12,6 +12,7 @@ import { toJalali } from '@/lib/date'
 import { activateOnKey } from '@/lib/a11y'
 import { ALLOWED_UPLOAD_EXT, validateUploadFile } from '@/lib/fileValidation'
 import { PRIORITY_LABELS as priorityLabel, PRIORITY_COLORS as priorityColor } from '@/lib/constants'
+import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
 
 const typeLabel: Record<string, string> = { incoming: 'وارده', outgoing: 'صادره' }
 const typeColor: Record<string, string> = { incoming: '#4a9eff', outgoing: '#3dbb82' }
@@ -243,8 +244,12 @@ export default function LettersPage() {
   }
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: t.sub, fontSize: '13px' }}>
-      ⏳ در حال بارگذاری...
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', direction: 'rtl' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+        <Skeleton width="140px" height="20px" />
+        <Skeleton width="140px" height="36px" borderRadius="8px" />
+      </div>
+      <SkeletonList rows={6} stripe lines={2} />
     </div>
   )
 

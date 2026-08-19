@@ -10,6 +10,7 @@ import {
   PRIORITY_LABELS as priorityLabel, MEETING_STATUS_LABELS as statusLabelM,
   REPORT_STATUS_LABELS as statusLabelR, TASK_STATUS_LABELS as statusLabelT,
 } from '@/lib/constants'
+import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton'
 
 const JALALI_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
 
@@ -207,8 +208,23 @@ ${content.innerHTML}
   })()
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: t.sub, fontSize: '13px' }}>
-      ⏳ در حال بارگذاری...
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', direction: 'rtl' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+        <div>
+          <Skeleton width="120px" height="18px" />
+          <Skeleton width="150px" height="12px" style={{ marginTop: '8px' }} />
+        </div>
+        <Skeleton width="130px" height="40px" borderRadius="10px" />
+      </div>
+      <Skeleton width="100%" height="52px" borderRadius="12px" />
+      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: isMobile ? '14px' : '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '10px' }}>
+          {[1, 2, 3, 4].map(i => <SkeletonCard key={i} height="90px" />)}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} width="100%" height="28px" borderRadius="8px" />)}
+        </div>
+      </div>
     </div>
   )
 

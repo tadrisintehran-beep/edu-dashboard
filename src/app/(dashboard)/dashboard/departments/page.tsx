@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { toJalali } from '@/lib/date'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'next/navigation'
+import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
 
 interface Department {
   id: string
@@ -99,8 +100,9 @@ export default function DepartmentsPage() {
   if (currentUser?.role !== 'SUPER_ADMIN') return null
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: t.sub, fontSize: '13px' }}>
-      ⏳ در حال بارگذاری...
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <Skeleton width="140px" height="20px" />
+      <SkeletonList rows={5} avatar="none" />
     </div>
   )
 

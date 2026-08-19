@@ -8,6 +8,7 @@ import { useIsMobile } from '@/lib/useIsMobile'
 import { useRouter } from 'next/navigation'
 import { activateOnKey } from '@/lib/a11y'
 import { toJalaliDateTime as toJalali } from '@/lib/date'
+import { SkeletonTable } from '@/components/ui/Skeleton'
 
 const ACTION_LABELS: Record<string, string> = {
   login: 'ورود', logout: 'خروج', view: 'مشاهده',
@@ -126,7 +127,7 @@ export default function LogsPage() {
       {/* لیست لاگ‌ها */}
       <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>⏳ در حال بارگذاری...</div>
+          <SkeletonTable rows={7} columns={5} />
         ) : filtered.length === 0 ? (
           <div style={{ padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>رویداد یافت نشد</div>
         ) : (

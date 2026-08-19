@@ -10,6 +10,7 @@ import { toJalali } from '@/lib/date'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'next/navigation'
 import { useDepartments } from '@/lib/hooks/useDepartments'
+import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
 
 const roleLabel: Record<string, string> = {
   SUPER_ADMIN: 'مدیر سیستم',
@@ -160,8 +161,12 @@ export default function UsersPage() {
   if (currentUser?.role !== 'SUPER_ADMIN') return null
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: t.sub, fontSize: '13px' }}>
-      ⏳ در حال بارگذاری...
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+        <Skeleton width="140px" height="20px" />
+        <Skeleton width="140px" height="36px" borderRadius="8px" />
+      </div>
+      <SkeletonList rows={6} avatar="circle" />
     </div>
   )
 

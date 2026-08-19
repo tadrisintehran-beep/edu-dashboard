@@ -37,18 +37,58 @@ export function SkeletonCard({ height = '120px' }: { height?: string }) {
   )
 }
 
-export function SkeletonList({ rows = 5 }: { rows?: number }) {
+interface SkeletonListProps {
+  rows?: number
+  avatar?: 'dot' | 'circle' | 'square' | 'none'
+  lines?: number
+  stripe?: boolean
+}
+
+export function SkeletonList({ rows = 5, avatar = 'dot', lines = 1, stripe = false }: SkeletonListProps) {
   const { t } = useTheme()
+  const avatarSize = avatar === 'dot' ? '8px' : '44px'
+  const avatarRadius = avatar === 'square' ? '10px' : '50%'
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Skeleton width="8px" height="8px" borderRadius="50%" />
+        <div key={i} style={{
+          background: t.card, border: `1px solid ${t.border}`,
+          borderRight: stripe ? `4px solid ${t.border}` : undefined,
+          borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px',
+        }}>
+          {avatar !== 'none' && <Skeleton width={avatarSize} height={avatarSize} borderRadius={avatarRadius} style={{ flexShrink: 0 }} />}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <Skeleton width={`${60 + Math.random() * 30}%`} height="13px" />
+            {Array.from({ length: lines - 1 }).map((_, li) => (
+              <Skeleton key={li} width={`${45 + Math.random() * 30}%`} height="11px" />
+            ))}
             <Skeleton width={`${30 + Math.random() * 20}%`} height="10px" />
           </div>
-          <Skeleton width="70px" height="22px" borderRadius="10px" />
+          <Skeleton width="70px" height="22px" borderRadius="10px" style={{ flexShrink: 0 }} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function SkeletonTable({ rows = 6, columns = 5 }: { rows?: number, columns?: number }) {
+  const { t } = useTheme()
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: '12px', padding: '10px 14px', background: t.inner }}>
+        {Array.from({ length: columns }).map((_, i) => (
+          <Skeleton key={i} height="11px" style={{ flex: 1, maxWidth: '110px' }} />
+        ))}
+      </div>
+      {Array.from({ length: rows }).map((_, ri) => (
+        <div key={ri} style={{
+          display: 'flex', gap: '12px', padding: '10px 14px', alignItems: 'center',
+          background: ri % 2 === 1 ? t.inner + '55' : 'transparent',
+          borderBottom: `1px solid ${t.border}`,
+        }}>
+          {Array.from({ length: columns }).map((_, ci) => (
+            <Skeleton key={ci} height="12px" style={{ flex: 1, width: `${40 + Math.random() * 40}%` }} />
+          ))}
         </div>
       ))}
     </div>

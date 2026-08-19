@@ -9,6 +9,7 @@ import { useIsMobile } from '@/lib/useIsMobile'
 import { toJalali } from '@/lib/date'
 import { useAuthStore } from '@/stores/authStore'
 import { activateOnKey } from '@/lib/a11y'
+import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
 
 type AlertLevel = 'critical' | 'important' | 'warning' | 'info'
 
@@ -149,8 +150,12 @@ export default function AlertsPage() {
   }
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: t.sub, fontSize: '13px' }}>
-      ⏳ در حال بارگذاری...
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+        <Skeleton width="140px" height="20px" />
+        <Skeleton width="140px" height="36px" borderRadius="8px" />
+      </div>
+      <SkeletonList rows={5} avatar="square" lines={2} />
     </div>
   )
 

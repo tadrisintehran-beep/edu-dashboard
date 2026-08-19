@@ -20,6 +20,7 @@ import {
   MEETING_STATUS_LABELS as statusLabel, MEETING_STATUS_COLORS as statusColor,
 } from '@/lib/constants'
 import { useDepartments } from '@/lib/hooks/useDepartments'
+import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
 
 const VIEW_LABELS: Record<'weekly' | 'list' | 'calendar' | 'report', string> = {
   weekly: 'نمای هفتگی', list: 'نمای لیست', calendar: 'نمای تقویم', report: 'نمای گزارش',
@@ -421,8 +422,12 @@ export default function MeetingsPage() {
   const nextWeek = () => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); setWeekStart(d) }
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: t.sub, fontSize: '13px' }}>
-      ⏳ در حال بارگذاری...
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+        <Skeleton width="140px" height="20px" />
+        <Skeleton width="220px" height="36px" borderRadius="8px" />
+      </div>
+      <SkeletonList rows={6} avatar="none" lines={2} />
     </div>
   )
 

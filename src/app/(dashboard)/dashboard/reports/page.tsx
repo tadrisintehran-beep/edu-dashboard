@@ -11,6 +11,7 @@ import { exportReportsToExcel } from '@/lib/exportData'
 import { useAuthStore } from '@/stores/authStore'
 import { activateOnKey } from '@/lib/a11y'
 import { REPORT_STATUS_LABELS as statusLabel, REPORT_STATUS_COLORS as statusColor } from '@/lib/constants'
+import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
 
 const fileTypeIcon: Record<string, string> = {
   'application/pdf': '📄',
@@ -238,8 +239,12 @@ export default function ReportsPage() {
   }
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: t.sub, fontSize: '13px' }}>
-      ⏳ در حال بارگذاری...
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+        <Skeleton width="140px" height="20px" />
+        <Skeleton width="180px" height="36px" borderRadius="8px" />
+      </div>
+      <SkeletonList rows={6} />
     </div>
   )
 
