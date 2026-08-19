@@ -10,6 +10,7 @@ import { toJalali } from '@/lib/date'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'next/navigation'
 import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface Department {
   id: string
@@ -162,8 +163,9 @@ export default function DepartmentsPage() {
         ))}
 
         {departments.length === 0 && (
-          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>
-            معاونتی ثبت نشده
+          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px' }}>
+            <EmptyState variant="empty" icon="🏛️" title="معاونتی ثبت نشده"
+              description="از فرم بالا یک معاونت جدید اضافه کنید" />
           </div>
         )}
       </div>

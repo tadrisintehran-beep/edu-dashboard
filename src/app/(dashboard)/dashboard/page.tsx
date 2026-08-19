@@ -8,6 +8,7 @@ import { todayJalaliFull, toJalali } from '@/lib/date'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { activateOnKey } from '@/lib/a11y'
 import { PRIORITY_COLORS, REPORT_STATUS_LABELS, REPORT_STATUS_COLORS } from '@/lib/constants'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 function Sparkline({ data, color, width = 100, height = 28 }: { data: number[], color: string, width?: number, height?: number }) {
   const max = Math.max(...data, 1)
@@ -465,7 +466,7 @@ export default function DashboardPage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {upcomingMeetings.length === 0 ? (
-              <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '16px' }}>جلسه‌ای ثبت نشده</div>
+              <EmptyState variant="empty" icon="📅" title="جلسه‌ای ثبت نشده" />
             ) : upcomingMeetings.map(meeting => (
               <div key={meeting.id} style={{ padding: '8px 10px', borderRadius: '8px', borderRight: `3px solid ${priorityColor[meeting.priority] || '#555'}`, background: t.inner, cursor: 'pointer', transition: 'all 0.2s' }}
                 onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.opacity = '0.8'}
@@ -497,7 +498,7 @@ export default function DashboardPage() {
           </div>
           <div>
             {recentReports.length === 0 ? (
-              <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '16px' }}>گزارشی ثبت نشده</div>
+              <EmptyState variant="empty" icon="📋" title="گزارشی ثبت نشده" />
             ) : recentReports.map((report, i) => (
               <div key={report.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 0', borderBottom: i < recentReports.length - 1 ? `1px solid ${t.border}` : 'none' }}>
                 <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: report.seen ? 'transparent' : '#4a9eff', flexShrink: 0, border: report.seen ? `1px solid ${t.border}` : 'none' }}></div>

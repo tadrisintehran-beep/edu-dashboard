@@ -21,6 +21,7 @@ import {
 } from '@/lib/constants'
 import { useDepartments } from '@/lib/hooks/useDepartments'
 import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const VIEW_LABELS: Record<'weekly' | 'list' | 'calendar' | 'report', string> = {
   weekly: 'نمای هفتگی', list: 'نمای لیست', calendar: 'نمای تقویم', report: 'نمای گزارش',
@@ -809,8 +810,14 @@ export default function MeetingsPage() {
 
           <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {listMeetings.length === 0 ? (
-              <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>
-                {searchMatches ? 'نتیجه‌ای برای جستجو یافت نشد' : 'جلسه‌ای ثبت نشده'}
+              <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px' }}>
+                {searchMatches ? (
+                  <EmptyState variant="no-results" icon="🔍" title="نتیجه‌ای برای جستجو یافت نشد"
+                    description="عبارت جستجوی دیگری را امتحان کنید" actionLabel="پاک کردن جستجو" onAction={() => setSearchQuery('')} />
+                ) : (
+                  <EmptyState variant="empty" icon="📅" title="جلسه‌ای ثبت نشده"
+                    description="جلسات این هفته را ثبت کنید تا در اینجا نمایش داده شوند" actionLabel="+ جلسه جدید" onAction={() => setShowForm(true)} />
+                )}
               </div>
             ) : listMeetings.map(meeting => {
               const timeStatus = getMeetingTimeStatus(meeting.date, meeting.time, meeting.end_time)
@@ -934,7 +941,8 @@ export default function MeetingsPage() {
             <div style={{ color: t.text, fontSize: '13px', fontWeight: '600', marginBottom: '14px' }}>لیست جلسات</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {reportMeetings.length === 0 ? (
-                <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '20px' }}>جلسه‌ای در این بازه یافت نشد</div>
+                <EmptyState variant="no-results" icon="🗓" title="جلسه‌ای در این بازه یافت نشد"
+                  description="بازه زمانی دیگری را انتخاب کنید" actionLabel="نمایش یک سال اخیر" onAction={() => setReportFilter('year')} />
               ) : reportMeetings.map(meeting => (
                 <div key={meeting.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: t.inner, borderRadius: '8px' }}>
                   <div style={{ color: t.goldText, fontSize: '11px', minWidth: '110px', flexShrink: 0 }}>{meeting.day_of_week} {toJalaliSimple(meeting.date)}</div>

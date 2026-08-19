@@ -13,6 +13,7 @@ import { activateOnKey } from '@/lib/a11y'
 import { ALLOWED_UPLOAD_EXT, validateUploadFile } from '@/lib/fileValidation'
 import { PRIORITY_LABELS as priorityLabel, PRIORITY_COLORS as priorityColor } from '@/lib/constants'
 import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const typeLabel: Record<string, string> = { incoming: 'وارده', outgoing: 'صادره' }
 const typeColor: Record<string, string> = { incoming: '#4a9eff', outgoing: '#3dbb82' }
@@ -382,9 +383,17 @@ export default function LettersPage() {
       {/* فهرست نامه‌ها */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {filtered.length === 0 ? (
-          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>
-            <div style={{ fontSize: '32px', marginBottom: '12px' }}>✉️</div>
-            نامه‌ای یافت نشد
+          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px' }}>
+            {(filterType !== 'all' || filterStatus !== 'all') ? (
+              <EmptyState variant="no-results" icon="🔍" title="نامه‌ای یافت نشد"
+                description="فیلترهای انتخاب‌شده نتیجه‌ای نداشتند" actionLabel="پاک کردن فیلترها"
+                onAction={() => { setFilterType('all'); setFilterStatus('all') }} />
+            ) : (
+              <EmptyState variant="empty" icon="✉️" title="نامه‌ای ثبت نشده"
+                description="نامه‌های وارده و صادره در اینجا نمایش داده می‌شوند"
+                actionLabel={can('letters', 'create') ? '+ نامه جدید' : undefined}
+                onAction={can('letters', 'create') ? () => setShowForm(true) : undefined} />
+            )}
           </div>
         ) : filtered.map(letter => (
           <div key={letter.id} style={{

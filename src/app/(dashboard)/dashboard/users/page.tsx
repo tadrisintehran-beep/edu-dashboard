@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'next/navigation'
 import { useDepartments } from '@/lib/hooks/useDepartments'
 import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const roleLabel: Record<string, string> = {
   SUPER_ADMIN: 'مدیر سیستم',
@@ -289,8 +290,10 @@ export default function UsersPage() {
         ))}
 
         {users.length === 0 && (
-          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>
-            کاربری ثبت نشده
+          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px' }}>
+            <EmptyState variant="empty" icon="👤" title="کاربری ثبت نشده"
+              description="کاربران سامانه در اینجا نمایش داده می‌شوند"
+              actionLabel="+ کاربر جدید" onAction={() => setShowForm(true)} />
           </div>
         )}
       </div>

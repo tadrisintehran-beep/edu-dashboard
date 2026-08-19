@@ -13,6 +13,7 @@ import {
   TASK_STATUS_LABELS as statusLabel, TASK_STATUS_COLORS as statusColor,
 } from '@/lib/constants'
 import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 function daysDiff(dueDate: string): number {
   const today = new Date(); today.setHours(0, 0, 0, 0)
@@ -109,7 +110,9 @@ function Section({ title, color, list, t, ...itemProps }: SectionProps) {
         <div style={{ color: t.muted, fontSize: '11px' }}>({list.length})</div>
       </div>
       {list.length === 0 ? (
-        <div style={{ color: t.muted, fontSize: '12px', textAlign: 'center', padding: '16px', background: t.inner, borderRadius: '10px' }}>موردی نیست</div>
+        <div style={{ background: t.inner, borderRadius: '10px' }}>
+          <EmptyState variant="empty" icon="✅" title="موردی نیست" />
+        </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {list.map(item => <ItemCard key={item.id} item={item} t={t} {...itemProps} />)}

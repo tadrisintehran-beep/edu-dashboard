@@ -10,6 +10,7 @@ import { toJalali } from '@/lib/date'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { activateOnKey } from '@/lib/a11y'
 import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const fileTypeIcon: Record<string, string> = {
   'application/pdf': '📄',
@@ -349,9 +350,11 @@ export default function DocumentsPage() {
         {/* لیست اسناد */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {documents.length === 0 ? (
-            <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '12px' }}>📁</div>
-              هنوز سندی آپلود نشده
+            <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px' }}>
+              <EmptyState variant="empty" icon="📁" title="هنوز سندی آپلود نشده"
+                description="اسناد آپلود‌شده در اینجا نمایش داده می‌شوند"
+                actionLabel={can('documents', 'create') ? '+ آپلود سند' : undefined}
+                onAction={can('documents', 'create') ? () => setShowUpload(true) : undefined} />
             </div>
           ) : documents.map(doc => (
             <div key={doc.id}

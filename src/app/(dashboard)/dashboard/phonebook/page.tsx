@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/Toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { useIsMobile } from '@/lib/useIsMobile'
 import { SkeletonList } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { exportContactsToExcel } from '@/lib/exportData'
 import { useAuthStore } from '@/stores/authStore'
 import { activateOnKey } from '@/lib/a11y'
@@ -247,7 +248,18 @@ export default function PhonebookPage() {
             </div>
           ))}
           {filtered.length === 0 && (
-            <div style={{ gridColumn: '1/-1', background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>مخاطبی یافت نشد</div>
+            <div style={{ gridColumn: '1/-1', background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px' }}>
+              {(search || province !== 'همه' || showFavorites) ? (
+                <EmptyState variant="no-results" icon="🔍" title="مخاطبی یافت نشد"
+                  description="فیلترهای انتخاب‌شده نتیجه‌ای نداشتند" actionLabel="پاک کردن فیلترها"
+                  onAction={() => { setSearch(''); setProvince('همه'); setShowFavorites(false) }} />
+              ) : (
+                <EmptyState variant="empty" icon="📒" title="مخاطبی ثبت نشده"
+                  description="مخاطبین دفترچه تلفن در اینجا نمایش داده می‌شوند"
+                  actionLabel={can('contacts', 'create') ? '+ مخاطب جدید' : undefined}
+                  onAction={can('contacts', 'create') ? () => setShowForm(true) : undefined} />
+              )}
+            </div>
           )}
           {contacts.length < totalContacts && (
             <button onClick={loadMoreContacts} disabled={loadingMore} style={{ gridColumn: '1/-1', background: t.inner, border: `1px solid ${t.border}`, borderRadius: '10px', padding: '10px', color: t.sub, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', opacity: loadingMore ? 0.6 : 1 }}>

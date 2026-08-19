@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { activateOnKey } from '@/lib/a11y'
 import { toJalaliDateTime as toJalali } from '@/lib/date'
 import { SkeletonTable } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const ACTION_LABELS: Record<string, string> = {
   login: 'ورود', logout: 'خروج', view: 'مشاهده',
@@ -129,7 +130,13 @@ export default function LogsPage() {
         {loading ? (
           <SkeletonTable rows={7} columns={5} />
         ) : filtered.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>رویداد یافت نشد</div>
+          (filterAction !== 'all' || filterUser !== 'all') ? (
+            <EmptyState variant="no-results" icon="🔍" title="رویدادی یافت نشد"
+              description="فیلترهای انتخاب‌شده نتیجه‌ای نداشتند" actionLabel="پاک کردن فیلترها"
+              onAction={() => { setFilterAction('all'); setFilterUser('all') }} />
+          ) : (
+            <EmptyState variant="empty" icon="📜" title="رویدادی ثبت نشده" />
+          )
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>

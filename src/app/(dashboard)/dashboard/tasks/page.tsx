@@ -15,6 +15,7 @@ import {
   TASK_STATUS_LABELS as statusLabel, TASK_STATUS_COLORS as statusColor,
 } from '@/lib/constants'
 import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 export default function TasksPage() {
   const { t } = useTheme()
@@ -229,9 +230,16 @@ export default function TasksPage() {
       {/* لیست درخواست‌ها */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {filtered.length === 0 ? (
-          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>
-            <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
-            درخواستی یافت نشد
+          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px' }}>
+            {filterStatus !== 'all' ? (
+              <EmptyState variant="no-results" icon="🔍" title="درخواستی یافت نشد"
+                description="فیلتر انتخاب‌شده نتیجه‌ای نداشت" actionLabel="پاک کردن فیلتر" onAction={() => setFilterStatus('all')} />
+            ) : (
+              <EmptyState variant="empty" icon="📭" title="درخواستی ثبت نشده"
+                description="درخواست‌های ثبت‌شده در اینجا نمایش داده می‌شوند"
+                actionLabel={can('tasks', 'create') ? '+ درخواست جدید' : undefined}
+                onAction={can('tasks', 'create') ? () => setShowForm(true) : undefined} />
+            )}
           </div>
         ) : filtered.map(task => (
           <div key={task.id} style={{

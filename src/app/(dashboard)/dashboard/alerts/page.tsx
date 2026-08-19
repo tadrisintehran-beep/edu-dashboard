@@ -10,6 +10,7 @@ import { toJalali } from '@/lib/date'
 import { useAuthStore } from '@/stores/authStore'
 import { activateOnKey } from '@/lib/a11y'
 import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 type AlertLevel = 'critical' | 'important' | 'warning' | 'info'
 
@@ -258,7 +259,17 @@ export default function AlertsPage() {
           )
         })}
         {filtered.length === 0 && (
-          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>هشداری یافت نشد ✓</div>
+          <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px' }}>
+            {filter !== 'all' ? (
+              <EmptyState variant="no-results" icon="🔍" title="هشداری یافت نشد"
+                description="فیلتر انتخاب‌شده نتیجه‌ای نداشت" actionLabel="پاک کردن فیلتر" onAction={() => setFilter('all')} />
+            ) : (
+              <EmptyState variant="empty" icon="✅" title="هشداری وجود ندارد"
+                description="در حال حاضر هشدار فعالی ثبت نشده"
+                actionLabel={can('alerts', 'create') ? '+ هشدار جدید' : undefined}
+                onAction={can('alerts', 'create') ? () => setShowForm(true) : undefined} />
+            )}
+          </div>
         )}
         {alerts.length < totalAlerts && (
           <button onClick={loadMoreAlerts} disabled={loadingMore}

@@ -12,6 +12,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { activateOnKey } from '@/lib/a11y'
 import { REPORT_STATUS_LABELS as statusLabel, REPORT_STATUS_COLORS as statusColor } from '@/lib/constants'
 import { Skeleton, SkeletonList } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const fileTypeIcon: Record<string, string> = {
   'application/pdf': '📄',
@@ -369,7 +370,17 @@ export default function ReportsPage() {
             </div>
           ))}
           {filtered.length === 0 && (
-            <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '40px', textAlign: 'center', color: t.muted, fontSize: '13px' }}>گزارشی یافت نشد</div>
+            <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px' }}>
+              {filter !== 'all' ? (
+                <EmptyState variant="no-results" icon="🔍" title="گزارشی یافت نشد"
+                  description="فیلتر انتخاب‌شده نتیجه‌ای نداشت" actionLabel="پاک کردن فیلتر" onAction={() => setFilter('all')} />
+              ) : (
+                <EmptyState variant="empty" icon="📋" title="گزارشی ثبت نشده"
+                  description="گزارش‌های ارسالی در اینجا نمایش داده می‌شوند"
+                  actionLabel={can('reports', 'create') ? '+ گزارش جدید' : undefined}
+                  onAction={can('reports', 'create') ? () => setShowForm(true) : undefined} />
+              )}
+            </div>
           )}
           {reports.length < totalReports && (
             <button onClick={loadMoreReports} disabled={loadingMore}
