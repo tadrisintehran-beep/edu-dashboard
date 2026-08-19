@@ -6,6 +6,7 @@ import { useTheme } from '@/lib/ThemeContext'
 import { supabase } from '@/lib/supabase'
 import { todayJalaliFull, toJalali } from '@/lib/date'
 import { useIsMobile } from '@/lib/useIsMobile'
+import { activateOnKey } from '@/lib/a11y'
 import { PRIORITY_COLORS, REPORT_STATUS_LABELS, REPORT_STATUS_COLORS } from '@/lib/constants'
 
 function Sparkline({ data, color, width = 100, height = 28 }: { data: number[], color: string, width?: number, height?: number }) {
@@ -171,6 +172,34 @@ function TrendChart({ meetingData, reportData, months, isDark, t }: {
   )
 }
 
+function CollapsibleSection({ title, expanded, onToggle, t, children }: {
+  title: string, expanded: boolean, onToggle: () => void, t: any, children: React.ReactNode
+}) {
+  return (
+    <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+      <div
+        onClick={onToggle}
+        role="button" tabIndex={0} aria-expanded={expanded}
+        onKeyDown={e => activateOnKey(e, onToggle)}
+        style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '14px', cursor: 'pointer', userSelect: 'none',
+        }}
+      >
+        <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>{title}</div>
+        <div style={{ color: t.sub, fontSize: '11px', transition: 'transform 0.2s ease', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateRows: expanded ? '1fr' : '0fr', transition: 'grid-template-rows 0.25s ease' }}>
+        <div style={{ overflow: 'hidden' }}>
+          <div style={{ padding: '0 14px 14px' }}>
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const { user } = useAuthStore()
   const { t, isDark } = useTheme()
@@ -192,6 +221,14 @@ export default function DashboardPage() {
     totalThisMonth: 0, doneThisMonth: 0, overdue: 0,
     topAssignees: [] as { name: string, count: number }[],
   })
+  const [expandedSections, setExpandedSections] = useState({
+    trend: false, actionStats: false, overallStats: false,
+  })
+  const toggleSection = (key: keyof typeof expandedSections) =>
+    setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }))
+  const allExpanded = expandedSections.trend && expandedSections.actionStats && expandedSections.overallStats
+  const toggleAllSections = () =>
+    setExpandedSections({ trend: !allExpanded, actionStats: !allExpanded, overallStats: !allExpanded })
 
   useEffect(() => {
     fetchData()
@@ -371,7 +408,7 @@ export default function DashboardPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', direction: 'rtl' }}>
 
       {/* سلام */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div>
           <h1 style={{ color: t.text, fontSize: isMobile ? '16px' : '20px', fontWeight: '700' }}>
             سلام 👋
@@ -380,9 +417,14 @@ export default function DashboardPage() {
             {todayJalaliFull()} — دفتر تهران
           </p>
         </div>
-        <button onClick={fetchData} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 12px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '5px' }}>
-          🔄 بروزرسانی
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button onClick={toggleAllSections} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 12px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            {allExpanded ? '▲ جمع کردن همه' : '▼ نمایش همه'}
+          </button>
+          <button onClick={fetchData} style={{ background: t.inner, border: `1px solid ${t.border}`, borderRadius: '8px', padding: '6px 12px', color: t.sub, fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            🔄 بروزرسانی
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -473,12 +515,9 @@ export default function DashboardPage() {
       </div>
 
       {/* نمودار روند */}
-      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '14px', padding: isMobile ? '10px' : '14px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <div>
-            <div style={{ color: t.text, fontSize: '13px', fontWeight: '700' }}>روند ۶ ماه اخیر</div>
-            <div style={{ color: t.muted, fontSize: '11px', marginTop: '3px' }}>جلسات و گزارش‌های دریافتی</div>
-          </div>
+      <CollapsibleSection title="📊 روند ۶ ماه اخیر" expanded={expandedSections.trend} onToggle={() => toggleSection('trend')} t={t}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+          <div style={{ color: t.muted, fontSize: '11px' }}>جلسات و گزارش‌های دریافتی</div>
           <div style={{ display: 'flex', gap: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{ width: '24px', height: '3px', background: '#c9a84c', borderRadius: '2px' }} />
@@ -503,11 +542,10 @@ export default function DashboardPage() {
             داده‌ای برای نمایش وجود ندارد
           </div>
         )}
-      </div>
+      </CollapsibleSection>
 
       {/* آمار کلی */}
-      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px' }}>
-        <div style={{ color: t.text, fontSize: '12px', fontWeight: '600', marginBottom: '12px' }}>آمار کلی سامانه</div>
+      <CollapsibleSection title="📈 آمار کلی سامانه" expanded={expandedSections.overallStats} onToggle={() => toggleSection('overallStats')} t={t}>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '8px' }}>
           {[
             { value: kpis.totalMeetings, label: 'کل جلسات', color: t.goldText, icon: '📅' },
@@ -522,13 +560,12 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* آمار تکالیف جلسات */}
-      <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '14px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <div style={{ color: t.text, fontSize: '12px', fontWeight: '600' }}>🎯 تکالیف جلسات</div>
-          <a href="/dashboard/action-items" style={{ color: t.goldText, fontSize: '11px', textDecoration: 'none' }}>پیگیری تکالیف →</a>
+      <CollapsibleSection title="🎯 تکالیف جلسات" expanded={expandedSections.actionStats} onToggle={() => toggleSection('actionStats')} t={t}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+          <a href="/dashboard/action-items" onClick={e => e.stopPropagation()} style={{ color: t.goldText, fontSize: '11px', textDecoration: 'none' }}>پیگیری تکالیف →</a>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 3fr', gap: '12px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
@@ -564,7 +601,7 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
     </div>
   )
